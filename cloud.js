@@ -72,8 +72,19 @@ async function firebaseBackend() {
   const user = await new Promise(res => {
     const un = A.onAuthStateChanged(auth, u => {
       if (u) { un(); res(u); return }
+      // LINEなどアプリ内のブラウザではGoogleログインが戻ってこない。LINEは外部ブラウザで開き直せる
+      const ua = navigator.userAgent, inApp = /\bLine\/|FBAN|FBAV|Instagram|; wv\)/i.test(ua);
+      if (/\bLine\//i.test(ua) && !/openExternalBrowser=1/.test(location.search)) {
+        location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'openExternalBrowser=1'); return }
       showGate(`<h1>ペタカー! ベータ</h1><p>招待された人だけが使えるテスト版です。招待に使ったGoogleアカウントでログインしてください。</p>
-        <button class="gbtn" id="glogin">Googleでログイン</button><p class="gerr" id="gerr" hidden></p>`);
+        ${inApp ? '<p class="gerr">アプリの中のブラウザではログインできません。下のボタンでURLをコピーして、ChromeやSafariに貼り付けて開いてください。</p>' : ''}
+        <button class="gbtn" id="glogin">Googleでログイン</button><p class="gerr" id="gerr" hidden></p>
+        <p class="ghelp">ログインのあと白い画面で止まるときは、メールやLINEのリンクから開いている可能性があります。URLをコピーして、Chrome（iPhoneはSafari）で直接開いてください。</p>
+        <button class="gbtn sub" id="gcopy">URLをコピー</button>`);
+      document.getElementById('gcopy').onclick = e => {
+        const url = location.origin + location.pathname;
+        (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject()).then(() => e.target.textContent = 'コピーしました', () => prompt('このURLをコピーしてください', url));
+      };
       document.getElementById('glogin').onclick = () => A.signInWithPopup(auth, provider).catch(e => {
         const el = document.getElementById('gerr'); el.hidden = false;
         el.textContent = e.code === 'auth/popup-blocked' ? 'ログイン画面が開けませんでした。ブラウザのポップアップを許可してください。' : e.code === 'auth/popup-closed-by-user' ? 'ログインがキャンセルされました。' : 'ログインできませんでした（' + e.code + '）';
