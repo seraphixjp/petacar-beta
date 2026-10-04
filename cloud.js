@@ -3,6 +3,14 @@
 import { firebaseConfig } from './firebase-config.js';
 
 const SDK = 'https://www.gstatic.com/firebasejs/10.12.2/';
+// アプリ版（Capacitor）ではブラウザのポップアップが使えないので、OS標準のログイン画面を使う
+const NATIVE = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+const IOS = NATIVE && window.Capacitor.getPlatform() === 'ios';
+const FA = NATIVE ? window.Capacitor.registerPlugin('FirebaseAuthentication') : null;
+async function nativeCred(A, kind) {
+  if (kind === 'apple') { const r = await FA.signInWithApple({ skipNativeAuth: true }); return new A.OAuthProvider('apple.com').credential({ idToken: r.credential.idToken, rawNonce: r.credential.nonce }) }
+  const r = await FA.signInWithGoogle({ skipNativeAuth: true }); return A.GoogleAuthProvider.credential(r.credential.idToken);
+}
 const gate = document.getElementById('gate');
 const LOCAL_KEYS = ['colv2', 'sort2'];                 // per-device view preferences
 const PROFILE_SYNC = ['me2', 'log2', 'spot2', 'pins2', 'set2']; // keys that change what others see
@@ -67,11 +75,22 @@ function setPeople(map, me) {
 async function firebaseBackend() {
   const [{ initializeApp }, A, F] = await Promise.all([
     import(SDK + 'firebase-app.js'), import(SDK + 'firebase-auth.js'), import(SDK + 'firebase-firestore.js')]);
-  const app = initializeApp(firebaseConfig), auth = A.getAuth(app), db = F.getFirestore(app);
+  const app = initializeApp(firebaseConfig), auth = NATIVE ? A.initializeAuth(app, { persistence: A.indexedDBLocalPersistence }) : A.getAuth(app), db = F.getFirestore(app);
   const provider = new A.GoogleAuthProvider();
   const user = await new Promise(res => {
     const un = A.onAuthStateChanged(auth, u => {
       if (u) { un(); res(u); return }
+      if (NATIVE) {
+        showGate(`<h1>ペタカー!</h1><p>実際に会った人とだけ、車のスタンプを交換できます。</p>
+          ${IOS ? '<button class="gbtn apple" id="napple">Appleでサインイン</button>' : ''}<button class="gbtn${IOS ? ' sub' : ''}" id="ngoogle">Googleでログイン</button><p class="gerr" id="gerr" hidden></p>`);
+        const go = kind => nativeCred(A, kind).then(c => A.signInWithCredential(auth, c)).catch(e => {
+          const el = document.getElementById('gerr'); el.hidden = false;
+          el.textContent = /cancel/i.test((e && (e.code || e.message)) || '') ? 'ログインがキャンセルされました。' : 'ログインできませんでした（' + ((e && (e.code || e.message)) || e) + '）';
+        });
+        document.getElementById('ngoogle').onclick = () => go('google');
+        if (IOS) document.getElementById('napple').onclick = () => go('apple');
+        return;
+      }
       // LINEなどアプリ内のブラウザではGoogleログインが戻ってこない。LINEは外部ブラウザで開き直せる
       const ua = navigator.userAgent, inApp = /\bLine\/|FBAN|FBAV|Instagram|; wv\)/i.test(ua);
       if (/\bLine\//i.test(ua) && !/openExternalBrowser=1/.test(location.search)) {
@@ -128,11 +147,11 @@ async function firebaseBackend() {
       setSide: (id, d) => F.setDoc(D('ex', id, 'side', uid), d),
     },
     report: d => F.addDoc(Col('reports'), { ...d, by: uid, at: Date.now() }),
-    signOut: () => A.signOut(auth).then(() => location.reload()),
+    signOut: () => (NATIVE ? FA.signOut().catch(() => { }) : Promise.resolve()).then(() => A.signOut(auth)).then(() => location.reload()),
     deleteAccount: async () => {
       await Promise.all([F.deleteDoc(D('live', uid)).catch(() => { }), F.deleteDoc(D('users', uid, 'priv', 'state')), F.deleteDoc(D('users', uid))]);
       try { await A.deleteUser(auth.currentUser) }
-      catch (e) { if (e.code === 'auth/requires-recent-login') { await A.reauthenticateWithPopup(auth.currentUser, provider); await A.deleteUser(auth.currentUser) } else throw e }
+      catch (e) { if (e.code === 'auth/requires-recent-login') { if (NATIVE) { const apple = auth.currentUser.providerData.some(p => p.providerId === 'apple.com'); await A.reauthenticateWithCredential(auth.currentUser, await nativeCred(A, apple ? 'apple' : 'google')) } else await A.reauthenticateWithPopup(auth.currentUser, provider); await A.deleteUser(auth.currentUser) } else throw e }
     },
   };
 }

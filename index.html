@@ -398,7 +398,7 @@ html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
 .errbar{position:fixed;left:8px;right:8px;bottom:calc(env(safe-area-inset-bottom,0px) + 70px);z-index:120;background:var(--ng);color:#fff;font:600 12px var(--mono);padding:8px 10px;border-radius:10px;word-break:break-all}
 #gate h1{font:400 24px var(--display);margin:0}#gate p{margin:0;color:var(--muted);line-height:1.7}
 #gate .gbtn{border:0;border-radius:14px;padding:15px 22px;font:700 16px var(--sans);background:var(--accent);color:#fff;cursor:pointer;width:100%}
-#gate .gbtn.sub{background:var(--fill);color:var(--ink)}#gate .gerr{color:var(--ng);font-size:13px}#gate .ghelp{font-size:12px;color:var(--muted);margin-top:18px}
+#gate .gbtn.sub{background:var(--fill);color:var(--ink)}#gate .gbtn.apple{background:#000;color:#fff}#gate .gbtn+.gbtn{margin-top:10px}#gate .gerr{color:var(--ng);font-size:13px}#gate .ghelp{font-size:12px;color:var(--muted);margin-top:18px}
 .betatag{display:inline-block;font:700 10px var(--mono);letter-spacing:.1em;background:var(--accent);color:#fff;border-radius:6px;padding:2px 6px;vertical-align:4px;margin-left:6px}
 </style>
 </head><body>
@@ -1196,7 +1196,7 @@ const DOCS={
   <p class="note">試作のため、フォームはまだありません。</p>`],
  credits:['データと素材の出典',`<ul><li>道の駅・SA/PA・サーキットのデータ：© OpenStreetMap contributors（ODbL）</li><li>住所：国土地理院（逆ジオコーダ）</li><li>背景とサンプルの写真：Unsplash</li><li>フォント：Dela Gothic One、Zen Kaku Gothic New、JetBrains Mono（SIL Open Font License）</li></ul>`]
 };
-function openDoc(k,back){
+function openDoc(k,back){const PUB={terms:'terms',privacy:'privacy',contact:'support'};if(PUB[k]){window.open('https://seraphixjp.github.io/petacar-beta/'+PUB[k]+'.html','_blank');return}
   const [t,body]=DOCS[k];
   openSheet(`<b style="font-size:20px;display:block;text-align:center;margin-bottom:10px">${t}</b><div class="doc">${body}</div>
    <button class="btn sub press" style="margin-top:16px" id="docb">設定に戻る</button>`);
@@ -1540,7 +1540,8 @@ function request(id,accepted,exArg){
    <li id="c2"><span class="m">2</span>2人で同時にスマホを振る<small></small></li>
    <li id="c3"><span class="m">3</span>2人の位置<small></small></li></ul>
    <div id="res"><button class="btn sub press" data-close>やめる</button></div>`);
-  const stop=()=>{gone=true;unSide();motionOff();if(cur&&cur.peer===id)cur=null};
+  const wipe=()=>{const m=sides[C.uid];if(exId&&m&&m.la!=null){const id2=exId,b={t:m.t,r:m.r,how:m.how};setTimeout(()=>C.ex.setSide(id2,b).catch(()=>{}),10000)}}; // 位置は判定にだけ使い、10秒後に消す
+  const stop=()=>{gone=true;unSide();motionOff();wipe();if(cur&&cur.peer===id)cur=null};
   const quit=()=>{const was=!finished;stop();if(exId&&was)C.ex.update(exId,{state:'cancel'}).catch(()=>{})};
   bindClose(quit);
   const resetChecks=()=>['c2','c3'].forEach(k=>{const li=$('#'+k);if(!li)return;li.className='';li.querySelector('.m').textContent=k.slice(1);li.querySelector('small').textContent=''});
