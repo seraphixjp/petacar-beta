@@ -132,6 +132,11 @@ button{font-family:inherit;color:inherit}
   background-size:280% 100%;mix-blend-mode:screen;animation:holo 2.8s linear infinite}
 .stamp>.k::after{content:"";position:absolute;inset:0;animation:twinkle 1.4s ease-in-out infinite alternate;
   background:radial-gradient(circle at 22% 30%,#fff 0 1.5px,transparent 2.5px),radial-gradient(circle at 72% 22%,#fff 0 2px,transparent 3px),radial-gradient(circle at 60% 70%,#fff 0 1.5px,transparent 2.5px),radial-gradient(circle at 30% 78%,#fff 0 1px,transparent 2px),radial-gradient(circle at 84% 56%,#fff 0 1.2px,transparent 2.2px)}
+.stamp>.k.g{background:linear-gradient(115deg,transparent 30%,rgba(255,236,170,.85) 44%,rgba(255,196,60,.55) 52%,transparent 68%);background-size:280% 100%;box-shadow:inset 0 0 0 3px rgba(240,190,40,.55)}
+.stamp>.k.g::after{background:radial-gradient(circle at 24% 30%,#fff6c8 0 1.5px,transparent 2.5px),radial-gradient(circle at 74% 26%,#ffe27a 0 2px,transparent 3px),radial-gradient(circle at 62% 72%,#fff6c8 0 1.5px,transparent 2.5px),radial-gradient(circle at 34% 76%,#ffd24a 0 1.2px,transparent 2.2px)}
+.stamp>.kb.g{background:linear-gradient(#2a1f05,#2a1f05) padding-box,linear-gradient(135deg,#fff0a0,#f0bd2b 55%,#a87608) border-box;color:#ffe08a}
+.tag.rare{background:linear-gradient(#2a1f05,#2a1f05) padding-box,linear-gradient(90deg,#fff0a0,#f0bd2b,#a87608) border-box;border:1px solid transparent;color:#ffd75e;font-family:var(--mono);letter-spacing:.06em}
+.rarehit{font-family:var(--display);font-size:24px;background:linear-gradient(90deg,#a87608,#ffe27a,#f0bd2b,#a87608);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:holo 2.4s linear infinite}
 .stamp>.kb{position:absolute;right:-2%;bottom:4%;padding:.12em .42em;border-radius:.5em;background:linear-gradient(#17131f,#17131f) padding-box,linear-gradient(135deg,#ffd76a,#ff7ad9 55%,#7ee3ff) border-box;font:800 clamp(8px,1em,14px)/1.15 var(--mono);letter-spacing:.06em;color:#ffe2a0;box-shadow:0 1px 4px rgba(0,0,0,.4);border:1.5px solid transparent}
 @keyframes holo{from{background-position:130% 0}to{background-position:-30% 0}}
 @keyframes twinkle{from{opacity:.25}to{opacity:1}}
@@ -269,6 +274,7 @@ button{font-family:inherit;color:inherit}
 .collect .cl b{font:700 18px var(--mono)}.collect .cl small{font-size:11px;color:var(--muted)}
 .strip{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;min-width:0}
 .lth{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.lth h1{flex:1;min-width:0}.brand{width:36px;height:36px;flex:none}.brand svg{width:100%;height:100%;display:block;border-radius:10px;box-shadow:0 2px 8px rgba(232,85,28,.3)}
 .iconbtn{width:38px;height:38px;border-radius:50%;border:0;background:var(--surface);display:grid;place-items:center;cursor:pointer;color:var(--ink)}
 .iconbtn svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .set{background:var(--surface);border-radius:16px;overflow:hidden}
@@ -416,7 +422,7 @@ html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
   <div id="evbar"></div>
   <div class="scroll" id="scroll">
     <div class="navbar" id="navbar"><div><b id="navt"></b></div></div>
-    <header class="lt"><div class="lth"><h1 id="ttl"></h1><span id="hact"></span></div><p id="sub"></p></header>
+    <header class="lt"><div class="lth"><span class="brand" role="img" aria-label="ペタカー!"><svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" rx="22" fill="#e8551c"/><text x="46" y="60" text-anchor="middle" font-size="22" textLength="64" lengthAdjust="spacingAndGlyphs" fill="#fff" transform="rotate(-8 50 50)" font-family="Dela Gothic One,Hiragino Sans,sans-serif">ペタカー</text><text x="80" y="44" font-size="24" fill="#121820" transform="rotate(12 80 40)" font-family="Dela Gothic One,sans-serif">!</text><path d="M18 74h64" stroke="#121820" stroke-width="4" stroke-linecap="round" stroke-dasharray="2 8"/></svg></span><h1 id="ttl"></h1><span id="hact"></span></div><p id="sub"></p></header>
     <main id="view"></main>
   </div>
   <nav class="tabs">
@@ -717,7 +723,7 @@ function spotMark(sp,on,size=44){const c=CAT[sp.cat];
 const SAMPLE_ME={name:'すずき',maker:'スバル',car:'BRZ',garage:[{id:'g1',maker:'スバル',car:'BRZ'},{id:'g2',maker:'スバル',car:'WRX STI'}],cur:'g1',pref:'群馬',ring:'#e8551c',bg:{kind:'preset',id:'night'},img:avatar('#e8551c'),def:true,sample:true};
 const SAMPLE_LOG=[
   {pid:'p1',d:daysAgo(60),ev:'akagi',kira:false,v:1,car:{maker:'スバル',car:'インプレッサ WRX STI'}},{pid:'p1',d:daysAgo(32),ev:'haruna',kira:true,v:2},{pid:'p1',d:daysAgo(5),ev:null,place:'道の駅甘楽 夜オフ',kira:false},
-  {pid:'p2',d:daysAgo(32),ev:'haruna',kira:false},{pid:'p2',d:daysAgo(5),ev:null,place:'道の駅甘楽 夜オフ',kira:false},
+  {pid:'p2',d:daysAgo(32),ev:'haruna',kira:false,rare:true},{pid:'p2',d:daysAgo(5),ev:null,place:'道の駅甘楽 夜オフ',kira:false},
   {pid:'p3',d:daysAgo(32),ev:'haruna',kira:false},{pid:'p4',d:daysAgo(5),ev:null,place:'道の駅甘楽 夜オフ',kira:false},{pid:'p5',d:daysAgo(60),ev:'akagi',kira:false}
 ];
 let me=store.get('me2',null)||{name:'ゲスト',maker:'その他',car:'未設定',garage:[{id:'g1',maker:'その他',car:'未設定'}],cur:'g1',pref:'群馬',ring:'#e8551c',bg:{kind:'preset',id:'night'},bgv:2,img:avatar('#e8551c'),def:true};
@@ -741,6 +747,7 @@ const RANKS=[[1,'顔見知り'],[3,'常連'],[10,'相棒']];
 const rank=n=>{let r='—';RANKS.forEach(([k,v])=>{if(n>=k)r=v});return r};
 const met=()=>[...new Set(log.map(l=>l.pid))];
 const kiraRate=(before,ev)=>boost?.5:Math.min(.15,.03+.01*before)*(ev?2:1);
+const rareRate=(before,ev)=>boost?.3:Math.min(.3,.1+.02*before)*(ev?1.5:1);
 const pct=x=>Math.round(x*100)+'%';
 const myStats=()=>{const ppl=met();return {ex:log.length,ppl:ppl.length,prefs:new Set(ppl.map(i=>person(i).pref)).size,same:ppl.filter(i=>person(i).maker===me.maker&&person(i).car===me.car).length,
   best:Math.max(0,...ppl.map(daysWith)),kira:log.filter(l=>l.kira).length,evs:new Set(log.filter(l=>l.ev).map(l=>l.ev)).size,days:new Set(log.map(l=>l.d)).size,mk:new Set(ppl.map(i=>person(i).maker).filter(m=>m&&m!=='その他')).size,...zukanStats(),...spotStats()}};
@@ -770,12 +777,12 @@ function stamp(p,o={}){
       <circle cx="50" cy="50" r="49.6" fill="none" stroke="${ev.c2}" stroke-width=".9"/><circle cx="50" cy="50" r="39.4" fill="none" stroke="${ev.c2}" stroke-width=".9"/>
       <text font-size="5.6" font-family="JetBrains Mono,monospace" font-weight="700" fill="${ev.c2}" dy="2" textLength="276" lengthAdjust="spacing"><textPath href="#${id}">${esc(txt)}</textPath></text></svg>`;
   }else svg=`<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48" fill="none" stroke="${p.ring}" stroke-width="3.6"/></svg>`;
-  return `<div class="stamp ${ev?'ev':''}" style="width:${size}px;font-size:${size/7}px"><img src="${p.img}" alt="${esc(p.name)}のスタンプ">${o.kira?'<div class="k"></div>':''}${svg}${o.kira?'<div class="kb">EX</div>':''}</div>`;
+  return `<div class="stamp ${ev?'ev':''}" style="width:${size}px;font-size:${size/7}px"><img src="${p.img}" alt="${esc(p.name)}のスタンプ">${o.kira?'<div class="k"></div>':o.rare?'<div class="k g"></div>':''}${svg}${o.kira?'<div class="kb">EX</div>':o.rare?'<div class="kb g">RARE</div>':''}</div>`;
 }
 const curV=p=>p.vers?p.vers.length:(p.ver||1);
 const vOf=(p,l)=>l&&l.v?l.v:curV(p);
 const vName=v=>v===1?'初版':`第${v}版`;
-const best=id=>{const ls=log.filter(l=>l.pid===id);return ls.filter(l=>l.kira).pop()||ls[ls.length-1]};
+const best=id=>{const ls=log.filter(l=>l.pid===id);return ls.filter(l=>l.kira).pop()||ls.filter(l=>l.rare).pop()||ls[ls.length-1]};
 
 /* event pieces */
 function evCard(){return '';
@@ -815,7 +822,7 @@ const views={
   <div class="stats"><div class="stat"><b>${log.length}</b><span>交換した数</span></div><div class="stat"><b>${ppl.length}</b><span>会った人</span></div><div class="stat"><b>${kc}</b><span>EX</span></div></div>
   <button class="yrcard press" id="wrapb"><span class="yk">PETACAR ${new Date().getFullYear()}</span><b>${new Date().getFullYear()}年のまとめ</b><span class="ys">この1年の出会いとスポットを振り返る</span><span class="ya" aria-hidden="true">›</span></button>
   <div class="sec">最近の交換<button class="seclink" id="allrec">すべて見る ›</button></div>
-  <div class="list">${log.slice().sort((a,b)=>b.d.localeCompare(a.d)).slice(0,4).map(l=>{const p=person(l.pid);return `<button class="li press" data-p="${p.id}">${stamp(p,{size:44,ev:l.ev,kira:l.kira,v:l.v})}<div class="t"><b>${esc(p.name)} ${l.kira?'<span class="tag kira">EX</span>':''}</b><span>${esc(placeOf(l))}</span></div><span class="d">${fmtD(l.d)}</span></button>`}).join('')}</div>`;
+  <div class="list">${log.slice().sort((a,b)=>b.d.localeCompare(a.d)).slice(0,4).map(l=>{const p=person(l.pid);return `<button class="li press" data-p="${p.id}">${stamp(p,{size:44,ev:l.ev,kira:l.kira,rare:l.rare,v:l.v})}<div class="t"><b>${esc(p.name)} ${l.kira?'<span class="tag kira">EX</span>':l.rare?'<span class="tag rare">レア</span>':''}</b><span>${esc(placeOf(l))}</span></div><span class="d">${fmtD(l.d)}</span></button>`}).join('')}</div>`;
  },
  ex(){
   const on=nearOn();
@@ -880,7 +887,7 @@ const views={
 
 function colGrid(){
   const lastMet=id=>log.filter(l=>l.pid===id).map(l=>l.d).sort().pop()||'';
-  const rare=id=>{const ls=log.filter(l=>l.pid===id);return ls.filter(l=>l.kira).length*100+new Set(ls.map(l=>(l.v||1)+(l.ev||'-')+(l.kira?'k':''))).size*10+ls.filter(l=>l.ev).length};
+  const rare=id=>{const ls=log.filter(l=>l.pid===id);return ls.filter(l=>l.kira).length*100+new Set(ls.map(l=>(l.v||1)+(l.ev||'-')+(l.kira?'k':l.rare?'r':''))).size*10+ls.filter(l=>l.ev).length};
   const S={love:(a,b)=>daysWith(b)-daysWith(a)||lastMet(b).localeCompare(lastMet(a)),rare:(a,b)=>rare(b)-rare(a)||daysWith(b)-daysWith(a),
     recent:(a,b)=>lastMet(b).localeCompare(lastMet(a)),car:(a,b)=>(MAKERS.indexOf(person(a).maker)-MAKERS.indexOf(person(b).maker))||person(a).car.localeCompare(person(b).car,'ja')};
   const N=t=>t.normalize('NFKC').toLowerCase().replace(/\s/g,''),q=N(colQ);
@@ -888,8 +895,8 @@ function colGrid(){
   if(q)ids=ids.filter(id=>{const p=person(id);return N(p.name+p.maker+p.car+p.pref).includes(q)});
   if(!ids.length)return `<p class="note" style="text-align:center;margin-top:18px">${q?'見つかりません。':colSort==='fav'?'まだお気に入りがいません。相手のプロフィールの「☆ お気に入りに追加」で登録できます。':'まだ交換した人がいません。'}</p>`;
   return `${q?`<p class="note" style="margin:0 4px 8px">${ids.length}人</p>`:''}<div class="grid">${ids.map(id=>{const p=person(id),n=daysWith(id),b=best(id),kc=log.filter(l=>l.pid===id&&l.kira).length;
-    const sub=colSort==='recent'?`<span class="s">${fmtD(lastMet(id))}</span>`:colSort==='car'?`<span class="s">${esc(carLabel(p))}</span>`:colSort==='rare'?`<span class="s">${kc?`EX×${kc} · `:''}${new Set(log.filter(l=>l.pid===id).map(l=>(l.v||1)+(l.ev||'-')+(l.kira?'k':''))).size}種類</span>`:`<span class="hearts">♥${n} ${rank(n)}</span>`;
-    return `<button class="cell press" data-p="${id}">${favMark(id)}${stamp(p,{ev:b.ev,kira:b.kira,v:b.v})}<span class="n">${esc(p.name)}</span>${sub}</button>`}).join('')}</div>`;
+    const sub=colSort==='recent'?`<span class="s">${fmtD(lastMet(id))}</span>`:colSort==='car'?`<span class="s">${esc(carLabel(p))}</span>`:colSort==='rare'?`<span class="s">${kc?`EX×${kc} · `:''}${new Set(log.filter(l=>l.pid===id).map(l=>(l.v||1)+(l.ev||'-')+(l.kira?'k':l.rare?'r':''))).size}種類</span>`:`<span class="hearts">♥${n} ${rank(n)}</span>`;
+    return `<button class="cell press" data-p="${id}">${favMark(id)}${stamp(p,{ev:b.ev,kira:b.kira,rare:b.rare,v:b.v})}<span class="n">${esc(p.name)}</span>${sub}</button>`}).join('')}</div>`;
 }
 const PINI='<svg viewBox="0 0 24 24" width="11" height="11" fill="#fff"><path d="M12 2.5l2.8 6 6.6.7-5 4.5 1.4 6.5L12 17l-5.8 3.2 1.4-6.5-5-4.5 6.6-.7z"/></svg>';
 function openBadge(k){
@@ -1240,14 +1247,14 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('#sh'))dismissShe
 function grant(p){
   const already=log.some(l=>l.pid===p.id&&l.d===today());
   const ev=inEvent()?LIVE:null;
-  if(already)return `<div class="result">${stamp(p,{size:140,ev:best(p.id).ev,kira:best(p.id).kira,v:best(p.id).v})}<b style="font-size:18px">${esc(p.name)} さんとは今日もう交換しています</b><div class="note">仲良し度とEXの抽選は、同じ人とは1日1回です。</div></div><button class="btn sub press" style="margin-top:14px" data-close>閉じる</button>`;
-  const before=daysWith(p.id),rate=kiraRate(before,ev),kira=Math.random()<rate;
-  const gb=gotKeys();log.push({pid:p.id,d:today(),ev,place:ev?null:placeHere(),kira,v:curV(p),car:{maker:p.maker,car:p.car},my:{maker:me.maker,car:me.car}});save();const nb=gotList(myStats()).filter(b=>!gb.includes(b.k));buzz(kira?[40,60,40,60,140]:[30,50,90]);sfx.peta(kira);
-  return `<div class="result"><div class="peta" aria-hidden="true">ペタッ!</div>${kira?'<div class="kirahit">EXが出た！</div>':''}${stamp(p,{size:150,ev,kira})}
+  if(already)return `<div class="result">${stamp(p,{size:140,ev:best(p.id).ev,kira:best(p.id).kira,rare:best(p.id).rare,v:best(p.id).v})}<b style="font-size:18px">${esc(p.name)} さんとは今日もう交換しています</b><div class="note">仲良し度とEXの抽選は、同じ人とは1日1回です。</div></div><button class="btn sub press" style="margin-top:14px" data-close>閉じる</button>`;
+  const before=daysWith(p.id),rate=kiraRate(before,ev),rrate=rareRate(before,ev),roll=Math.random(),kira=roll<rate,rare=!kira&&roll<rate+rrate;
+  const gb=gotKeys();log.push({pid:p.id,d:today(),ev,place:ev?null:placeHere(),kira,rare,v:curV(p),car:{maker:p.maker,car:p.car},my:{maker:me.maker,car:me.car}});save();const nb=gotList(myStats()).filter(b=>!gb.includes(b.k));buzz(kira?[40,60,40,60,140]:[30,50,90]);sfx.peta(kira);
+  return `<div class="result"><div class="peta" aria-hidden="true">ペタッ!</div>${kira?'<div class="kirahit">EXが出た！</div>':rare?'<div class="rarehit">レアが出た！</div>':''}${stamp(p,{size:150,ev,kira,rare})}
    <b style="font-size:20px">${esc(p.name)} さんと交換</b>${rarity(p.maker,p.car)>=4?`<span class="raretag">${'★'.repeat(rarity(p.maker,p.car))} レア車に会えた！</span>`:''}
    <div><span class="chip">${esc(carLabel(p))}</span>${ev?` <span class="chip">${esc(EVENTS[ev].name)}</span>`:''}</div>
    <div class="hearts" style="font-size:14px">仲良し度 ♥${before} → ♥${before+1}</div>
-   <div class="note">EXの確率 ${pct(rate)}${ev&&!boost?'（イベントで2倍）':''}</div>${nb.length?`<div class="newbad">${medal(nb[0],30)}<span>バッジ獲得：${nb.map(b=>b.t).join('・')}</span></div>`:''}</div>
+   <div class="note">EX ${pct(rate)} · レア ${pct(rrate)}${ev&&!boost?'（イベントで2倍）':''}</div>${nb.length?`<div class="newbad">${medal(nb[0],30)}<span>バッジ獲得：${nb.map(b=>b.t).join('・')}</span></div>`:''}</div>
    <button class="btn press" style="margin-top:14px" data-close data-go="col">コレクションに入れる</button>`;
 }
 function showResult(p){$('#res').innerHTML=grant(p);bindClose();render()}
@@ -1301,20 +1308,20 @@ function openQR(mode){
 /* detail */
 function detail(id){
   const p=person(id),n=daysWith(id),h=log.filter(l=>l.pid===id).slice().reverse(),b=best(id),ps=PST[id];
-  const seen=new Set(),variants=h.filter(l=>{const k=(l.v||1)+(l.ev||'-')+(l.kira?'k':'');if(seen.has(k))return false;seen.add(k);return true});
-  openSheet(`<div class="hero" style="background:${bgCSS(p)}"></div><div class="result">${stamp(p,{size:120,ev:b.ev,kira:b.kira,v:b.v})}<b style="font-size:20px">${esc(p.name)}</b>
+  const seen=new Set(),variants=h.filter(l=>{const k=(l.v||1)+(l.ev||'-')+(l.kira?'k':l.rare?'r':'');if(seen.has(k))return false;seen.add(k);return true});
+  openSheet(`<div class="hero" style="background:${bgCSS(p)}"></div><div class="result">${stamp(p,{size:120,ev:b.ev,kira:b.kira,rare:b.rare,v:b.v})}<b style="font-size:20px">${esc(p.name)}</b>
    <div><span class="chip">${esc(carLabel(p))}</span> <span class="chip">${esc(p.pref)}</span></div>
    <button class="favbtn press" id="favb" aria-pressed="${favs.has(id)}">${favs.has(id)?'★ お気に入り':'☆ お気に入りに追加'}</button>
    <div class="lv" style="margin-top:4px">${Array.from({length:10},(_,i)=>`<i class="${i<n?'on':''}"></i>`).join('')}</div>
    <div class="hearts" style="font-size:14px">♥${n} · ${rank(n)}</div>
-   <div class="note">次に会ったときのEX確率 ${pct(kiraRate(n,false))}（イベント中は${pct(kiraRate(n,true))}）</div></div>
+   <div class="note">次に会ったとき EX ${pct(kiraRate(n,false))} · レア ${pct(rareRate(n,false))}（イベント中は EX ${pct(kiraRate(n,true))}）</div></div>
    ${rewardsBlock(p.name,ps,ps.pins,ps.showStats!==false,ps.showRewards!==false)}
    <div class="sec">もらったスタンプ <span class="chip">${variants.length}種類</span></div>
-   <div class="album">${variants.map(l=>`<div class="alb">${stamp(p,{size:64,ev:l.ev,kira:l.kira,v:l.v})}${p.vers&&p.vers.length>1?`<span>${vName(l.v||1)}</span>`:''}</div>`).join('')}</div>
+   <div class="album">${variants.map(l=>`<div class="alb">${stamp(p,{size:64,ev:l.ev,kira:l.kira,rare:l.rare,v:l.v})}${p.vers&&p.vers.length>1?`<span>${vName(l.v||1)}</span>`:''}</div>`).join('')}</div>
    ${p.vers&&p.vers.length>1?`<p class="note" style="margin:6px 4px 0">${esc(p.name)}さんはスタンプを${p.vers.length}回作っています。前の版はもう手に入りません。</p>`:''}
    ${(()=>{const cc={};h.forEach(l=>{const k=carLabel(l.car||p);cc[k]=(cc[k]||0)+1});const e=Object.entries(cc);return e.length>1?`<div class="sec">乗ってきた車</div><div class="group" style="display:flex;flex-wrap:wrap;gap:6px">${e.map(([k,n])=>`<span class="chip">${esc(k)} ×${n}</span>`).join('')}</div>`:''})()}
    <div class="sec">会った記録</div>
-   <div class="list" data-hist>${h.map(l=>`<div class="li" style="cursor:default"><div class="t"><b>${esc(placeOf(l))} ${l.kira?'<span class="tag kira">EX</span>':''}</b><span>${esc(carLabel(l.car||p))}${l.my?` ⇄ 自分は${esc(carLabel(l.my))}`:''}</span></div><span class="d">${l.d.replace(/-/g,'/')}</span></div>`).join('')}</div>
+   <div class="list" data-hist>${h.map(l=>`<div class="li" style="cursor:default"><div class="t"><b>${esc(placeOf(l))} ${l.kira?'<span class="tag kira">EX</span>':l.rare?'<span class="tag rare">レア</span>':''}</b><span>${esc(carLabel(l.car||p))}${l.my?`　マイカー：${esc(carLabel(l.my))}`:''}</span></div><span class="d">${l.d.replace(/-/g,'/')}</span></div>`).join('')}</div>
    <button class="btn sub press" style="margin-top:14px" data-close>閉じる</button>
    <div class="saferow"><button class="linkbtn press" id="repb">通報する</button><button class="linkbtn press" id="blkb">${blocked.has(id)?'ブロックを解除':'ブロックする'}</button></div>`);
   bindClose();
