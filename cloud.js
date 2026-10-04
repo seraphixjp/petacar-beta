@@ -10,7 +10,12 @@ const people = (window.__people = window.__people || []);
 const peopleCbs = [];
 
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-function showGate(html) { gate.hidden = false; gate.innerHTML = `<div class="gbox"><div class="glogo">P</div>${html}</div>`; }
+const LOGO = `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" rx="22" fill="#e8551c"/><text x="46" y="60" text-anchor="middle" font-size="22" textLength="64" lengthAdjust="spacingAndGlyphs" fill="#fff" transform="rotate(-8 50 50)" font-family="Dela Gothic One,Hiragino Sans,sans-serif">ペタカー</text><text x="80" y="44" font-size="24" fill="#121820" transform="rotate(12 80 40)" font-family="Dela Gothic One,sans-serif">!</text><path d="M18 74h64" stroke="#121820" stroke-width="4" stroke-linecap="round" stroke-dasharray="2 8"/></svg>`;
+function showGate(html) { gate.hidden = false; gate.innerHTML = `<div class="gbox"><div class="glogo">${LOGO}</div>${html}</div>`; }
+const step = t => showGate(`<p>${esc(t)}</p><div class="gspin"></div>`);
+function showError(where, e) { console.error(where, e); showGate(`<h1>うまく開けませんでした</h1><p>${esc(where)}</p><p class="gerr">${esc((e && (e.code || e.message)) || e)}</p><p>この画面のスクリーンショットを鈴木さんに送ってください。</p><button class="gbtn" onclick="location.reload()">開き直す</button>`) }
+addEventListener('error', e => { if (gate.hidden) { const b = document.createElement('div'); b.className = 'errbar'; b.textContent = 'エラー: ' + (e.message || '') + ' @' + (e.lineno || ''); document.body.appendChild(b) } });
+addEventListener('unhandledrejection', e => { if (gate.hidden) { const b = document.createElement('div'); b.className = 'errbar'; b.textContent = 'エラー: ' + ((e.reason && (e.reason.code || e.reason.message)) || e.reason); document.body.appendChild(b) } });
 const debounce = (fn, ms) => { let t; const f = () => { clearTimeout(t); t = setTimeout(fn, ms) }; f.now = () => { clearTimeout(t); fn() }; return f };
 
 function makeStore(backend, profDoc, privDoc) {
@@ -75,22 +80,25 @@ async function firebaseBackend() {
       });
     });
   });
-  showGate('<p>読み込んでいます…</p>');
+  step('招待リストを確認しています…');
   const email = (user.email || '').toLowerCase();
-  const allowed = await F.getDoc(F.doc(db, 'allow', email)).then(s => s.exists()).catch(() => false);
+  let allowErr = null;
+  const allowed = await F.getDoc(F.doc(db, 'allow', email)).then(s => s.exists()).catch(e => { allowErr = e; return false });
+  if (allowErr && allowErr.code !== 'permission-denied') throw allowErr;
   if (!allowed) {
     showGate(`<h1>まだ招待されていません</h1><p><b>${esc(email)}</b> はテストの参加者リストに入っていません。鈴木さんに、このアドレスを伝えてください。</p><button class="gbtn sub" id="gout">別のアカウントでログイン</button>`);
     document.getElementById('gout').onclick = () => A.signOut(auth).then(() => location.reload());
     return null;
   }
   const uid = user.uid, D = (...p) => F.doc(db, ...p), Col = (...p) => F.collection(db, ...p);
+  step('データを読み込んでいます…');
   const [profSnap, privSnap] = await Promise.all([F.getDoc(D('users', uid)), F.getDoc(D('users', uid, 'priv', 'state'))]);
   const snapMap = qs => { const m = {}; qs.forEach(d => m[d.id] = d.data()); return m };
   return {
     uid, profDoc: profSnap.exists() ? profSnap.data() : null, privDoc: privSnap.exists() ? privSnap.data() : null,
     setProfile: d => F.setDoc(D('users', uid), d),
     setPriv: d => F.setDoc(D('users', uid, 'priv', 'state'), d),
-    subPeople: cb => F.onSnapshot(Col('users'), qs => cb(snapMap(qs)), e => console.warn('people', e)),
+    subPeople: (cb, err) => F.onSnapshot(Col('users'), qs => cb(snapMap(qs)), e => { console.warn('people', e); err && err(e) }),
     live: {
       set: d => F.setDoc(D('live', uid), d),
       clear: () => F.deleteDoc(D('live', uid)).catch(() => { }),
@@ -129,7 +137,7 @@ function mockBackend(uid) {
   return {
     uid, profDoc: M.docs.get('users/' + uid) || null, privDoc: M.docs.get('users/' + uid + '/priv/state') || null,
     setProfile: d => put('users/' + uid, d), setPriv: d => put('users/' + uid + '/priv/state', d),
-    subPeople: cb => sub(() => cb(coll('users'))),
+    subPeople: (cb, err) => sub(() => cb(coll('users'))),
     live: { set: d => put('live/' + uid, d), clear: () => { M.docs.delete('live/' + uid); notify(); return Promise.resolve() }, sub: cb => sub(() => cb(coll('live'))) },
     ex: {
       create: async peer => { const id = 'x' + Date.now() + (n++); await put('ex/' + id, { a: uid, b: peer, state: 'asked', at: Date.now() }); return id },
@@ -149,7 +157,7 @@ const params = new URLSearchParams(location.search);
 const mockId = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) && params.get('mock');
 let be = null;
 try { be = mockId ? mockBackend(mockId) : await firebaseBackend() }
-catch (e) { console.error(e); showGate(`<h1>読み込めませんでした</h1><p>電波のよい場所で、ページを開き直してください。</p><p class="gerr">${esc(e.code || e.message || e)}</p>`) }
+catch (e) { showError('ログインまたは読み込みの途中で止まりました。', e) }
 if (be) {
   window.__cloud = {
     uid: be.uid, store: makeStore(be, be.profDoc, be.privDoc), people,
@@ -157,5 +165,12 @@ if (be) {
     live: be.live, ex: be.ex, report: be.report, signOut: be.signOut, deleteAccount: be.deleteAccount,
   };
   let first = true;
-  be.subPeople(map => { setPeople(map, be.uid); if (first) { first = false; gate.hidden = true; gate.innerHTML = ''; window.__startApp() } });
+  step('参加者を読み込んでいます…');
+  const slow = setTimeout(() => { if (first) showError('参加者の一覧を読み込めません（15秒たっても応答がありません）。', 'timeout') }, 15000);
+  be.subPeople(map => {
+    setPeople(map, be.uid);
+    if (!first) return;
+    first = false; clearTimeout(slow);
+    try { window.__startApp(); gate.hidden = true; gate.innerHTML = '' } catch (e) { showError('画面の準備中にエラーが起きました。', e) }
+  }, e => { if (first) { clearTimeout(slow); showError('参加者の一覧を読み込めませんでした。', e) } });
 }
