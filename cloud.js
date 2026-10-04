@@ -61,7 +61,7 @@ function makeStore(backend, profDoc, privDoc) {
 }
 
 function toPerson(id, d) {
-  return { id, name: d.name || '名無し', maker: d.maker || 'その他', car: d.car || '—', pref: d.pref || '', ring: d.ring || '#e8551c',
+  return { id, msg: typeof d.msg === 'string' ? d.msg.slice(0, 30) : '', name: d.name || '名無し', maker: d.maker || 'その他', car: d.car || '—', pref: d.pref || '', ring: d.ring || '#e8551c',
     img: d.img, bg: d.bg, ver: d.ver || 1, vers: (d.vers && d.vers.length ? d.vers : [{ img: d.img, ring: d.ring }]).map(v => ({ ring: v.ring, img: v.img || d.img })),
     stats: { pins: [], ...(d.stats || {}) }, showStats: d.showStats !== false, showRewards: d.showRewards !== false };
 }

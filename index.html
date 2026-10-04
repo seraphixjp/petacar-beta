@@ -61,6 +61,7 @@ button{font-family:inherit;color:inherit}
 .zt{display:grid;justify-items:center;gap:4px;background:var(--fill);border-radius:14px;padding:10px 4px;border:0;font:inherit;color:inherit;min-width:0}
 .zt b{font-size:11.5px;line-height:1.25;text-align:center;max-width:100%;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 .zt span{font:500 10px var(--mono);color:var(--muted)}
+.zp{display:block;width:100%;aspect-ratio:4/3;border-radius:10px;overflow:hidden;background:var(--line)}.zp img{width:100%;height:100%;object-fit:cover;display:block}.zp.ic{display:grid;place-items:center;background:transparent}.zp.off img{filter:grayscale(1) brightness(.5);opacity:.55}
 .zt.got{background:var(--surface);box-shadow:inset 0 0 0 1.5px var(--accent);cursor:pointer}
 .zt:not(.got) b{color:var(--muted)}
 .spm{flex:none}
@@ -145,6 +146,8 @@ button{font-family:inherit;color:inherit}
 .member{border-radius:24px;padding:20px;display:grid;justify-items:center;gap:8px;text-align:center;color:#fff;position:relative;overflow:hidden}
 .member>*{position:relative}
 .member .nm{font-family:var(--display);font-size:22px;line-height:1.2}
+.hito{border:0;background:rgba(0,0,0,.28);color:#fff;font:500 13.5px/1.4 var(--sans);padding:5px 12px;border-radius:999px;max-width:92%;overflow-wrap:anywhere;cursor:pointer;backdrop-filter:blur(4px)}.hito.add{background:rgba(255,255,255,.16);color:rgba(255,255,255,.85);font-size:12.5px}
+.hitop{font-size:14px;color:var(--muted);text-align:center;max-width:90%;overflow-wrap:anywhere;margin-top:-2px}
 .member .chip{background:rgba(0,0,0,.35);color:#fff;backdrop-filter:blur(4px)}
 .member .nm{text-shadow:0 2px 8px rgba(0,0,0,.45)}
 .hero{height:118px;border-radius:20px;margin:0 0 -64px;position:relative}
@@ -522,8 +525,8 @@ function avatar(c1){
   return cv.toDataURL('image/png');
 }
 const POOL=window.__cloud.people;const POOL_DEMO=[
-  {id:'p1',name:'けんた',maker:'スバル',car:'WRX STI',tag:'STI',pref:'群馬',ring:'#1f3a5f',c:['#2b5fa8','#0e1f3a']},
-  {id:'p2',name:'ゆうき',maker:'トヨタ',car:'GR86',tag:'GR86',pref:'栃木',ring:'#e8551c',c:['#e8551c','#5a1e08']},
+  {id:'p1',name:'けんた',msg:'GD乗りです。赤城でよく走ってます',maker:'スバル',car:'WRX STI',tag:'STI',pref:'群馬',ring:'#1f3a5f',c:['#2b5fa8','#0e1f3a']},
+  {id:'p2',name:'ゆうき',msg:'週末は道の駅めぐり',maker:'トヨタ',car:'GR86',tag:'GR86',pref:'栃木',ring:'#e8551c',c:['#e8551c','#5a1e08']},
   {id:'p3',name:'まさ',maker:'マツダ',car:'ロードスター',tag:'ND',pref:'埼玉',ring:'#1d8a4b',c:['#3d8a5e','#10301f']},
   {id:'p4',name:'りょう',maker:'ホンダ',car:'シビック タイプR',tag:'TYPE R',pref:'群馬',ring:'#d4a017',c:['#b8901a','#3d2f06']},
   {id:'p5',name:'あや',maker:'トヨタ',car:'2000GT',tag:'2000GT',pref:'長野',ring:'#7b3fa0',c:['#7b3fa0','#26103a']},
@@ -714,6 +717,9 @@ const favMark=id=>favs.has(id)?'<span class="favmark" aria-label="お気に入�
 let here=null,spotSort='visit',colView=store.get('colv2','stamp'),spotCat='all',spotPref='',spotQ='',spotLim=40,colQ='',rwFilter='all',newShown=[],seenB=store.get('seen2',null),sheetAfter=null;
 const ZTOTAL=MAKERS.reduce((n,m)=>n+CARS[m].length,0);
 function zukanMap(){const z={};log.forEach(l=>{const c=l.car||person(l.pid),known=(CARS[c.maker]||[]).includes(c.car),k=(known?c.maker:'その他')+'|'+c.car,a=(z[k]=z[k]||[]);if(!a.includes(l.pid))a.push(l.pid)});return z}
+/* 車種図鑑の写真（Wikimedia Commons。出典は zukan-credits.html） */
+let ZIMG={};try{fetch('zukan/index.json').then(r=>r.ok?r.json():{}).then(j=>{ZIMG=j||{}}).catch(()=>{})}catch(e){}
+function carPic(m,c,on){const f=ZIMG[m+'|'+c];return f?`<span class="zp${on?'':' off'}"><img src="zukan/${f}" loading="lazy" decoding="async" alt=""></span>`:`<span class="zp ic">${carTile(on,44)}</span>`}
 function carTile(on,size=40){const bg=on?'var(--accent)':'var(--line)',fg=on?'#fff':'var(--surface)';
   return `<svg viewBox="0 0 48 48" width="${size}" height="${size}" aria-hidden="true"><rect width="48" height="48" rx="12" style="fill:${bg}"/><g style="fill:${fg}"><rect x="10" y="31" width="7" height="6" rx="2"/><rect x="31" y="31" width="7" height="6" rx="2"/><path d="M16 13h16c2 0 3 .8 3.5 2.3L38 22H10l2.5-6.7C13 13.8 14 13 16 13z"/><rect x="7" y="21" width="34" height="12" rx="4"/></g><g style="fill:${bg}"><path d="M15.5 16.5h17l1.8 4.5H13.7z" opacity=".45"/><rect x="10" y="25" width="7" height="3" rx="1.2"/><rect x="31" y="25" width="7" height="3" rx="1.2"/></g></svg>`}
 function spotMark(sp,on,size=44){const c=CAT[sp.cat];
@@ -814,6 +820,7 @@ const views={
     <button class="bgb" id="bgb" aria-label="背景を変える"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/></svg></button>
     <button class="edit" id="mk" aria-label="スタンプを作る">${stamp(me,{size:150,ev:inEvent()?LIVE:null})}<span class="pen"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></span></button>
     <div class="nm">${esc(me.name)}</div>
+    <button class="hito press${me.msg?'':' add'}" id="hito">${me.msg?esc(me.msg):'＋ ひとことを書く'}</button>
     <div><button class="chip carchip press" id="carb" aria-label="ガレージ（今日の車を選ぶ）">${CARI}${esc(carLabel(me))}${me.garage.length>1?`<small>${me.garage.length}台</small>`:''}<i aria-hidden="true">▾</i></button> <span class="chip">${esc(me.pref)}</span></div>
     ${inEvent()?`<div class="note" style="color:rgba(255,255,255,.85)">今日はイベント限定のフチで交換されます</div>`:''}
     ${myPins().length?`<div style="margin-top:6px">${pinRow(myPins())}</div>`:''}</div>
@@ -1027,7 +1034,7 @@ function zukan(){
 function openMaker(m){
   const z=zukanMap(),L=CARS[m],got=L.filter(c=>z[m+'|'+c]).length;
   openSheet(`<b style="font-size:18px;display:block;text-align:center">${esc(m)}</b><p class="note" style="text-align:center;margin:4px 0 12px">${got}/${L.length} 車種</p>
-   <div class="zgrid">${[...L.filter(c=>z[m+'|'+c]),...L.filter(c=>!z[m+'|'+c])].map(c=>{const o=z[m+'|'+c];const r=rarity(m,c);return o?`<button class="zt got press r${r}" data-zc="${esc(c)}">${carTile(true)}<b>${esc(c)}</b>${stars(r)}<span>${o.length}人</span></button>`:`<div class="zt r${r}">${carTile(false)}<b>${esc(c)}</b>${stars(r,false)}<span>未発見</span></div>`}).join('')}</div>
+   <div class="zgrid">${[...L.filter(c=>z[m+'|'+c]),...L.filter(c=>!z[m+'|'+c])].map(c=>{const o=z[m+'|'+c];const r=rarity(m,c);return o?`<button class="zt got press r${r}" data-zc="${esc(c)}">${carPic(m,c,true)}<b>${esc(c)}</b>${stars(r)}<span>${o.length}人</span></button>`:`<div class="zt r${r}">${carPic(m,c,false)}<b>${esc(c)}</b>${stars(r,false)}<span>未発見</span></div>`}).join('')}</div>
    <button class="btn sub press" style="margin-top:14px" data-close>閉じる</button>`);
   bindClose();
   $$('[data-zc]').forEach(b=>b.onclick=()=>{const o=z[m+'|'+b.dataset.zc];if(o.length===1){detail(o[0]);return}
@@ -1125,7 +1132,7 @@ function openNewsItem(id,fromList){
   $('#nback').onclick=()=>{if(Date.now()-sheetAt<500)return;openNews()};
 }
 /* ストア審査で必要なもの：通報・ブロック・アカウント削除・規約 */
-const REASONS=['不適切な写真（わいせつ・暴力・差別など）','ナンバープレートや他人の顔・個人情報が写っている','表示名が不適切','なりすまし（他人の車や写真を使っている）','交換を強要された・つきまとい・迷惑行為','危険運転や違法な行為をあおっている','その他'];
+const REASONS=['不適切な写真（わいせつ・暴力・差別など）','ナンバープレートや他人の顔・個人情報が写っている','表示名・ひとことが不適切','なりすまし（他人の車や写真を使っている）','交換を強要された・つきまとい・迷惑行為','危険運転や違法な行為をあおっている','その他'];
 function openReport(id,back){
   const p=person(id);
   openSheet(`<b style="font-size:20px;display:block;text-align:center">${esc(p.name)}さんを通報</b>
@@ -1194,7 +1201,7 @@ const DOCS={
   <ul><li>交換は、お互いが「交換する」を押したときだけ。断られても追いかけない</li><li>写真にはナンバープレートや他人の顔を入れない</li><li>交換は停車してから。運転しながら操作しない</li><li>会場や駐車場のルールを守る。空ぶかし・夜間の長居・ゴミに注意</li><li>危ない人や写真を見かけたら、プロフィールの下の「通報する」へ</li></ul>`],
  contact:['お問い合わせ',`<p>本番では、ここから問い合わせフォームを開きます。不具合の報告には、端末の機種とアプリのバージョンが自動で添付されます。</p>
   <p class="note">試作のため、フォームはまだありません。</p>`],
- credits:['データと素材の出典',`<ul><li>道の駅・SA/PA・サーキットのデータ：© OpenStreetMap contributors（ODbL）</li><li>住所：国土地理院（逆ジオコーダ）</li><li>背景とサンプルの写真：Unsplash</li><li>フォント：Dela Gothic One、Zen Kaku Gothic New、JetBrains Mono（SIL Open Font License）</li></ul>`]
+ credits:['データと素材の出典',`<ul><li>道の駅・SA/PA・サーキットのデータ：© OpenStreetMap contributors（ODbL）</li><li>住所：国土地理院（逆ジオコーダ）</li><li>背景とサンプルの写真：Unsplash</li><li>車種図鑑の写真：Wikimedia Commons の各撮影者（CC BY・CC BY-SA など）。撮影者とライセンスの一覧は<a href="https://seraphixjp.github.io/petacar-beta/zukan-credits.html" target="_blank" rel="noopener">こちら</a></li><li>フォント：Dela Gothic One、Zen Kaku Gothic New、JetBrains Mono（SIL Open Font License）</li></ul>`]
 };
 function openDoc(k,back){const PUB={terms:'terms',privacy:'privacy',contact:'support'};if(PUB[k]){window.open('https://seraphixjp.github.io/petacar-beta/'+PUB[k]+'.html','_blank');return}
   const [t,body]=DOCS[k];
@@ -1230,7 +1237,7 @@ function render(){
   bindEv();
   $('.tab[data-t=rw]').classList.toggle('dot',tab!=='rw'&&unseen().length>0);
   $$('[data-p]').forEach(b=>b.onclick=()=>detail(b.dataset.p));
-  if(tab==='me'){$('#mk').onclick=openCrop;if($('#mkFirst'))$('#mkFirst').onclick=openCrop;$('#carb').onclick=()=>openGarage(render);if($('#newsTop'))$('#newsTop').onclick=()=>openNewsItem($('#newsTop').dataset.n);$('#bgb').onclick=openBg;$('#wrapb').onclick=openWrap;$('#allrec').onclick=()=>{colView='stamp';store.set('colv2',colView);colSort='recent';store.set('sort2',colSort);tab='col';render()}}
+  if(tab==='me'){$('#mk').onclick=openCrop;if($('#mkFirst'))$('#mkFirst').onclick=openCrop;$('#hito').onclick=openHito;$('#carb').onclick=()=>openGarage(render);if($('#newsTop'))$('#newsTop').onclick=()=>openNewsItem($('#newsTop').dataset.n);$('#bgb').onclick=openBg;$('#wrapb').onclick=openWrap;$('#allrec').onclick=()=>{colView='stamp';store.set('colv2',colView);colSort='recent';store.set('sort2',colSort);tab='col';render()}}
   if(tab==='col'){$$('[data-cv]').forEach(b=>b.onclick=()=>{colView=b.dataset.cv;store.set('colv2',colView);render()});$$('[data-maker]').forEach(b=>b.onclick=()=>openMaker(b.dataset.maker))}
   if(tab==='sp'){$$('[data-spot]').forEach(b=>b.onclick=()=>openSpot(b.dataset.spot));bindSpList();$('#locate').onclick=locate;if($('#demoArr'))$('#demoArr').onclick=demoArrive;if($('#autoOn'))$('#autoOn').onclick=()=>askAlways(render);$$('[data-ss]').forEach(b=>b.onclick=()=>{spotSort=b.dataset.ss;spotLim=40;render()});$$('[data-cat]').forEach(b=>b.onclick=()=>{spotCat=b.dataset.cat;spotLim=40;render()});
     $('#spq').oninput=e=>{spotQ=e.target.value;spotLim=40;$('#spl').innerHTML=spList();bindSpList()};$('#sppref').onchange=e=>{spotPref=e.target.value;spotLim=40;$('#spl').innerHTML=spList();bindSpList()}}
@@ -1307,10 +1314,24 @@ function openQR(mode){
 }
 
 /* detail */
+/* ひとこと：スタンプの下に出る短い一文（30文字まで） */
+const HITO_MAX=30,HITO_EX=['今日は赤城にいます','STI乗り募集中！','週末は道の駅めぐり','初心者です。よろしく！'];
+function openHito(){
+  openSheet(`<b style="font-size:18px;display:block;text-align:center">ひとこと</b><p class="note" style="text-align:center;margin:4px 0 12px">スタンプの下に表示されます。交換した人や近くの人が見られます。</p>
+   <label class="f">ひとこと<input type="text" id="hin" maxlength="${HITO_MAX}" value="${esc(me.msg||'')}" placeholder="例）${esc(HITO_EX[0])}" enterkeyhint="done"></label>
+   <div class="note" style="text-align:right" id="hcnt"></div>
+   <div class="carhits">${HITO_EX.map(t=>`<button type="button" class="chip press" data-h="${esc(t)}">${esc(t)}</button>`).join('')}</div>
+   <p class="note">連絡先・SNSのID・ナンバーなど、個人が分かることは書かないでください。</p>
+   <div class="row" style="margin-top:12px">${me.msg?'<button class="btn sub press" id="hdel">消す</button>':'<button class="btn sub press" data-close>やめる</button>'}<button class="btn press" id="hok">保存</button></div>`);
+  bindClose();const i=$('#hin'),cnt=()=>$('#hcnt').textContent=`${[...i.value].length}/${HITO_MAX}`;cnt();i.oninput=cnt;
+  $$('[data-h]').forEach(b=>b.onclick=()=>{i.value=b.dataset.h;cnt();i.focus()});
+  const save=v=>{v=v.replace(/\s+/g,' ').trim();v=[...v].slice(0,HITO_MAX).join('');if(v)me.msg=v;else delete me.msg;if(!me.sample)store.set('me2',me);closeSheet();render();toast(v?'ひとことを保存しました':'ひとことを消しました')};
+  $('#hok').onclick=()=>save(i.value);if($('#hdel'))$('#hdel').onclick=()=>save('');
+  i.onkeydown=e=>{if(e.key==='Enter')save(i.value)}}
 function detail(id){
   const p=person(id),n=daysWith(id),h=log.filter(l=>l.pid===id).slice().reverse(),b=best(id),ps=PST[id];
   const seen=new Set(),variants=h.filter(l=>{const k=(l.v||1)+(l.ev||'-')+(l.kira?'k':l.rare?'r':'');if(seen.has(k))return false;seen.add(k);return true});
-  openSheet(`<div class="hero" style="background:${bgCSS(p)}"></div><div class="result">${stamp(p,{size:120,ev:b.ev,kira:b.kira,rare:b.rare,v:b.v})}<b style="font-size:20px">${esc(p.name)}</b>
+  openSheet(`<div class="hero" style="background:${bgCSS(p)}"></div><div class="result">${stamp(p,{size:120,ev:b.ev,kira:b.kira,rare:b.rare,v:b.v})}<b style="font-size:20px">${esc(p.name)}</b>${p.msg?`<div class="hitop">${esc(p.msg)}</div>`:''}
    <div><span class="chip">${esc(carLabel(p))}</span> <span class="chip">${esc(p.pref)}</span></div>
    <button class="favbtn press" id="favb" aria-pressed="${favs.has(id)}">${favs.has(id)?'★ お気に入り':'☆ お気に入りに追加'}</button>
    <div class="lv" style="margin-top:4px">${Array.from({length:10},(_,i)=>`<i class="${i<n?'on':''}"></i>`).join('')}</div>
@@ -1397,7 +1418,7 @@ function openSettings(){
 function previewMe(){
   const st=myStats(),evs=[...new Set(log.filter(l=>l.ev).map(l=>l.ev))];
   openSheet(`<div class="note" style="text-align:center;margin-bottom:10px">ほかの人には、このように表示されます</div>
-   <div class="hero" style="background:${bgCSS(me)}"></div><div class="result">${stamp(me,{size:120})}<b style="font-size:20px">${esc(me.name)}</b>
+   <div class="hero" style="background:${bgCSS(me)}"></div><div class="result">${stamp(me,{size:120})}<b style="font-size:20px">${esc(me.name)}</b>${me.msg?`<div class="hitop">${esc(me.msg)}</div>`:''}
    <div><span class="chip">${esc(carLabel(me))}</span> <span class="chip">${esc(me.pref)}</span></div></div>
    ${rewardsBlock(me.name,st,myPins(),settings.pubStats,settings.pubRewards)}
    <div class="sec">参加したイベント</div>
