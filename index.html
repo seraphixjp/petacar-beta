@@ -1094,6 +1094,11 @@ const NTAG={info:['お知らせ','var(--accent)'],event:['イベント','#2f6fd6
 const NEWS=[
  {id:'b1',d:'2026-10-05',tag:'info',pin:true,t:'ベータ版へようこそ',b:'ペタカー! のテストに参加してくれてありがとうございます。\n\nまずはマイスタンプから、自分の車の写真でスタンプを作ってください。そのあと、会った人と「交換をはじめる」→相手をタップ→2人で同時にスマホを振る、で交換できます。\n\n気づいたことは、鈴木までLINEなどで気軽に送ってください。'},
  {id:'b2',d:'2026-10-05',tag:'update',t:'ベータ版でできること・まだできないこと',b:'できること：スタンプ作り、ガレージ、近くの人との交換（振る・GPSで確認）、仲良し度、車種図鑑、スポットの記録（その場で「ここにいる」）、バッジ。\n\nまだできないこと：イベントのチェックイン、QRでの交換、アプリを閉じたままの自動記録、通知。\n\nテスト中はデータを消すことがあります。'},
+ {id:'b4',d:'2026-10-05',tag:'update',t:'スポットに着くとお知らせします',b:'アプリを開いている間は、現在地からスポットまでの距離を見ています。道の駅やPA・SAなどに着くと画面の上に「着きました！」と出るので、タップすると印がペタッと押されます。
+
+スポット一覧も現在地から近い順に並びます。位置情報の許可が必要です。
+
+アプリを閉じているときは動きません（アプリ版で対応予定）。'},
  {id:'b3',d:'2026-10-05',tag:'info',t:'iPhoneで振る動作が反応しないとき',b:'交換のときに「動作と方向へのアクセス」を聞かれたら「許可」を押してください。許可しなかったときは、ページを開き直すともう一度聞かれます。\n\n振っても反応しないときは「振れないときはタップ」で交換できます。'}
 ];
 let newsRead=new Set(store.get('news1',[]));
@@ -1513,7 +1518,7 @@ const ASK_MS=120000,WINDOW_MS=2000;
 const cellOf=p=>p?[Math.round(p.la*20)/20,Math.round(p.lo*20)/20]:null; // 約5kmのマス目。細かい位置は共有しない
 const nearCell=(a,b)=>!a||!b||(Math.abs(a[0]-b[0])<=0.1&&Math.abs(a[1]-b[1])<=0.1);
 const getPos=()=>new Promise(ok=>{if(!navigator.geolocation)return ok(null);
-  navigator.geolocation.getCurrentPosition(p=>{myPos={la:p.coords.latitude,lo:p.coords.longitude,acc:p.coords.accuracy,at:Date.now()};ok(myPos)},()=>ok(null),{enableHighAccuracy:true,timeout:8000,maximumAge:30000})});
+  navigator.geolocation.getCurrentPosition(p=>{myPos={la:p.coords.latitude,lo:p.coords.longitude,acc:p.coords.accuracy,at:Date.now()};startWatch();ok(myPos)},()=>ok(null),{enableHighAccuracy:true,timeout:8000,maximumAge:30000})});
 async function askMotion(){try{if(typeof DeviceMotionEvent==='undefined'){motionOK=false;return}
   if(typeof DeviceMotionEvent.requestPermission==='function')motionOK=(await DeviceMotionEvent.requestPermission())==='granted';else motionOK=true}catch(e){motionOK=false}}
 function fillNearby(){const mine=liveMap[C.uid];
@@ -1602,6 +1607,33 @@ async function betaCheckin(x,b,rec){
   if(!p){toast('位置情報が使えませんでした。設定で位置情報を許可してください');return}
   const d=dist(p,x)*1000;if(d>Math.max(400,p.acc||0)){toast(`このスポットから約${fmtKm(d/1000)}離れています。着いてから押してください`);return}
   rec()}
+/* アプリを開いている間は位置を追い、スポットに着いたら知らせる（閉じているときは動かない） */
+let watchId=null,lastDrawn=null;const arrived=new Set();
+const inRange=(x,p)=>dist(p,x)*1000<=Math.max(300,Math.min(p.acc||0,500));
+function onPos(p){const c=p.coords;myPos={la:c.latitude,lo:c.longitude,acc:c.accuracy,at:Date.now()};
+  const first=!here;here={la:myPos.la,lo:myPos.lo,label:'現在地'};if(first)spotSort='near';
+  if(tab==='sp'&&!$('#sh')&&(first||!lastDrawn||dist(lastDrawn,myPos)>0.2)){lastDrawn={...myPos};render()}
+  if(c.accuracy>500)return;const t=today();
+  const hit=SPOTS.filter(x=>x.la!=null&&!arrived.has(x.id)&&!spotlog.some(v=>v.id===x.id&&v.d===t)&&inRange(x,myPos)).sort((a,b)=>dist(myPos,a)-dist(myPos,b))[0];
+  if(hit)arrive(hit)}
+function startWatch(){if(watchId!=null||!navigator.geolocation||document.hidden)return;
+  watchId=navigator.geolocation.watchPosition(onPos,e=>{if(e.code===1)stopWatch()},{enableHighAccuracy:true,maximumAge:15000,timeout:30000})}
+function stopWatch(){if(watchId!=null)navigator.geolocation.clearWatch(watchId);watchId=null}
+document.addEventListener('visibilitychange',()=>document.hidden?stopWatch():startWatch());
+try{navigator.permissions.query({name:'geolocation'}).then(s=>{if(s.state==='granted')startWatch()}).catch(()=>{})}catch(e){}
+function arrive(x){arrived.add(x.id);buzz([30,60,30]);sfx.chime();
+  $('#pnote').innerHTML=`<button class="pnote press" id="pnb"><span class="pic" aria-hidden="true">P</span><div class="t"><div class="h"><b>ペタカー!</b><span>いま</span></div>
+    <b>${esc(x.n)}に着きました！</b><span>タップすると印をペタッと押します</span></div></button>`;
+  clearTimeout(pnT);pnT=setTimeout(()=>{const e=$('#pnb');if(e){e.classList.add('out');setTimeout(()=>$('#pnote').innerHTML='',300)}},20000);
+  $('#pnb').onclick=()=>{clearTimeout(pnT);$('#pnote').innerHTML='';
+    if(spotlog.some(v=>v.id===x.id&&v.d===today()))return;
+    if(!myPos||Date.now()-myPos.at>120000||!inRange(x,myPos)){tab='sp';render();openSpot(x.id);return}
+    const before=gotList(myStats()).map(q=>q.k);spotlog.push({id:x.id,d:today()});saveSpots();sfx.chime();buzz(30);
+    const nb=gotList(myStats()).filter(q=>!before.includes(q.k));render();toast(nb.length?`バッジ獲得：${nb.map(q=>q.t).join('・')}`:`${x.n} の印を押しました（${spotDays(x.id)}回目）`)}}
+/* 「現在地」ボタン：取れなければ甘楽町にせず、許可をお願いする */
+locate=async()=>{toast('現在地を確認しています');const p=await getPos();
+  if(!p){toast('位置情報が使えませんでした。ブラウザの設定で位置情報を許可してください');return}
+  here={la:p.la,lo:p.lo,label:'現在地'};spotSort='near';spotLim=40;lastDrawn={...p};render();toast('近い順に並べました');startWatch()};
 window.__app={get me(){return me},myStats,myPins,get settings(){return settings},rerender:()=>{if(!$('#sh'))render()}};
 
 render();
