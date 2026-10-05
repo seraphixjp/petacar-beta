@@ -172,7 +172,6 @@ button{font-family:inherit;color:inherit}
 .member>.edit .pen{position:absolute;right:4px;bottom:4px;width:36px;height:36px;border-radius:50%;background:var(--accent,#2b6cff);color:#fff;display:grid;place-items:center;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.35)}
 .member>.bgb{position:absolute;top:12px;right:12px;width:36px;height:36px;border-radius:50%;border:0;background:rgba(0,0,0,.4);color:#fff;display:grid;place-items:center;backdrop-filter:blur(6px);cursor:pointer;z-index:1}
 .member>.bgb:active{transform:scale(.94)}
-.member .bgb.mkb{right:56px;background:var(--accent,#e8551c)}
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
 .stat{background:var(--surface);border-radius:16px;padding:12px 6px;text-align:center}
 .stat b{display:block;font:700 22px var(--mono);font-variant-numeric:tabular-nums}
@@ -939,7 +938,6 @@ const views={
  me(){
   const ppl=met(),kc=log.filter(l=>l.kira).length;
   return `<div class="member" style="background:${bgCSS(me)}">
-    <button class="bgb mkb" id="mkb" aria-label="スタンプを作る"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button>
     <button class="bgb" id="bgb" aria-label="背景を変える"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/></svg></button>
     <button class="edit" id="mk" aria-label="スタンプを作る">${stamp(me,{size:150,ev:inEvent()?LIVE:null})}</button>
     <button class="nm nmb press" id="nmb" aria-label="表示名を変える">${esc(me.name)}${me.official?OFFB:''}<svg class="npen" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button>
@@ -1378,7 +1376,7 @@ function render(){
   bindEv();
   $('.tab[data-t=rw]').classList.toggle('dot',tab!=='rw'&&unseen().length>0);
   $$('[data-p]').forEach(b=>b.onclick=()=>detail(b.dataset.p));
-  if(tab==='me'){$('#mk').onclick=openCrop;if($('#mkFirst'))$('#mkFirst').onclick=openCrop;if($('#mkb'))$('#mkb').onclick=openCrop;if($('#qcard'))$('#qcard').onclick=openQuests;$('#hito').onclick=openHito;if($('#nmb'))$('#nmb').onclick=openName;$('#carb').onclick=()=>openGarage(render);if($('#newsTop'))$('#newsTop').onclick=()=>openNewsItem($('#newsTop').dataset.n);$('#bgb').onclick=openBg;$('#wrapb').onclick=openWrap;$('#allrec').onclick=()=>{colView='stamp';store.set('colv2',colView);colSort='recent';store.set('sort2',colSort);tab='col';render()}}
+  if(tab==='me'){$('#mk').onclick=openCrop;if($('#mkFirst'))$('#mkFirst').onclick=openCrop;if($('#qcard'))$('#qcard').onclick=openQuests;$('#hito').onclick=openHito;if($('#nmb'))$('#nmb').onclick=openName;$('#carb').onclick=()=>openGarage(render);if($('#newsTop'))$('#newsTop').onclick=()=>openNewsItem($('#newsTop').dataset.n);$('#bgb').onclick=openBg;$('#wrapb').onclick=openWrap;$('#allrec').onclick=()=>{colView='stamp';store.set('colv2',colView);colSort='recent';store.set('sort2',colSort);tab='col';render()}}
   if(tab==='col'){$$('[data-cv]').forEach(b=>b.onclick=()=>{colView=b.dataset.cv;store.set('colv2',colView);render()});$$('[data-maker]').forEach(b=>b.onclick=()=>openMaker(b.dataset.maker))}
   if(tab==='sp'){$$('[data-spot]').forEach(b=>b.onclick=()=>openSpot(b.dataset.spot));if($('#mapb'))$('#mapb').onclick=openMap;bindSpList();$('#locate').onclick=locate;if($('#demoArr'))$('#demoArr').onclick=demoArrive;if($('#autoOn'))$('#autoOn').onclick=()=>askAlways(render);$$('[data-ss]').forEach(b=>b.onclick=()=>{spotSort=b.dataset.ss;spotLim=40;render()});$$('[data-cat]').forEach(b=>b.onclick=()=>{spotCat=b.dataset.cat;spotLim=40;render()});
     $('#spq').oninput=e=>{spotQ=e.target.value;spotLim=40;$('#spl').innerHTML=spList();bindSpList()};$('#sppref').onchange=e=>{spotPref=e.target.value;spotLim=40;$('#spl').innerHTML=spList();bindSpList()}}
