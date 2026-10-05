@@ -41,40 +41,46 @@ const bar = (id, text, color) => {
 function makeStore(backend, profDoc, privDoc) {
   const priv = { ...(privDoc || {}) };
   let prof = profDoc || null;
-  const ME_SKIP = ['sns', 'vers', 'stats', 'showStats', 'showRewards', 'pubEvents', 'upd', 'dev'];
+  const ME_SKIP = ['sns', 'vers', 'stats', 'showStats', 'showRewards', 'pubEvents', 'upd', 'dev', 'wv'];
   const pickMe = p => { const o = {}; for (const k in p) if (!ME_SKIP.includes(k)) o[k] = p[k]; return o };
   // 交換とスポットの記録はアプリの操作では減らない。減った内容を書こうとしたら不具合なので書かない
   const cnt = p => ({ log2: Array.isArray(p.log2) ? p.log2.length : 0, spot2: Array.isArray(p.spot2) ? p.spot2.length : 0 });
   const base = { ...cnt(priv), real: !!(prof && !prof.def) };
-  const guardTrip = what => {
-    if (frozen !== 'guard') console.error('save blocked:', what);
-    frozen = frozen || 'guard';
-    bar('savebar', '記録が減る保存を止めました。アプリを開き直してください（データは守られています）');
+  // 止めるのはおかしかった方だけ（プロフィールの異常で交換の記録まで止めない）
+  const blocked = { priv: false, prof: false };
+  const guardTrip = (kind, what) => {
+    if (!blocked[kind]) console.error('save blocked:', kind, what);
+    blocked[kind] = true;
+    bar('savebar', kind === 'priv' ? '記録が減る保存を止めました。アプリを開き直してください（データは守られています）' : 'プロフィールの保存を止めました。アプリを開き直してください（スタンプは守られています）');
   };
-  const retry = f => { bar('savebar', '保存できませんでした。通信状態を確認してください（自動でやり直します）'); setTimeout(f, 5000) };
+  const retry = (f, e) => {
+    if (e && (e.code === 'invalid-argument' || e.code === 'permission-denied')) { bar('savebar', '保存できませんでした（' + e.code + '）。この画面のスクリーンショットを鈴木さんに送ってください'); return }
+    bar('savebar', '保存できませんでした。通信状態を確認してください（自動でやり直します）'); setTimeout(f, 5000) };
   const flushPriv = debounce(() => {
-    if (frozen) return;
+    if (frozen || blocked.priv) return;
     const n = cnt(priv);
-    if (n.log2 < base.log2 || n.spot2 < base.spot2) return guardTrip(`log ${base.log2}->${n.log2}, spot ${base.spot2}->${n.spot2}`);
+    if (n.log2 < base.log2 || n.spot2 < base.spot2) return guardTrip('priv', `log ${base.log2}->${n.log2}, spot ${base.spot2}->${n.spot2}`);
     backend.setPriv({ ...priv, _dev: DEV, _at: Date.now() }).then(() => {
-      base.log2 = Math.max(base.log2, n.log2); base.spot2 = Math.max(base.spot2, n.spot2); bar('savebar', '');
-    }, e => { console.warn('priv', e); retry(flushPriv) });
+      base.log2 = Math.max(base.log2, n.log2); base.spot2 = Math.max(base.spot2, n.spot2); if (!blocked.prof) bar('savebar', '');
+    }, e => { console.warn('priv', e); retry(flushPriv, e) });
   }, 800);
   const flushProf = debounce(() => {
-    if (frozen) return;
+    if (frozen || blocked.prof) return;
     const a = window.__app; if (!a) return;
-    if (base.real && a.me.def) return guardTrip('profile reset to default');
+    if (base.real && a.me.def) return guardTrip('prof', 'profile reset to default');
     const me = { ...a.me }; delete me.sample; delete me.official;
     let vers = (prof && prof.vers) || [];
     if (!me.def) {
       const v = me.ver || 1, cur = { img: me.img, ring: me.ring };
       vers = vers.length < v ? [...vers, cur] : [...vers.slice(0, v - 1), cur];
-      if (vers.length > 8) vers = vers.map((x, i) => i < vers.length - 8 ? { ring: x.ring, img: null } : x);
+      if (vers.length > 4) vers = vers.map((x, i) => i < vers.length - 4 ? { ring: x.ring, img: null } : x);
     }
     const s = a.settings;
-    prof = { ...me, sns: s.showSns ? (s.sns || []).filter(Boolean).slice(0, 2) : [], vers, stats: { ...a.myStats(), pins: a.myPins() }, showStats: !!s.pubStats, showRewards: !!s.pubRewards, pubEvents: !!s.pubEvents, upd: Date.now(), dev: DEV };
+    prof = { ...me, sns: s.showSns ? (s.sns || []).filter(Boolean).slice(0, 2) : [], vers, stats: s.pubStats || s.pubRewards ? { ...a.myStats(), pins: s.pubRewards ? a.myPins() : [] } : { pins: [] }, showStats: !!s.pubStats, showRewards: !!s.pubRewards, pubEvents: !!s.pubEvents, dev: DEV, wv: Math.random().toString(36).slice(2, 10) };
+    // 1MiBを超えそうなら古い版の画像から外す
+    for (let i = 0; JSON.stringify(prof).length > 900000 && i < prof.vers.length - 1; i++) prof.vers[i] = { ring: prof.vers[i].ring, img: null };
     if (!me.def) base.real = true;
-    backend.setProfile(prof).then(() => bar('savebar', ''), e => { console.warn('profile', e); retry(flushProf) });
+    backend.setProfile(prof).then(() => { if (!blocked.priv) bar('savebar', '') }, e => { console.warn('profile', e); retry(flushProf, e) });
   }, 1000);
   const flushAll = () => { flushPriv.now(); flushProf.now() };
   addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushAll() });
@@ -93,17 +99,41 @@ function makeStore(backend, profDoc, privDoc) {
   };
 }
 
+// 他の人のプロフィールは誰でも書けるので、形を確かめてから使う（壊れた1件で全員のアプリが止まらないように）
+const IMG_RE = /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/;
+const okImg = v => typeof v === 'string' && IMG_RE.test(v) ? v : null;
+const okCol = v => typeof v === 'string' && /^#[0-9a-fA-F]{3,8}$/.test(v) ? v : '#e8551c';
+const str = (v, n, d = '') => typeof v === 'string' && v ? v.slice(0, n) : d;
+const num = (v, lo, hi, d) => typeof v === 'number' && isFinite(v) ? Math.min(hi, Math.max(lo, v)) : d;
+const BAD_KEY = k => k === '__proto__' || k === 'constructor' || k === 'prototype';
+function cleanBg(b) {
+  if (!b || typeof b !== 'object') return undefined;
+  if (b.kind === 'photo') { const src = okImg(b.src); return src ? { kind: 'photo', src, y: num(b.y, 0, 100, 50), dim: num(b.dim, 0, 1, .35) } : undefined }
+  return { kind: 'preset', id: typeof b.id === 'string' && /^[a-z]{1,12}$/.test(b.id) ? b.id : 'night' };
+}
+function cleanStats(st) {
+  const o = { pins: [] }; if (!st || typeof st !== 'object') return o;
+  for (const [k, v] of Object.entries(st)) {
+    if (k === 'pins') o.pins = Array.isArray(v) ? v.filter(x => typeof x === 'string' && x.length < 24).slice(0, 12) : [];
+    else if (/^[A-Za-z0-9_]{1,16}$/.test(k) && typeof v === 'number' && isFinite(v)) o[k] = v;
+  }
+  return o;
+}
 function toPerson(id, d) {
   const sns = Array.isArray(d.sns) ? d.sns.filter(u => typeof u === 'string' && /^https:\/\/[^\s"'<>]+$/.test(u) && u.length <= 200).slice(0, 2) : [];
-  return { id, official: !!OFF[id], sns, msg: typeof d.msg === 'string' ? d.msg.slice(0, 30) : '', name: d.name || '名無し', maker: d.maker || 'その他', car: d.car || '—', pref: d.pref || '', ring: d.ring || '#e8551c',
-    img: d.img, bg: d.bg, ver: d.ver || 1, vers: (d.vers && d.vers.length ? d.vers : [{ img: d.img, ring: d.ring }]).map(v => ({ ring: v.ring, img: v.img || d.img })),
-    stats: { pins: [], ...(d.stats || {}) }, showStats: d.showStats !== false, showRewards: d.showRewards !== false };
+  const ring = okCol(d.ring), img = okImg(d.img);
+  const maker = str(d.maker, 30, 'その他');
+  const vers = (Array.isArray(d.vers) && d.vers.length ? d.vers : [{ img, ring }]).slice(0, 30)
+    .map(v => v && typeof v === 'object' ? { ring: okCol(v.ring), img: okImg(v.img) || img } : { ring, img });
+  return { id, official: !!OFF[id], sns, msg: str(d.msg, 30), name: str(d.name, 24, '名無し'), maker: BAD_KEY(maker) ? 'その他' : maker, car: str(d.car, 40, '—'), pref: str(d.pref, 4), ring,
+    img, bg: cleanBg(d.bg), ver: num(d.ver, 1, 99, 1) | 0, vers,
+    stats: cleanStats(d.stats), showStats: d.showStats !== false, showRewards: d.showRewards !== false };
 }
 // 公式アカウント：運営がコンソールで official/{uid} を作ったときだけ付く。本人のプロフィールの値は信用しない
 let OFF = {};
 function setPeople(map, me) {
   people.length = 0;
-  for (const [id, d] of Object.entries(map)) if (id !== me && d && !d.def) people.push(toPerson(id, d));
+  for (const [id, d] of Object.entries(map)) if (id !== me && d && typeof d === 'object' && !d.def) { try { people.push(toPerson(id, d)) } catch (e) { console.warn('skip profile', id, e) } }
   peopleCbs.forEach(f => { try { f() } catch (e) { console.warn(e) } });
 }
 
@@ -184,7 +214,7 @@ async function firebaseBackend() {
     },
     // スポットの「いま◯人」：誰が記録したかは書かない（spot と期限だけ）
     here: {
-      add: spot => F.addDoc(Col('here'), { spot, until: Date.now() + 7200000 }),
+      add: spot => F.addDoc(Col('here'), { spot, until: Math.ceil((Date.now() + 7200000) / 600000) * 600000 }),
       sub: cb => F.onSnapshot(F.query(Col('here'), F.where('until', '>', Date.now())), qs => cb(qs.docs.map(d => d.data())), e => console.warn('here', e)),
     },
     official: cb => F.onSnapshot(Col('official'), qs => { const m = {}; qs.forEach(d => m[d.id] = true); cb(m) }, e => console.warn('official', e)),
@@ -288,9 +318,10 @@ else if (be) {
   window.__cloud = {
     uid: be.uid, store, people,
     onPeople: f => peopleCbs.push(f), isOfficial: id => !!OFF[id],
-    live: be.live, ex: be.ex, here: be.here, report: be.report, signOut: be.signOut, deleteAccount: be.deleteAccount,
+    live: be.live, ex: be.ex, here: be.here, report: be.report, signOut: be.signOut,
+    deleteAccount: async () => { store.cancelAll(); const was = frozen; frozen = 'deleting'; try { await be.deleteAccount() } catch (e) { frozen = was; throw e } },
   };
-  let started = false, gotPeople = false, gotCfg = false, cfg = {};
+  let started = false, gotPeople = false, gotCfg = false, cfg = {}, maintShown = false;
   step('参加者を読み込んでいます…');
   const slow = setTimeout(() => { if (!started && !frozen) showError('参加者の一覧を読み込めません（15秒たっても応答がありません）。', 'timeout') }, 15000);
   function start() {
@@ -307,13 +338,13 @@ else if (be) {
     const staff = isStaff(cfg);
     bar('maintbar', cfg.maint && staff ? 'メンテナンス中（運営だけ使えます）' : '', '#6d4fd8');
     if (cfg.maint && !staff) {
-      if (frozen === 'maint') return;
+      if (maintShown) return;
       if (started) store.flushAll();   // 押した直後の記録は先に保存してから止める
-      store.cancelAll(); frozen = frozen || 'maint'; clearTimeout(slow);
+      store.cancelAll(); frozen = frozen || 'maint'; maintShown = true; clearTimeout(slow);
       showGate(`<h1>ただいまメンテナンス中です</h1><p>${esc(cfg.msg || 'アプリの更新作業をしています。終わると自動で開き直します。')}</p><p>これまでの記録はそのまま残っています。</p><div class="gspin"></div>`);
       return;
     }
-    if (frozen === 'maint') { location.reload(); return }
+    if (maintShown) { location.reload(); return }
     start();
   });
 
@@ -334,7 +365,7 @@ else if (be) {
   be.subPeople(map => {
     lastMap = map; setPeople(map, be.uid);
     const mine = map[be.uid];
-    if (mine && mine.dev !== DEV && !(mine.dev === f0.dev && mine.upd === f0.upd)) stale();
+    if (mine && mine.dev !== DEV && !(mine.dev === f0.dev && mine.wv === f0.wv && mine.upd === f0.upd)) stale();
     if (gotPeople) return;
     gotPeople = true; start();
   }, e => { if (!gotPeople) { clearTimeout(slow); showError('参加者の一覧を読み込めませんでした。', e) } });

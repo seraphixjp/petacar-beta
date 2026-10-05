@@ -507,7 +507,8 @@ const RARE={5:'2000GT トヨタ7 スポーツ800 LFA コスモスポーツ ス�
 const RARE_EXOTIC={'フェラーリ':4,'ランボルギーニ':4,'マクラーレン':4,'アストンマーティン':4,'ケータハム':4,'ランチア':4,'ロータス':3,'ポルシェ':3,'マセラティ':3,'アルピーヌ':3,'ジャガー':3,'光岡':3,'いすゞ':3};
 const RARE_IDX=(()=>{const m={};Object.entries(RARE).forEach(([r,str])=>str.split(' ').forEach(c=>{m[c]=m[c]||+r}));
   ['シルビア','180SX','RX-7','サバンナRX-7','アンフィニRX-7','RX-8','スープラ','S2000','NSX','インテグラ タイプR','スカイラインGT-R','ランサーエボリューション','インプレッサ WRX STI','ユーノスロードスター','ビート','カローラレビン','スプリンタートレノ','MR2','チェイサー','マークII','ステージア','フェアレディZ','GT-R','シビック タイプR','インプレッサ WRX','レガシィ B4','FTO','エクリプス','パジェロミニ','アルトワークス','Kei ワークス','ミラ TR-XX','コペン','S660','CR-Z','RX-7','セリカ','セリカXX','アルテッツァ','クレスタ','ローレル','セフィーロ','プリメーラ','プレリュード','アコード ユーロR','トルネオ','シティターボII','ランティス','ヴィヴィオ','R1','インプレッサ リトナ','ギャランVR-4','レグナム','X-90','ツイン','セルボモード','ストーリア X4','ジェミニ','ビッグホーン','MINI','クラシックミニ','911 GT3 RS','911 ターボ','944','968','TT RS','R8','M3','M4','RS4','RS6','ゴルフR','シロッコ','コラード','カルマンギア','タイプ2','ジュリア','4C','GTV','ブレラ','フォーカスRS','マスタング','コルベット','カマロ','チャレンジャー','チャージャー','エルカミーノ','C10','CJ'].forEach(c=>{m[c]=m[c]||3});return m})();
-const rarity=(maker,car)=>RARE_IDX[car]||RARE_EXOTIC[maker]||2;
+Object.assign(RARE_IDX,{'SLS AMG':5,'デルタ HFインテグラーレ':4,'CR-X デルソル':4,'シャレード デ・トマソ':4});
+const rarity=(maker,car)=>(/^\d+$/.test(car)&&maker!=='フェラーリ'?0:RARE_IDX[car])||RARE_EXOTIC[maker]||2; // 308などの数字名はフェラーリだけ
 const stars=(r,on=true)=>`<span class="stars ${on?'':'off'}" aria-label="レア度${r}">${'★'.repeat(r)}<i>${'★'.repeat(5-r)}</i></span>`;
 const carLabel=p=>p.maker&&p.maker!=='その他'?`${p.maker} ${p.car}`:p.car;
 const PREFS='北海道 青森 岩手 宮城 秋田 山形 福島 茨城 栃木 群馬 埼玉 千葉 東京 神奈川 新潟 富山 石川 福井 山梨 長野 岐阜 静岡 愛知 三重 滋賀 京都 大阪 兵庫 奈良 和歌山 鳥取 島根 岡山 広島 山口 徳島 香川 愛媛 高知 福岡 佐賀 長崎 熊本 大分 宮崎 鹿児島 沖縄'.split(' ');
@@ -568,9 +569,11 @@ const BGS={
   ring:{n:'スタンプの色',css:r=>`linear-gradient(150deg,${r},#11161c 115%)`},
   carbon:{n:'カーボン',css:()=>'linear-gradient(135deg,rgba(255,255,255,.07),transparent 60%),repeating-linear-gradient(45deg,#1b1e22 0 6px,#25292e 6px 12px),#1b1e22'}
 };
+const okColor=v=>typeof v==='string'&&/^#[0-9a-fA-F]{3,8}$/.test(v)?v:'#e8551c';
+const okNum=(v,lo,hi,d)=>typeof v==='number'&&isFinite(v)?Math.min(hi,Math.max(lo,v)):d;
 function bgCSS(o){const bg=o.bg||{kind:'preset',id:'night'};
-  if(bg.kind==='photo'&&bg.src){const d=bg.dim??.35;return `linear-gradient(180deg,rgba(0,0,0,${d*.6}),rgba(0,0,0,${Math.min(.9,d+.25)})),url(${bg.src}) center ${bg.y??50}%/cover`}
-  return (BGS[bg.id]||BGS.ring).css(o.ring)}
+  if(bg.kind==='photo'&&typeof bg.src==='string'&&/^data:image\/[a-z]+;base64,[A-Za-z0-9+/=]+$/.test(bg.src)){const d=okNum(bg.dim,0,1,.35);return `linear-gradient(180deg,rgba(0,0,0,${d*.6}),rgba(0,0,0,${Math.min(.9,d+.25)})),url(${bg.src}) center ${okNum(bg.y,0,100,50)}%/cover`}
+  return (Object.hasOwn(BGS,bg.id)?BGS[bg.id]:BGS.ring).css(okColor(o.ring))}
 const ghostOf=id=>({id,name:'退会したユーザー',maker:'その他',car:'—',pref:'',ring:'#8a8f96',img:avatar('#8a8f96'),vers:[],stats:{pins:[]},showStats:false,showRewards:false,ghost:true});
 const person=id=>POOL.find(p=>p.id===id)||ghostOf(id);
 Object.entries({p1:'night',p2:'track',p3:'bay',p4:'trail',p5:'sunset',p6:'fuji',p7:'pa',p8:'carbon'}).forEach(([id,b])=>person(id).bg={kind:'preset',id:b});
@@ -723,14 +726,14 @@ const SPOTS_MANUAL=[
  ['nissanh','日産ヘリテージコレクション','mus','神奈川']
 ].map(([id,n,cat,pref,st])=>{const g=MGEO[id]||[];return {id,n,cat,pref,st:st||'',la:g[0],lo:g[1],ad:g[2]||''}});
 const SPOTS=[...SPOTS_MANUAL,...SPOT_DATA.map(([n,cat,pi,la,lo,ad])=>({id:cat+':'+pi+':'+n,n,cat,pref:PREFS[pi],la,lo,ad:ad||''}))];
-const SPOT_OLD={kanra:'eki:9:道の駅 甘楽',daikoku:'pa:13:大黒PA',tsukuba:'cir:7:筑波サーキット'};
+const SPOT_OLD={kanra:'eki:9:道の駅 甘楽',daikoku:'pa:13:大黒PA'};
 
 const SPMAP=new Map(SPOTS.map(x=>[x.id,x]));const SP=id=>SPMAP.get(id);
 /* 全国の鉄道駅（国土数値情報 N02-2024・約9,000駅）。別ファイルを後から読み込む */
 let ST_READY=false;const ST_R=200;
 try{fetch('stations.json').then(r=>r.ok?r.json():[]).then(a=>{for(const [g,n,pi,la,lo,ln] of a){const x={id:'rw:'+g,n:n+'駅',cat:'st',pref:PREFS[pi]||'',la,lo,ad:ln,st:''};SPOTS.push(x);SPMAP.set(x.id,x)}ST_READY=true;if(window.__onSpotsLoaded)window.__onSpotsLoaded();if(typeof render==='function'&&tab==='sp'&&!$('#sh'))render()}).catch(()=>{})}catch(e){}
-const SAMPLE_SPOTLOG=[{id:'akagi',d:daysAgo(60)},{id:'akagi',d:daysAgo(30)},{id:'haruna',d:daysAgo(32)},{id:SPOT_OLD.kanra,d:daysAgo(5)},{id:SPOT_OLD.kanra,d:daysAgo(12)},{id:SPOT_OLD.tsukuba,d:daysAgo(20)},{id:SPOT_OLD.daikoku,d:daysAgo(14)},{id:'subaru',d:daysAgo(40)}];
-let spotlog=(store.get('spot2',null)||[]).map(v=>({...v,id:SPOT_OLD[v.id]||v.id})).filter(v=>SP(v.id));
+const SAMPLE_SPOTLOG=[{id:'akagi',d:daysAgo(60)},{id:'akagi',d:daysAgo(30)},{id:'haruna',d:daysAgo(32)},{id:SPOT_OLD.kanra,d:daysAgo(5)},{id:SPOT_OLD.kanra,d:daysAgo(12)},{id:'cir:7:筑波サーキット',d:daysAgo(20)},{id:SPOT_OLD.daikoku,d:daysAgo(14)},{id:'subaru',d:daysAgo(40)}];
+let spotlog=(store.get('spot2',null)||[]).map(v=>({...v,id:SPOT_OLD[v.id]||v.id})); // 駅（後読み）など、まだ一覧に無いidも捨てない。捨てると次の保存で消える
 const saveSpots=()=>store.set('spot2',spotlog);
 const spotDays=id=>spotlog.filter(v=>v.id===id).length;
 const spotSet=()=>new Set(spotlog.map(v=>v.id));
@@ -739,7 +742,7 @@ let favs=new Set(store.get('fav2',[]));const saveFav=()=>store.set('fav2',[...fa
 const favMark=id=>favs.has(id)?'<span class="favmark" aria-label="お気に入り">★</span>':'';
 let here=null,spotSort='visit',colView=store.get('colv2','stamp'),spotCat='all',spotPref='',spotQ='',spotLim=40,colQ='',rwFilter='all',newShown=[],seenB=store.get('seen2',null),sheetAfter=null;
 const ZTOTAL=MAKERS.reduce((n,m)=>n+CARS[m].length,0);
-function zukanMap(){const z={};log.forEach(l=>{const c=l.car||person(l.pid),known=(CARS[c.maker]||[]).includes(c.car),k=(known?c.maker:'その他')+'|'+c.car,a=(z[k]=z[k]||[]);if(!a.includes(l.pid))a.push(l.pid)});return z}
+function zukanMap(){const z={};log.forEach(l=>{const c=l.car||person(l.pid),known=(Object.hasOwn(CARS,c.maker)?CARS[c.maker]:[]).includes(c.car),k=(known?c.maker:'その他')+'|'+c.car,a=(z[k]=z[k]||[]);if(!a.includes(l.pid))a.push(l.pid)});return z}
 /* 車種図鑑の写真（Wikimedia Commons。出典は zukan-credits.html） */
 let ZIMG={};try{fetch('zukan/index.json').then(r=>r.ok?r.json():{}).then(j=>{ZIMG=j||{}}).catch(()=>{})}catch(e){}
 function carPic(m,c,on){const f=ZIMG[m+'|'+c];return f?`<span class="zp${on?'':' off'}"><img src="zukan/${f}" loading="lazy" decoding="async" alt=""></span>`:`<span class="zp ic">${carTile(on,44)}</span>`}
@@ -778,7 +781,7 @@ const met=()=>[...new Set(log.map(l=>l.pid))];
 const kiraRate=(before,ev)=>boost?.5:Math.min(.15,.03+.01*before)*(ev?2:1);
 const rareRate=(before,ev)=>boost?.3:Math.min(.3,.1+.02*before)*(ev?1.5:1);
 const pct=x=>Math.round(x*100)+'%';
-const myStats=()=>{const ppl=met();return {ex:log.length,ppl:ppl.length,prefs:new Set(ppl.map(i=>person(i).pref)).size,same:ppl.filter(i=>person(i).maker===me.maker&&person(i).car===me.car).length,
+const myStats=()=>{const ppl=met();return {ex:log.length,ppl:ppl.length,prefs:new Set(ppl.map(i=>person(i).pref).filter(x=>PREFS.includes(x))).size,same:ppl.filter(i=>person(i).maker===me.maker&&person(i).car===me.car).length,
   best:Math.max(0,...ppl.map(daysWith)),kira:log.filter(l=>l.kira).length,evs:new Set(log.filter(l=>l.ev).map(l=>l.ev)).size,days:new Set(log.map(l=>l.d)).size,mk:new Set(ppl.map(i=>person(i).maker).filter(m=>m&&m!=='その他')).size,...zukanStats(),...spotStats()}};
 function zukanStats(){const z=zukanMap(),keys=Object.keys(z).filter(k=>!k.startsWith('その他|'));
   const rs=keys.map(k=>{const[m,c]=k.split('|');return rarity(m,c)});
@@ -827,11 +830,11 @@ const moHash=m=>{let h=2166136261;for(const c of m+'petacar')h=Math.imul(h^c.cha
 const moName=m=>`${+m.slice(5,7)}月`;
 function moData(m){const e=moEnd(m),sp=spotlog.filter(v=>v.d>=m&&v.d<=e).map(v=>SP(v.id)).filter(Boolean),ex=log.filter(l=>l.d>=m&&l.d<=e);
   const us=[...new Map(sp.map(x=>[x.id,x])).values()].filter(x=>x.cat!=='st');
-  const first=pid=>log.filter(l=>l.pid===pid).map(l=>l.d).sort()[0];
+  const fm={};log.forEach(l=>{if(!fm[l.pid]||l.d<fm[l.pid])fm[l.pid]=l.d});const first=pid=>fm[pid];
   return {us,ex,ppl:[...new Set(ex.map(l=>l.pid))],
     newp:new Set(ex.filter(l=>first(l.pid)===l.d).map(l=>l.pid)).size,
     again:new Set(ex.filter(l=>first(l.pid)<m).map(l=>l.pid)).size,
-    same:new Set(ex.filter(l=>{const c=l.car||person(l.pid)||{};return c.maker&&c.maker===me.maker}).map(l=>l.pid)).size}}
+    same:new Set(ex.filter(l=>{const c=l.car||person(l.pid)||{};return c.maker&&c.maker!=='その他'&&c.maker===me.maker}).map(l=>l.pid)).size}}
 const QPOOL=[
  {k:'eki3',t:'道の駅を3か所',s:'今月のうちに、別々の道の駅で記録',ic:'pin',g:3,f:d=>d.us.filter(x=>x.cat==='eki').length},
  {k:'tg2',t:'峠を2か所走る',s:'今月のうちに、峠のスポットを2か所記録',ic:'mountain',g:2,f:d=>d.us.filter(x=>x.cat==='tg').length},
@@ -848,7 +851,7 @@ const quest=m=>QPOOL[moHash(m)%QPOOL.length];
 const questOk=m=>{const q=quest(m);return q.f(moData(m))>=q.g};
 const qMonths=()=>[...new Set([...log.map(l=>moStart(l.d)),...spotlog.map(v=>moStart(v.d))])];
 function questTotals(){return {qd:qMonths().filter(questOk).length}}
-function questCard(){const m=moStart(today()),q=quest(m),v=Math.min(q.g,q.f(moData(m))),ok=v>=q.g,left=Math.max(0,Math.round((new Date(moEnd(m)+'T23:59:59')-Date.now())/864e5));
+function questCard(){const m=moStart(today()),q=quest(m),v=Math.min(q.g,q.f(moData(m))),ok=v>=q.g,left=Math.round((Date.parse(moEnd(m))-Date.parse(today()))/864e5);
   return `<button class="qcard press" id="qcard"><div class="qh"><b>${moName(m)}のお題</b><span>${ok?'達成！':left?`あと${left}日`:'今日まで'}</span></div>
    <div class="qrow${ok?' ok':''}"><span class="qi">${ok?'✓':''}</span><div class="t"><b>${q.t}</b><div class="bar"><i style="width:${v/q.g*100}%"></i></div></div><span class="v">${v}/${q.g}</span></div></button>`}
 function openQuests(){const m=moStart(today()),q=quest(m),v=Math.min(q.g,q.f(moData(m))),ok=v>=q.g,t=questTotals();
@@ -877,6 +880,7 @@ function pinRow(keys,empty){return keys.length?`<div class="pins">${keys.map(k=>
 let uid=0;
 function stamp(p,o={}){
   if(o.v&&p.vers&&p.vers[o.v-1])p={...p,...p.vers[o.v-1]};
+  p={...p,img:esc(p.img||avatar(okColor(p.ring))),ring:okColor(p.ring)}; // 他の人の値はそのまま埋め込まない
   const size=o.size||84, off=o.off??!!p.official, ev=!off&&o.ev&&EVENTS[o.ev];
   let svg;
   if(off){const id='rp'+(++uid),txt='OFFICIAL ★ PETACAR ★ OFFICIAL ★ PETACAR ★ ';
@@ -1104,8 +1108,8 @@ function yearStats(Y){
   const days={};L.forEach(l=>{days[l.pid]=(days[l.pid]||0)+1});
   const buddy=Object.entries(days).sort((a,b)=>b[1]-a[1])[0];
   const mon={};L.forEach(l=>{const m=+l.d.slice(5,7);mon[m]=(mon[m]||0)+1});const topM=Object.entries(mon).sort((a,b)=>b[1]-a[1])[0];
-  const S=[...new Set(spotlog.filter(v=>v.d.startsWith(Y)).map(v=>v.id))].map(SP).filter(Boolean);
-  const cars=[...new Set(ppl.map(id=>{const p=person(id);return p.maker+'|'+p.car}))];
+  const S=[...new Set(spotlog.filter(v=>v.d.startsWith(Y)).map(v=>v.id))].map(SP).filter(x=>x&&x.cat!=='st');
+  const cars=[...new Set(L.map(l=>{const c=l.car||person(l.pid);return c.maker+'|'+c.car}))];
   const rare=ppl.map(person).sort((a,b)=>rarity(b.maker,b.car)-rarity(a.maker,a.car))[0];
   return {Y,ex:L.length,ppl:ppl.length,newP:ppl.filter(id=>firstMet(id).startsWith(Y)).length,buddy:buddy&&{p:person(buddy[0]),n:buddy[1]},topM,
     sp:S.length,eki:S.filter(x=>x.cat==='eki').length,tg:S.filter(x=>x.cat==='tg').length,cir:S.filter(x=>x.cat==='cir').length,pa:S.filter(x=>x.cat==='pa').length,
@@ -1496,9 +1500,9 @@ function detail(id){
 const LOCK='<svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
 function rewardsBlock(name,ps,pinKeys,showStats,showRewards){
   const pg=gotList(ps).sort((a,b)=>TIERS[b.tier].o-TIERS[a.tier].o);
-  const show=pinKeys.map(B);
+  const show=(Array.isArray(pinKeys)?pinKeys:[]).map(B).filter(Boolean);
   return `<div class="sec">${esc(name)} さんのリワード</div><div class="group showcase">
-    ${showStats?`<div class="mini"><div><b>${ps.ex}</b><span>交換</span></div><div><b>${ps.ppl}</b><span>会った人</span></div><div><b>${ps.kira}</b><span>EX</span></div></div>`:''}
+    ${showStats?`<div class="mini"><div><b>${+ps.ex||0}</b><span>交換</span></div><div><b>${+ps.ppl||0}</b><span>会った人</span></div><div><b>${+ps.kira||0}</b><span>EX</span></div></div>`:''}
     ${showRewards?`${show.length?`<div class="shelf">${show.map(b=>`<div class="trophy t-${b.tier}">${medal(b,44)}<b>${b.t}</b><span class="tier tier-${b.tier}">${TIERS[b.tier].n}</span></div>`).join('')}</div>`:''}
       <div class="collect"><div class="cl"><span>バッジ</span><b>${pg.length}<small>/${BADGES.length}</small></b></div><div class="strip">${pg.map(b=>medal(b,30)).join('')}</div></div>`
     :`<div class="hiddenbox">${LOCK}${showStats?'バッジは非公開です':'リワードは非公開です'}</div>`}</div>`;
@@ -1683,45 +1687,56 @@ async function askMotion(){try{if(typeof DeviceMotionEvent==='undefined'){motion
 function fillNearby(){const mine=liveMap[C.uid];
   nearby=Object.entries(liveMap).filter(([id,x])=>id!==C.uid&&x.until>Date.now()&&!blocked.has(id)&&POOL.some(p=>p.id===id)&&nearCell(mine&&mine.cell,x.cell)).map(([id])=>id)}
 C.live.sub(m=>{liveMap=m;if(nearOn()){const b=nearby.join();fillNearby();if(b!==nearby.join()&&tab==='ex'&&!$('#sh'))render()}});
-C.ex.sub(m=>{const prev=exMine;exMine=m;
-  const inc=Object.values(m).filter(x=>x.b===C.uid&&x.state==='asked'&&Date.now()-x.at<ASK_MS&&!blocked.has(x.a)&&(settings.reqFrom!=='known'||daysWith(x.a)>0)).sort((a,b)=>b.at-a.at)[0];
+let incT=null;
+const fresh=x=>Math.abs(Date.now()-x.at)<ASK_MS; // 相手の時計が進んでいても期限切れにする
+function onExMap(m){const prev=exMine;exMine=m;
+  const inc=Object.values(m).filter(x=>x.b===C.uid&&x.state==='asked'&&fresh(x)&&!blocked.has(x.a)&&(settings.reqFrom!=='known'||daysWith(x.a)>0)).sort((a,b)=>b.at-a.at)[0];
   const isNew=inc&&!prev[inc.id];
+  // 2人が同時にお互いへ申し込んだとき：idの小さい方の申し込みに1本化する（両方が同じ規則で決めるので食い違わない）
+  if(inc&&cur&&cur.peer===inc.a&&cur.id&&cur.adopt&&inc.id<cur.id)cur.adopt(inc.id);
   incoming=inc&&!(cur&&cur.peer===inc.a)?inc.a:null;incomingEx=incoming?inc.id:null;
   if(isNew&&incoming){sfx.chime();buzz([40,60,40]);if(tab!=='ex')toast(`${(person(inc.a)||{}).name||'だれか'}さんから交換の申し込み`)}
   if(cur&&cur.id&&m[cur.id])cur.onEx(m[cur.id]);
-  if(tab==='ex'&&!$('#sh'))render()});
-addEventListener('pagehide',()=>{if(nearOn())C.live.clear()});
+  clearTimeout(incT);if(inc)incT=setTimeout(()=>onExMap(exMine),Math.max(1000,inc.at+ASK_MS-Date.now()+500)); // 期限が来たら申し込みの表示を消す
+  if(tab==='ex'&&!$('#sh'))render()}
+C.ex.sub(onExMap);
+const wipes=new Map(); // exId -> 位置を外した side
+const flushWipes=()=>{for(const [id,b] of wipes)C.ex.setSide(id,b).catch(()=>{});wipes.clear()};
+addEventListener('pagehide',()=>{if(nearOn())C.live.clear();flushWipes()});
+document.addEventListener('visibilitychange',()=>{if(document.hidden)flushWipes()});
 C.onPeople(()=>{me.official=C.isOfficial(C.uid);if(nearOn())fillNearby();if(!$('#sh'))render()});me.official=C.isOfficial(C.uid);
 
 function request(id,accepted,exArg){
   const p=person(id);if(!p)return;
   if(!accepted&&incoming===id){accepted=true;exArg=incomingEx}
   if(accepted){incoming=null;incomingEx=null}
-  let exId=accepted?exArg:null,round=1,sides={},state=accepted?'accepted':'asked',finished=false,gone=false,unSide=()=>{},motionOff=()=>{};
+  let exId=accepted?exArg:null,round=1,sides={},state=accepted?'accepted':'asked',finished=false,gone=false,unSide=()=>{},motionOff=()=>{},askT=null,sent=-1;
   openSheet(`<div class="result">${stamp(p,{size:96})}<b style="font-size:18px">${esc(p.name)} さん（${esc(p.car)}）</b></div>
    <ul class="checks"><li class="${accepted?'ok':''}" id="c1"><span class="m">${accepted?'✓':'1'}</span>お互いが交換を押す<small>${accepted?'承認しました':'申し込んでいます…'}</small></li>
    <li id="c2"><span class="m">2</span>2人で同時にスマホを振る<small></small></li>
    <li id="c3"><span class="m">3</span>2人の位置<small></small></li></ul>
    <div id="res"><button class="btn sub press" data-close>やめる</button></div>`);
-  const wipe=()=>{const m=sides[C.uid];if(exId&&m&&m.la!=null){const id2=exId,b={t:m.t,r:m.r,how:m.how};setTimeout(()=>C.ex.setSide(id2,b).catch(()=>{}),10000)}}; // 位置は判定にだけ使い、10秒後に消す
-  const stop=()=>{gone=true;unSide();motionOff();wipe();if(cur&&cur.peer===id)cur=null};
+  const wipe=()=>{const m=sides[C.uid];if(exId&&m&&m.la!=null){const id2=exId,b={t:m.t,r:m.r,how:m.how};wipes.set(id2,b);setTimeout(()=>{if(wipes.get(id2)===b){wipes.delete(id2);C.ex.setSide(id2,b).catch(()=>{})}},10000)}}; // 位置は判定にだけ使い、10秒後（閉じたらすぐ）に消す
+  const stop=()=>{gone=true;clearTimeout(askT);unSide();unSide=()=>{};motionOff();wipe();if(cur===self)cur=null};
   const quit=()=>{const was=!finished;stop();if(exId&&was)C.ex.update(exId,{state:'cancel'}).catch(()=>{})};
   bindClose(quit);
   const resetChecks=()=>['c2','c3'].forEach(k=>{const li=$('#'+k);if(!li)return;li.className='';li.querySelector('.m').textContent=k.slice(1);li.querySelector('small').textContent=''});
   const fail=(k,v,msg)=>{setCheck(k,false,v);buzz([60,40,60]);motionOff();
     $('#res').innerHTML=`<div class="group"><b>交換できませんでした</b><div class="note">${msg}</div></div><div class="row" style="margin-top:12px"><button class="btn sub press" data-close>やめる</button><button class="btn press" id="again">もう一度</button></div>`;
     bindClose(quit);$('#again').onclick=()=>{round++;ask()}};
-  const judge=()=>{if(finished||gone)return;const a=sides[C.uid],b=sides[id];if(!a||!b||a.r!==round||b.r!==round)return;
+  const judge=()=>{if(finished||gone)return;const a=sides[C.uid],b=sides[id];if(!a||!b||a.r!==round||b.r!==round||sent!==round)return;
     const dt=Math.abs(a.t-b.t),dm=a.la!=null&&b.la!=null?dist(a,b)*1000:null,lim=dm==null?0:Math.max(150,(a.acc||0)+(b.acc||0));
     if(dt>WINDOW_MS){fail('c2',`ずれ ${(dt/1000).toFixed(1)}秒`,`2人のタイミングが${(dt/1000).toFixed(1)}秒ずれていました（2秒以内で成立）。「せーの」で同時に振ってください。`);return}
     setCheck('c2',true,`ずれ ${(dt/1000).toFixed(1)}秒`);
     if(dm!=null&&dm>lim){fail('c3',`約${Math.round(dm)}m`,`2人の位置が約${Math.round(dm)}m離れていました。その場で会っている人とだけ交換できます。`);return}
     finished=true;stop();C.ex.update(exId,{state:'done'}).catch(()=>{});
-    setTimeout(()=>{setCheck('c3',true,dm==null?'確認できず':'近く');setTimeout(()=>showResult(p),450)},400)};
+    const res=grant(p); // 記録は画面を閉じても残るよう、演出より先に付ける
+    setTimeout(()=>{setCheck('c3',true,dm==null?'確認できず':'近く');setTimeout(()=>{if($('#res')){$('#res').innerHTML=res;bindClose()}render()},450)},400)};
   const fire=how=>{if(finished||gone||!exId)return;const mine=sides[C.uid];if(mine&&mine.r===round)return;
-    const body={t:Date.now(),r:round,how};if(myPos&&Date.now()-myPos.at<180000)Object.assign(body,{la:myPos.la,lo:myPos.lo,acc:myPos.acc});
+    const g=v=>Math.round(v*2000)/2000; // 約50mのマス目に丸めて渡す（判定には十分）
+    const body={t:Date.now(),r:round,how};if(myPos&&Date.now()-myPos.at<180000)Object.assign(body,{la:g(myPos.la),lo:g(myPos.lo),acc:Math.round(myPos.acc)+35});
     sides[C.uid]=body;buzz(30);const sm=$('#c2 small');if(sm)sm.textContent=how==='振る'?'振りました · 相手待ち':'押しました · 相手待ち';
-    C.ex.setSide(exId,body).catch(()=>{delete sides[C.uid];toast('送れませんでした。もう一度振ってください')});judge()};
+    const r0=round;C.ex.setSide(exId,body).then(()=>{if(round===r0){sent=r0;judge()}},()=>{if(sides[C.uid]===body)delete sides[C.uid];toast('送れませんでした。もう一度振ってください')})};
   const ask=()=>{if(gone||!$('#c2'))return;resetChecks();if(round>1)$('#c2 small').textContent=`${round}回目`;
     $('#res').innerHTML=`<div style="text-align:center;margin-bottom:12px"><span class="shake" aria-hidden="true">📱</span><div><b>「せーの」で2人同時に振る！</b></div><div class="note">振るタイミングが2秒以内でそろえば、スタンプがペタッと貼られます</div></div>
      <div class="row"><button class="btn sub press" data-close>やめる</button><button class="btn press" id="shk">${motionOK===false?'振る代わりにタップ':'振れないときはタップ'}</button></div>`;
@@ -1730,13 +1745,22 @@ function request(id,accepted,exArg){
       const m=a&&a.x!=null?Math.hypot(a.x,a.y,a.z):g&&g.x!=null?Math.abs(Math.hypot(g.x,g.y,g.z)-9.8):0;
       if(m>12&&Date.now()-last>1500){last=Date.now();fire('振る')}};
     addEventListener('devicemotion',h);motionOff=()=>removeEventListener('devicemotion',h);getPos()};
-  cur={peer:id,id:null,onEx:x=>{if(gone)return;
+  const self={peer:id,id:null,onEx:x=>{if(gone)return;
     if(x.state==='accepted'&&state==='asked'){state='accepted';setCheck('c1',true,'承認されました');ask()}
-    else if((x.state==='declined'||x.state==='cancel')&&!finished){stop();closeSheet();toast(x.state==='declined'?`${p.name}さんは今は交換できないようです`:`${p.name}さんがやめました`)}}};
-  const watch=()=>{unSide=C.ex.subSides(exId,m=>{sides={...sides,...m};judge()})};
+    else if((x.state==='declined'||x.state==='cancel')&&!finished){stop();closeSheet();toast(x.state==='declined'?`${p.name}さんは今は交換できないようです`:`${p.name}さんがやめました`)}},
+    // 相手からの同時の申し込みに乗りかえる（自分の申し込みは取り消す）
+    adopt:xid=>{if(gone||state!=='asked'||!exId||xid===exId)return;const old=exId;clearTimeout(askT);unSide();unSide=()=>{};
+      exId=xid;self.id=xid;state='accepted';C.ex.update(old,{state:'cancel'}).catch(()=>{});setCheck('c1',true,'承認しました');accept()}};
+  cur=self;
+  const watch=()=>{if(gone)return;unSide=C.ex.subSides(exId,m=>{sides={...sides,...m};judge()})};
+  const accept=()=>C.ex.update(exId,{state:'accepted',acceptedAt:Date.now()}).then(()=>{if(gone)return;watch();ask()}).catch(()=>{if(gone)return;stop();closeSheet();toast('承認できませんでした。相手が取り消した可能性があります')});
   askMotion();getPos();
-  if(accepted){cur.id=exId;C.ex.update(exId,{state:'accepted',acceptedAt:Date.now()}).then(()=>{watch();ask()}).catch(()=>{stop();closeSheet();toast('承認できませんでした。もう一度お試しください')})}
-  else C.ex.create(id).then(nid=>{exId=nid;cur.id=nid;watch();const s=$('#c1 small');if(s)s.textContent='相手の承認待ち';const x=exMine[nid];if(x)cur.onEx(x)}).catch(()=>{stop();closeSheet();toast('申し込めませんでした。もう一度お試しください')});
+  if(accepted){self.id=exId;accept()}
+  else C.ex.create(id).then(nid=>{
+    if(gone){C.ex.update(nid,{state:'cancel'}).catch(()=>{});return} // 作っている間に閉じた
+    exId=nid;self.id=nid;watch();const s=$('#c1 small');if(s)s.textContent='相手の承認待ち';
+    askT=setTimeout(()=>{if(gone||state!=='asked')return;stop();C.ex.update(nid,{state:'cancel'}).catch(()=>{});closeSheet();toast(`${p.name}さんの応答がなかったので、申し込みを取り消しました`)},ASK_MS);
+    const x=exMine[nid];if(x)self.onEx(x)}).catch(()=>{if(gone)return;stop();closeSheet();toast('申し込めませんでした。もう一度お試しください')});
 }
 function bindExBeta(){
   if($('#todayCar'))$('#todayCar').onclick=()=>openGarage(render);
@@ -1747,7 +1771,7 @@ function bindExBeta(){
     const p=await getPos();
     try{await C.live.set({until:nearUntil,cell:cellOf(p),upd:Date.now()})}catch(e){toast('接続できませんでした。電波のよい場所でもう一度お試しください');nearUntil=0;render();return}
     fillNearby();render();if(!p)toast('位置情報が使えないため、近くかどうかの確認なしで一覧に出ます')};
-  if(incoming){$('#inNo').onclick=()=>{const x=incomingEx;incoming=null;incomingEx=null;render();if(x)C.ex.update(x,{state:'declined'}).catch(()=>{})};
+  if(incoming){$('#inNo').onclick=()=>{const x=incomingEx;incoming=null;incomingEx=null;render();if(x)C.ex.update(x,{state:'declined'}).catch(()=>toast('お断りを送れませんでした。電波のよい場所でもう一度お試しください'))};
     $('#inYes').onclick=()=>{const id=incoming,x=incomingEx;render();request(id,true,x)}}
   if(nearOn()){
     const tick=()=>{const s=Math.max(0,Math.ceil((nearUntil-Date.now())/1000)),el=$('#left');if(el)el.textContent=`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;if(!s){nearUntil=0;nearby=[];C.live.clear();render()}};
