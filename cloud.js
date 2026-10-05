@@ -34,7 +34,7 @@ function makeStore(backend, profDoc, privDoc) {
   const flushPriv = debounce(() => backend.setPriv(priv).catch(e => console.warn('priv', e)), 800);
   const flushProf = debounce(() => {
     const a = window.__app; if (!a) return;
-    const me = { ...a.me }; delete me.sample;
+    const me = { ...a.me }; delete me.sample; delete me.official;
     let vers = (prof && prof.vers) || [];
     if (!me.def) {
       const v = me.ver || 1, cur = { img: me.img, ring: me.ring };
@@ -62,10 +62,12 @@ function makeStore(backend, profDoc, privDoc) {
 
 function toPerson(id, d) {
   const sns = Array.isArray(d.sns) ? d.sns.filter(u => typeof u === 'string' && /^https:\/\/[^\s"'<>]+$/.test(u) && u.length <= 200).slice(0, 2) : [];
-  return { id, sns, msg: typeof d.msg === 'string' ? d.msg.slice(0, 30) : '', name: d.name || '名無し', maker: d.maker || 'その他', car: d.car || '—', pref: d.pref || '', ring: d.ring || '#e8551c',
+  return { id, official: !!OFF[id], sns, msg: typeof d.msg === 'string' ? d.msg.slice(0, 30) : '', name: d.name || '名無し', maker: d.maker || 'その他', car: d.car || '—', pref: d.pref || '', ring: d.ring || '#e8551c',
     img: d.img, bg: d.bg, ver: d.ver || 1, vers: (d.vers && d.vers.length ? d.vers : [{ img: d.img, ring: d.ring }]).map(v => ({ ring: v.ring, img: v.img || d.img })),
     stats: { pins: [], ...(d.stats || {}) }, showStats: d.showStats !== false, showRewards: d.showRewards !== false };
 }
+// 公式アカウント：運営がコンソールで official/{uid} を作ったときだけ付く。本人のプロフィールの値は信用しない
+let OFF = {};
 function setPeople(map, me) {
   people.length = 0;
   for (const [id, d] of Object.entries(map)) if (id !== me && d && !d.def) people.push(toPerson(id, d));
@@ -152,6 +154,7 @@ async function firebaseBackend() {
       add: spot => F.addDoc(Col('here'), { spot, until: Date.now() + 7200000 }),
       sub: cb => F.onSnapshot(F.query(Col('here'), F.where('until', '>', Date.now())), qs => cb(qs.docs.map(d => d.data())), e => console.warn('here', e)),
     },
+    official: cb => F.onSnapshot(Col('official'), qs => { const m = {}; qs.forEach(d => m[d.id] = true); cb(m) }, e => console.warn('official', e)),
     report: d => F.addDoc(Col('reports'), { ...d, by: uid, at: Date.now() }),
     signOut: () => (NATIVE ? FA.signOut().catch(() => { }) : Promise.resolve()).then(() => A.signOut(auth)).then(() => location.reload()),
     deleteAccount: async () => {
@@ -183,6 +186,7 @@ function mockBackend(uid) {
       setSide: (id, d) => put('ex/' + id + '/side/' + uid, d),
     },
     here: { add: spot => put('here/h' + Date.now() + (n++), { spot, until: Date.now() + 7200000 }), sub: cb => sub(() => cb(Object.values(coll('here')))) },
+    official: cb => sub(() => { const m = {}; Object.keys(coll('official')).forEach(k => m[k] = true); cb(m) }),
     report: d => put('reports/r' + Date.now(), { ...d, by: uid }),
     signOut: () => Promise.resolve(location.reload()),
     deleteAccount: async () => { ['users/' + uid, 'users/' + uid + '/priv/state', 'live/' + uid].forEach(k => M.docs.delete(k)); notify() },
@@ -198,14 +202,16 @@ catch (e) { showError('ログインまたは読み込みの途中で止まりま
 if (be) {
   window.__cloud = {
     uid: be.uid, store: makeStore(be, be.profDoc, be.privDoc), people,
-    onPeople: f => peopleCbs.push(f),
+    onPeople: f => peopleCbs.push(f), isOfficial: id => !!OFF[id],
     live: be.live, ex: be.ex, here: be.here, report: be.report, signOut: be.signOut, deleteAccount: be.deleteAccount,
   };
   let first = true;
   step('参加者を読み込んでいます…');
   const slow = setTimeout(() => { if (first) showError('参加者の一覧を読み込めません（15秒たっても応答がありません）。', 'timeout') }, 15000);
+  let lastMap = {};
+  be.official(m => { OFF = m; setPeople(lastMap, be.uid) });
   be.subPeople(map => {
-    setPeople(map, be.uid);
+    lastMap = map; setPeople(map, be.uid);
     if (!first) return;
     first = false; clearTimeout(slow);
     try { window.__startApp(); gate.hidden = true; gate.innerHTML = '' } catch (e) { showError('画面の準備中にエラーが起きました。', e) }

@@ -147,12 +147,14 @@ button{font-family:inherit;color:inherit}
 .member>*{position:relative}
 .member .nm{font-family:var(--display);font-size:22px;line-height:1.2}
 .hito{border:0;background:rgba(0,0,0,.28);color:#fff;font:500 13.5px/1.4 var(--sans);padding:5px 12px;border-radius:999px;max-width:92%;overflow-wrap:anywhere;cursor:pointer;backdrop-filter:blur(4px)}.hito.add{background:rgba(255,255,255,.16);color:rgba(255,255,255,.85);font-size:12.5px}
+.offb{display:inline-flex;align-items:center;gap:2px;margin-left:6px;padding:1px 7px 1px 5px;border-radius:999px;background:linear-gradient(135deg,#fff1a8,#e2a91c 55%,#b07c0a);color:#2a1d00;font:800 11px/1.5 var(--sans);vertical-align:3px;text-shadow:none;letter-spacing:.04em}
 .snsrow{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:6px}.snsl{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:999px;background:var(--fill);color:var(--ink);font:600 12.5px var(--sans);text-decoration:none}
 .hitop{font-size:14px;color:var(--muted);text-align:center;max-width:90%;overflow-wrap:anywhere;margin-top:-2px}
 .member .chip{background:rgba(0,0,0,.35);color:#fff;backdrop-filter:blur(4px)}
 .member .nm{text-shadow:0 2px 8px rgba(0,0,0,.45)}
 .hero{height:118px;border-radius:20px;margin:0 0 -64px;position:relative}
 .hero+.result{position:relative}
+.pcard{border-radius:24px;padding:22px 16px 18px;color:#fff;overflow:hidden}.pcard>*{position:relative}.pcard>b{text-shadow:0 2px 8px rgba(0,0,0,.5)}.pcard .chip{background:rgba(0,0,0,.35);color:#fff;backdrop-filter:blur(4px)}.pcard .hitop{color:rgba(255,255,255,.9);text-shadow:0 1px 6px rgba(0,0,0,.5)}.pcard .snsl{background:rgba(255,255,255,.18);color:#fff;backdrop-filter:blur(6px)}.pcard .favbtn{background:rgba(0,0,0,.35);color:#fff;border-color:transparent;backdrop-filter:blur(4px)}.pcard .note{color:rgba(255,255,255,.8)}
 .bggrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .bgsw{background-size:cover!important;background-position:center!important;aspect-ratio:16/10;border-radius:12px;border:2px solid transparent;cursor:pointer;display:flex;align-items:flex-end;padding:6px;color:#fff;font-size:11px;font-weight:700;text-shadow:0 1px 3px rgba(0,0,0,.7);background-clip:padding-box}
 .bgsw[aria-pressed=true]{border-color:var(--accent);box-shadow:0 0 0 2px var(--bg) inset}
@@ -530,7 +532,7 @@ function avatar(c1){
 const POOL=window.__cloud.people;const POOL_DEMO=[
   {id:'p1',name:'けんた',msg:'GD乗りです。赤城でよく走ってます',maker:'スバル',car:'WRX STI',tag:'STI',pref:'群馬',ring:'#1f3a5f',c:['#2b5fa8','#0e1f3a']},
   {id:'p2',name:'ゆうき',msg:'週末は道の駅めぐり',maker:'トヨタ',car:'GR86',tag:'GR86',pref:'栃木',ring:'#e8551c',c:['#e8551c','#5a1e08']},
-  {id:'p3',name:'まさ',maker:'マツダ',car:'ロードスター',tag:'ND',pref:'埼玉',ring:'#1d8a4b',c:['#3d8a5e','#10301f']},
+  {id:'p3',official:true,name:'まさ',maker:'マツダ',car:'ロードスター',tag:'ND',pref:'埼玉',ring:'#1d8a4b',c:['#3d8a5e','#10301f']},
   {id:'p4',name:'りょう',maker:'ホンダ',car:'シビック タイプR',tag:'TYPE R',pref:'群馬',ring:'#d4a017',c:['#b8901a','#3d2f06']},
   {id:'p5',name:'あや',maker:'トヨタ',car:'2000GT',tag:'2000GT',pref:'長野',ring:'#7b3fa0',c:['#7b3fa0','#26103a']},
   {id:'p6',name:'しんご',maker:'スバル',car:'BRZ',tag:'BRZ',pref:'新潟',ring:'#18212b',c:['#5d6874','#18212b']},
@@ -778,16 +780,23 @@ function pinRow(keys,empty){return keys.length?`<div class="pins">${keys.map(k=>
 let uid=0;
 function stamp(p,o={}){
   if(o.v&&p.vers&&p.vers[o.v-1])p={...p,...p.vers[o.v-1]};
-  const size=o.size||84, ev=o.ev&&EVENTS[o.ev];
+  const size=o.size||84, off=o.off??!!p.official, ev=!off&&o.ev&&EVENTS[o.ev];
   let svg;
-  if(ev){const id='rp'+(++uid),txt=`${ev.short} ★ ${ev.short} ★ `;
+  if(off){const id='rp'+(++uid),txt='OFFICIAL ★ PETACAR ★ OFFICIAL ★ PETACAR ★ ';
+    svg=`<svg viewBox="0 0 100 100" aria-hidden="true"><defs><path id="${id}" d="M50,50 m-44.5,0 a44.5,44.5 0 1,1 89,0 a44.5,44.5 0 1,1 -89,0"/><linearGradient id="${id}g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff1a8"/><stop offset=".5" stop-color="#e2a91c"/><stop offset="1" stop-color="#9a6a06"/></linearGradient></defs>
+      <circle cx="50" cy="50" r="44.5" fill="none" stroke="#14110a" stroke-width="10.5"/>
+      <circle cx="50" cy="50" r="49.6" fill="none" stroke="url(#${id}g)" stroke-width="1.6"/><circle cx="50" cy="50" r="39.4" fill="none" stroke="url(#${id}g)" stroke-width="1.6"/>
+      <text font-size="5.4" font-family="JetBrains Mono,monospace" font-weight="800" fill="url(#${id}g)" dy="2" textLength="276" lengthAdjust="spacing"><textPath href="#${id}">${txt}</textPath></text>
+      <g transform="translate(80 13)"><circle r="9.5" fill="url(#${id}g)" stroke="#14110a" stroke-width="1.6"/><path d="M-4.2 .2l2.9 2.9 5.6-5.8" fill="none" stroke="#14110a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></g></svg>`;
+  }else if(ev){const id='rp'+(++uid),txt=`${ev.short} ★ ${ev.short} ★ `;
     svg=`<svg viewBox="0 0 100 100" aria-hidden="true"><defs><path id="${id}" d="M50,50 m-44.5,0 a44.5,44.5 0 1,1 89,0 a44.5,44.5 0 1,1 -89,0"/></defs>
       <circle cx="50" cy="50" r="44.5" fill="none" stroke="${ev.c1}" stroke-width="10.5"/>
       <circle cx="50" cy="50" r="49.6" fill="none" stroke="${ev.c2}" stroke-width=".9"/><circle cx="50" cy="50" r="39.4" fill="none" stroke="${ev.c2}" stroke-width=".9"/>
       <text font-size="5.6" font-family="JetBrains Mono,monospace" font-weight="700" fill="${ev.c2}" dy="2" textLength="276" lengthAdjust="spacing"><textPath href="#${id}">${esc(txt)}</textPath></text></svg>`;
   }else svg=`<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48" fill="none" stroke="${p.ring}" stroke-width="3.6"/></svg>`;
-  return `<div class="stamp ${ev?'ev':''}" style="width:${size}px;font-size:${size/7}px"><img src="${p.img}" alt="${esc(p.name)}のスタンプ">${o.kira?'<div class="k"></div>':o.rare?'<div class="k g"></div>':''}${svg}${o.kira?'<div class="kb">EX</div>':o.rare?'<div class="kb g">RARE</div>':''}</div>`;
+  return `<div class="stamp ${ev||off?'ev':''}" style="width:${size}px;font-size:${size/7}px"><img src="${p.img}" alt="${esc(p.name)}のスタンプ">${o.kira?'<div class="k"></div>':o.rare?'<div class="k g"></div>':''}${svg}${o.kira?'<div class="kb">EX</div>':o.rare?'<div class="kb g">RARE</div>':''}</div>`;
 }
+const OFFB='<span class="offb" title="運営が本人確認した公式アカウント"><svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"><path d="M3.5 8.3l3 3 6-6.4" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>公式</span>';
 const curV=p=>p.vers?p.vers.length:(p.ver||1);
 const vOf=(p,l)=>l&&l.v?l.v:curV(p);
 const vName=v=>v===1?'初版':`第${v}版`;
@@ -822,7 +831,7 @@ const views={
   return `<div class="member" style="background:${bgCSS(me)}">
     <button class="bgb" id="bgb" aria-label="背景を変える"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/></svg></button>
     <button class="edit" id="mk" aria-label="スタンプを作る">${stamp(me,{size:150,ev:inEvent()?LIVE:null})}<span class="pen"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></span></button>
-    <div class="nm">${esc(me.name)}</div>
+    <div class="nm">${esc(me.name)}${me.official?OFFB:''}</div>
     <button class="hito press${me.msg?'':' add'}" id="hito">${me.msg?esc(me.msg):'＋ ひとことを書く'}</button>
     <div><button class="chip carchip press" id="carb" aria-label="ガレージ（今日の車を選ぶ）">${CARI}${esc(carLabel(me))}${me.garage.length>1?`<small>${me.garage.length}台</small>`:''}<i aria-hidden="true">▾</i></button> <span class="chip">${esc(me.pref)}</span></div>
     ${inEvent()?`<div class="note" style="color:rgba(255,255,255,.85)">今日はイベント限定のフチで交換されます</div>`:''}
@@ -1267,7 +1276,7 @@ function grant(p){
   const ev=inEvent()?LIVE:null;
   if(already)return `<div class="result">${stamp(p,{size:140,ev:best(p.id).ev,kira:best(p.id).kira,rare:best(p.id).rare,v:best(p.id).v})}<b style="font-size:18px">${esc(p.name)} さんとは今日もう交換しています</b><div class="note">仲良し度とEXの抽選は、同じ人とは1日1回です。</div></div><button class="btn sub press" style="margin-top:14px" data-close>閉じる</button>`;
   const before=daysWith(p.id),rate=kiraRate(before,ev),rrate=rareRate(before,ev),roll=Math.random(),kira=roll<rate,rare=!kira&&roll<rate+rrate;
-  const gb=gotKeys();log.push({pid:p.id,d:today(),ev,place:ev?null:placeHere(),kira,rare,v:curV(p),car:{maker:p.maker,car:p.car},my:{maker:me.maker,car:me.car}});save();const nb=gotList(myStats()).filter(b=>!gb.includes(b.k));buzz(kira?[40,60,40,60,140]:[30,50,90]);sfx.peta(kira);
+  const gb=gotKeys();log.push({pid:p.id,d:today(),ev,place:ev?null:placeHere(),kira,rare,v:curV(p),...(p.official?{off:true}:{}),car:{maker:p.maker,car:p.car},my:{maker:me.maker,car:me.car}});save();const nb=gotList(myStats()).filter(b=>!gb.includes(b.k));buzz(kira?[40,60,40,60,140]:[30,50,90]);sfx.peta(kira);
   return `<div class="result"><div class="peta" aria-hidden="true">ペタッ!</div>${kira?'<div class="kirahit">EXが出た！</div>':rare?'<div class="rarehit">レアが出た！</div>':''}${stamp(p,{size:150,ev,kira,rare})}
    <b style="font-size:20px">${esc(p.name)} さんと交換</b>${rarity(p.maker,p.car)>=4?`<span class="raretag">${'★'.repeat(rarity(p.maker,p.car))} レア車に会えた！</span>`:''}
    <div><span class="chip">${esc(carLabel(p))}</span>${ev?` <span class="chip">${esc(EVENTS[ev].name)}</span>`:''}</div>
@@ -1360,7 +1369,7 @@ function openHito(){
 function detail(id){
   const p=person(id),n=daysWith(id),h=log.filter(l=>l.pid===id).slice().reverse(),b=best(id),ps=PST[id];
   const seen=new Set(),variants=h.filter(l=>{const k=(l.v||1)+(l.ev||'-')+(l.kira?'k':l.rare?'r':'');if(seen.has(k))return false;seen.add(k);return true});
-  openSheet(`<div class="hero" style="background:${bgCSS(p)}"></div><div class="result">${stamp(p,{size:120,ev:b.ev,kira:b.kira,rare:b.rare,v:b.v})}<b style="font-size:20px">${esc(p.name)}</b>${p.msg?`<div class="hitop">${esc(p.msg)}</div>`:''}${snsRow(p.sns)}
+  openSheet(`<div class="result pcard" style="background:${bgCSS(p)}">${stamp(p,{size:120,ev:b.ev,kira:b.kira,rare:b.rare,v:b.v})}<b style="font-size:20px">${esc(p.name)}${p.official?OFFB:''}</b>${p.msg?`<div class="hitop">${esc(p.msg)}</div>`:''}${snsRow(p.sns)}
    <div><span class="chip">${esc(carLabel(p))}</span> <span class="chip">${esc(p.pref)}</span></div>
    <button class="favbtn press" id="favb" aria-pressed="${favs.has(id)}">${favs.has(id)?'★ お気に入り':'☆ お気に入りに追加'}</button>
    <div class="lv" style="margin-top:4px">${Array.from({length:10},(_,i)=>`<i class="${i<n?'on':''}"></i>`).join('')}</div>
@@ -1449,7 +1458,7 @@ function openSettings(){
 function previewMe(){
   const st=myStats(),evs=[...new Set(log.filter(l=>l.ev).map(l=>l.ev))];
   openSheet(`<div class="note" style="text-align:center;margin-bottom:10px">ほかの人には、このように表示されます</div>
-   <div class="hero" style="background:${bgCSS(me)}"></div><div class="result">${stamp(me,{size:120})}<b style="font-size:20px">${esc(me.name)}</b>${me.msg?`<div class="hitop">${esc(me.msg)}</div>`:''}${snsRow(mySns())}
+   <div class="result pcard" style="background:${bgCSS(me)}">${stamp(me,{size:120})}<b style="font-size:20px">${esc(me.name)}${me.official?OFFB:''}</b>${me.msg?`<div class="hitop">${esc(me.msg)}</div>`:''}${snsRow(mySns())}
    <div><span class="chip">${esc(carLabel(me))}</span> <span class="chip">${esc(me.pref)}</span></div></div>
    ${rewardsBlock(me.name,st,myPins(),settings.pubStats,settings.pubRewards)}
    <div class="sec">参加したイベント</div>
@@ -1580,7 +1589,7 @@ C.ex.sub(m=>{const prev=exMine;exMine=m;
   if(cur&&cur.id&&m[cur.id])cur.onEx(m[cur.id]);
   if(tab==='ex'&&!$('#sh'))render()});
 addEventListener('pagehide',()=>{if(nearOn())C.live.clear()});
-C.onPeople(()=>{if(nearOn())fillNearby();if(!$('#sh'))render()});
+C.onPeople(()=>{me.official=C.isOfficial(C.uid);if(nearOn())fillNearby();if(!$('#sh'))render()});me.official=C.isOfficial(C.uid);
 
 function request(id,accepted,exArg){
   const p=person(id);if(!p)return;
