@@ -29,7 +29,7 @@ const debounce = (fn, ms) => { let t; const f = () => { clearTimeout(t); t = set
 function makeStore(backend, profDoc, privDoc) {
   const priv = { ...(privDoc || {}) };
   let prof = profDoc || null;
-  const ME_SKIP = ['vers', 'stats', 'showStats', 'showRewards', 'pubEvents', 'upd'];
+  const ME_SKIP = ['sns', 'vers', 'stats', 'showStats', 'showRewards', 'pubEvents', 'upd'];
   const pickMe = p => { const o = {}; for (const k in p) if (!ME_SKIP.includes(k)) o[k] = p[k]; return o };
   const flushPriv = debounce(() => backend.setPriv(priv).catch(e => console.warn('priv', e)), 800);
   const flushProf = debounce(() => {
@@ -42,7 +42,7 @@ function makeStore(backend, profDoc, privDoc) {
       if (vers.length > 8) vers = vers.map((x, i) => i < vers.length - 8 ? { ring: x.ring, img: null } : x);
     }
     const s = a.settings;
-    prof = { ...me, vers, stats: { ...a.myStats(), pins: a.myPins() }, showStats: !!s.pubStats, showRewards: !!s.pubRewards, pubEvents: !!s.pubEvents, upd: Date.now() };
+    prof = { ...me, sns: s.showSns ? (s.sns || []).filter(Boolean).slice(0, 2) : [], vers, stats: { ...a.myStats(), pins: a.myPins() }, showStats: !!s.pubStats, showRewards: !!s.pubRewards, pubEvents: !!s.pubEvents, upd: Date.now() };
     backend.setProfile(prof).catch(e => console.warn('profile', e));
   }, 1000);
   addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') { flushPriv.now(); flushProf.now() } });
@@ -61,7 +61,8 @@ function makeStore(backend, profDoc, privDoc) {
 }
 
 function toPerson(id, d) {
-  return { id, msg: typeof d.msg === 'string' ? d.msg.slice(0, 30) : '', name: d.name || '名無し', maker: d.maker || 'その他', car: d.car || '—', pref: d.pref || '', ring: d.ring || '#e8551c',
+  const sns = Array.isArray(d.sns) ? d.sns.filter(u => typeof u === 'string' && /^https:\/\/[^\s"'<>]+$/.test(u) && u.length <= 200).slice(0, 2) : [];
+  return { id, sns, msg: typeof d.msg === 'string' ? d.msg.slice(0, 30) : '', name: d.name || '名無し', maker: d.maker || 'その他', car: d.car || '—', pref: d.pref || '', ring: d.ring || '#e8551c',
     img: d.img, bg: d.bg, ver: d.ver || 1, vers: (d.vers && d.vers.length ? d.vers : [{ img: d.img, ring: d.ring }]).map(v => ({ ring: v.ring, img: v.img || d.img })),
     stats: { pins: [], ...(d.stats || {}) }, showStats: d.showStats !== false, showRewards: d.showRewards !== false };
 }

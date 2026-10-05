@@ -147,6 +147,7 @@ button{font-family:inherit;color:inherit}
 .member>*{position:relative}
 .member .nm{font-family:var(--display);font-size:22px;line-height:1.2}
 .hito{border:0;background:rgba(0,0,0,.28);color:#fff;font:500 13.5px/1.4 var(--sans);padding:5px 12px;border-radius:999px;max-width:92%;overflow-wrap:anywhere;cursor:pointer;backdrop-filter:blur(4px)}.hito.add{background:rgba(255,255,255,.16);color:rgba(255,255,255,.85);font-size:12.5px}
+.snsrow{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:6px}.snsl{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:999px;background:var(--fill);color:var(--ink);font:600 12.5px var(--sans);text-decoration:none}
 .hitop{font-size:14px;color:var(--muted);text-align:center;max-width:90%;overflow-wrap:anywhere;margin-top:-2px}
 .member .chip{background:rgba(0,0,0,.35);color:#fff;backdrop-filter:blur(4px)}
 .member .nm{text-shadow:0 2px 8px rgba(0,0,0,.45)}
@@ -767,7 +768,7 @@ const gotList=s=>BADGES.filter(b=>b.f(s)>=b.g);
 let pins=store.get('pins2',null);
 const PIN_MAX=8;
 const myPins=()=>{const gl=gotList(myStats()),got=gl.map(b=>b.k);if(!pins)pins=gl.slice().sort((a,b)=>TIERS[b.tier].o-TIERS[a.tier].o).slice(0,PIN_MAX).map(b=>b.k);return pins.filter(k=>got.includes(k))};
-let settings=Object.assign({theme:'auto',pubRewards:true,pubStats:true,pubEvents:true,eventOnly:false,autoIn:false,sound:true,reqFrom:'all',modeMin:5},store.get('set2',{}));
+let settings=Object.assign({theme:'auto',pubRewards:true,pubStats:true,pubEvents:true,showSns:true,sns:['',''],eventOnly:false,autoIn:false,sound:true,reqFrom:'all',modeMin:5},store.get('set2',{}));
 const saveSet=()=>store.set('set2',settings);
 const applyTheme=()=>{const t=settings.theme;if(t==='light'||t==='dark')document.documentElement.dataset.theme=t;else delete document.documentElement.dataset.theme};
 applyTheme();
@@ -1141,7 +1142,7 @@ function openNewsItem(id,fromList){
   $('#nback').onclick=()=>{if(Date.now()-sheetAt<500)return;openNews()};
 }
 /* ストア審査で必要なもの：通報・ブロック・アカウント削除・規約 */
-const REASONS=['不適切な写真（わいせつ・暴力・差別など）','ナンバープレートや他人の顔・個人情報が写っている','表示名・ひとことが不適切','なりすまし（他人の車や写真を使っている）','交換を強要された・つきまとい・迷惑行為','危険運転や違法な行為をあおっている','その他'];
+const REASONS=['不適切な写真（わいせつ・暴力・差別など）','ナンバープレートや他人の顔・個人情報が写っている','表示名・ひとこと・SNSリンクが不適切','なりすまし（他人の車や写真を使っている）','交換を強要された・つきまとい・迷惑行為','危険運転や違法な行為をあおっている','その他'];
 function openReport(id,back){
   const p=person(id);
   openSheet(`<b style="font-size:20px;display:block;text-align:center">${esc(p.name)}さんを通報</b>
@@ -1323,6 +1324,25 @@ function openQR(mode){
 }
 
 /* detail */
+/* SNSリンク（2つまで）。https のURLだけ受け付け、サービス名を見出しにする */
+const SNS_NAMES=[[/(^|\.)(x|twitter)\.com$/,'X'],[/(^|\.)instagram\.com$/,'Instagram'],[/(^|\.)(youtube\.com|youtu\.be)$/,'YouTube'],[/(^|\.)tiktok\.com$/,'TikTok'],[/(^|\.)threads\.(net|com)$/,'Threads'],[/(^|\.)facebook\.com$/,'Facebook'],[/minkara\.carview\.co\.jp$/,'みんカラ'],[/(^|\.)bsky\.app$/,'Bluesky'],[/(^|\.)note\.com$/,'note']];
+function snsNorm(v){v=String(v||'').trim();if(!v)return '';if(!/^https?:\/\//i.test(v))v='https://'+v;try{const u=new URL(v);if(!/^https?:$/.test(u.protocol)||!u.hostname.includes('.')||v.length>200)return null;u.protocol='https:';return u.href}catch(e){return null}}
+function snsName(url){try{const h=new URL(url).hostname.replace(/^www\./,'');const m=SNS_NAMES.find(([r])=>r.test(h));return m?m[1]:h}catch(e){return 'リンク'}}
+const LINKI='<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>';
+const mySns=()=>settings.showSns?(settings.sns||[]).map(snsNorm).filter(Boolean).slice(0,2):[];
+const snsRow=list=>list&&list.length?`<div class="snsrow">${list.map(u=>`<a class="snsl press" href="${esc(u)}" target="_blank" rel="noopener noreferrer nofollow">${LINKI}${esc(snsName(u))}</a>`).join('')}</div>`:'';
+function openSns(){
+  const v=settings.sns||['',''];
+  openSheet(`<b style="font-size:18px;display:block;text-align:center">SNSリンク</b><p class="note" style="text-align:center;margin:4px 0 12px">2つまで載せられます。プロフィールを見た人がタップすると開きます。</p>
+   <label class="f">リンク1<input type="url" id="sns0" inputmode="url" autocomplete="off" value="${esc(v[0]||'')}" placeholder="例）https://www.instagram.com/あなたのID"></label>
+   <label class="f" style="margin-top:8px">リンク2<input type="url" id="sns1" inputmode="url" autocomplete="off" value="${esc(v[1]||'')}" placeholder="例）https://x.com/あなたのID"></label>
+   <p class="note err" id="snserr" hidden></p>
+   <p class="note">X・Instagram・YouTube・TikTok・みんカラなどのプロフィールのURLを貼り付けてください。表示するかどうかは設定の「SNSリンクを表示する」で切り替えられます。</p>
+   <div class="row" style="margin-top:12px"><button class="btn sub press" data-close>やめる</button><button class="btn press" id="snsok">保存</button></div>`);
+  bindClose(openSettings);
+  $('#snsok').onclick=()=>{const a=[$('#sns0').value,$('#sns1').value].map(snsNorm);
+    if(a.includes(null)){const e=$('#snserr');e.hidden=false;e.textContent='URLの形が正しくないものがあります。https:// から始まるプロフィールのURLを貼り付けてください。';return}
+    settings.sns=a;saveSet();closeSheet();toast(a.filter(Boolean).length?'SNSリンクを保存しました':'SNSリンクを消しました');setTimeout(openSettings,350)}}
 /* ひとこと：スタンプの下に出る短い一文（30文字まで） */
 const HITO_MAX=30,HITO_EX=['今日は赤城にいます','STI乗り募集中！','週末は道の駅めぐり','初心者です。よろしく！'];
 function openHito(){
@@ -1330,7 +1350,7 @@ function openHito(){
    <label class="f">ひとこと<input type="text" id="hin" maxlength="${HITO_MAX}" value="${esc(me.msg||'')}" placeholder="例）${esc(HITO_EX[0])}" enterkeyhint="done"></label>
    <div class="note" style="text-align:right" id="hcnt"></div>
    <div class="carhits">${HITO_EX.map(t=>`<button type="button" class="chip press" data-h="${esc(t)}">${esc(t)}</button>`).join('')}</div>
-   <p class="note">連絡先・SNSのID・ナンバーなど、個人が分かることは書かないでください。</p>
+   <p class="note">電話番号・住所・ナンバーなど、個人が分かることは書かないでください。SNSは設定の「SNSリンク」から載せられます。</p>
    <div class="row" style="margin-top:12px">${me.msg?'<button class="btn sub press" id="hdel">消す</button>':'<button class="btn sub press" data-close>やめる</button>'}<button class="btn press" id="hok">保存</button></div>`);
   bindClose();const i=$('#hin'),cnt=()=>$('#hcnt').textContent=`${[...i.value].length}/${HITO_MAX}`;cnt();i.oninput=cnt;
   $$('[data-h]').forEach(b=>b.onclick=()=>{i.value=b.dataset.h;cnt();i.focus()});
@@ -1340,7 +1360,7 @@ function openHito(){
 function detail(id){
   const p=person(id),n=daysWith(id),h=log.filter(l=>l.pid===id).slice().reverse(),b=best(id),ps=PST[id];
   const seen=new Set(),variants=h.filter(l=>{const k=(l.v||1)+(l.ev||'-')+(l.kira?'k':l.rare?'r':'');if(seen.has(k))return false;seen.add(k);return true});
-  openSheet(`<div class="hero" style="background:${bgCSS(p)}"></div><div class="result">${stamp(p,{size:120,ev:b.ev,kira:b.kira,rare:b.rare,v:b.v})}<b style="font-size:20px">${esc(p.name)}</b>${p.msg?`<div class="hitop">${esc(p.msg)}</div>`:''}
+  openSheet(`<div class="hero" style="background:${bgCSS(p)}"></div><div class="result">${stamp(p,{size:120,ev:b.ev,kira:b.kira,rare:b.rare,v:b.v})}<b style="font-size:20px">${esc(p.name)}</b>${p.msg?`<div class="hitop">${esc(p.msg)}</div>`:''}${snsRow(p.sns)}
    <div><span class="chip">${esc(carLabel(p))}</span> <span class="chip">${esc(p.pref)}</span></div>
    <button class="favbtn press" id="favb" aria-pressed="${favs.has(id)}">${favs.has(id)?'★ お気に入り':'☆ お気に入りに追加'}</button>
    <div class="lv" style="margin-top:4px">${Array.from({length:10},(_,i)=>`<i class="${i<n?'on':''}"></i>`).join('')}</div>
@@ -1386,6 +1406,8 @@ function openSettings(){
    <div class="set">${sw('pubRewards','リワード（バッジ）を公開する','オフにすると、飾ったバッジも獲得したバッジも見えなくなります')}
      ${sw('pubStats','交換した数・会った人数を公開する')}
      ${sw('pubEvents','参加したイベントを公開する','どのイベントに行ったかが相手に見えます')}
+     ${sw('showSns','SNSリンクを表示する','オフにすると、ほかの人のプロフィール画面に出なくなります')}
+     <button class="srow press" id="snsb" style="width:100%;border:0;background:none;cursor:pointer;text-align:left"><div class="t"><b>SNSリンク</b><span>${(settings.sns||[]).filter(Boolean).length?esc((settings.sns||[]).filter(Boolean).map(snsName).join('・')):'未設定（2つまで）'}</span></div><span class="val">›</span></button>
      <button class="srow press" id="preview" style="width:100%;border:0;background:none;cursor:pointer;text-align:left"><div class="t"><b style="color:var(--accent)">ほかの人から見たプロフィールを確認</b></div><span class="val">›</span></button></div>
    <div class="sec">交換</div>
    <div class="set">${segRow('modeMin','交換の自動終了',[[3,'3分'],[5,'5分'],[10,'10分']])}
@@ -1413,7 +1435,7 @@ function openSettings(){
   $$('[data-segset]').forEach(g=>g.querySelectorAll('button').forEach(b=>b.onclick=()=>{const k=g.dataset.segset,v=b.dataset.v;settings[k]=k==='modeMin'?+v:v;saveSet();if(k==='theme')applyTheme();
     g.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b))}));
   $('#sndC').onclick=()=>settings.sound?sfx.chime():toast('効果音がオフです');$('#sndP').onclick=()=>settings.sound?sfx.peta(false,.02):toast('効果音がオフです');$('#sndK').onclick=()=>settings.sound?sfx.peta(true,.02):toast('効果音がオフです');
-  $('#preview').onclick=previewMe;if($('#demoArr2'))$('#demoArr2').onclick=()=>{closeSheet();render();setTimeout(demoArrive,450)};
+  $('#preview').onclick=previewMe;$('#snsb').onclick=openSns;if($('#demoArr2'))$('#demoArr2').onclick=()=>{closeSheet();render();setTimeout(demoArrive,450)};
   $('#onbagain').onclick=()=>{closeSheet();showOnb()};
   $$('[data-doc]').forEach(b=>b.onclick=()=>openDoc(b.dataset.doc,openSettings));
   $('#blkList').onclick=openBlocked;$('#delAcc').onclick=openDelete;
@@ -1421,13 +1443,13 @@ function openSettings(){
   let armed=false;
   if($('#reset'))$('#reset').onclick=()=>{if(!armed){armed=true;$('#reset .danger').textContent='もう一度押すと最初に戻します';return}
     ['me2','log2','pins2','sort2','set2','spot2','colv2','fav2','seen2','news1','blk1'].forEach(k=>{try{localStorage.removeItem(k)}catch(e){}});
-    me=SAMPLE_ME;log=SAMPLE_LOG.slice();pins=null;seenB=null;colSort='love';blocked=new Set();favs=new Set();newsRead=new Set();settings={theme:'auto',pubRewards:true,pubStats:true,pubEvents:true,eventOnly:false,autoIn:false,sound:true,reqFrom:'all',modeMin:5};
+    me=SAMPLE_ME;log=SAMPLE_LOG.slice();pins=null;seenB=null;colSort='love';blocked=new Set();favs=new Set();newsRead=new Set();settings={theme:'auto',pubRewards:true,pubStats:true,pubEvents:true,showSns:true,sns:['',''],eventOnly:false,autoIn:false,sound:true,reqFrom:'all',modeMin:5};
     applyTheme();closeSheet();tab='me';render();toast('最初の状態に戻しました')};
 }
 function previewMe(){
   const st=myStats(),evs=[...new Set(log.filter(l=>l.ev).map(l=>l.ev))];
   openSheet(`<div class="note" style="text-align:center;margin-bottom:10px">ほかの人には、このように表示されます</div>
-   <div class="hero" style="background:${bgCSS(me)}"></div><div class="result">${stamp(me,{size:120})}<b style="font-size:20px">${esc(me.name)}</b>${me.msg?`<div class="hitop">${esc(me.msg)}</div>`:''}
+   <div class="hero" style="background:${bgCSS(me)}"></div><div class="result">${stamp(me,{size:120})}<b style="font-size:20px">${esc(me.name)}</b>${me.msg?`<div class="hitop">${esc(me.msg)}</div>`:''}${snsRow(mySns())}
    <div><span class="chip">${esc(carLabel(me))}</span> <span class="chip">${esc(me.pref)}</span></div></div>
    ${rewardsBlock(me.name,st,myPins(),settings.pubStats,settings.pubRewards)}
    <div class="sec">参加したイベント</div>
