@@ -20,6 +20,8 @@ const peopleCbs = [];
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const LOGO = `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" rx="22" fill="#e8551c"/><text x="46" y="60" text-anchor="middle" font-size="22" textLength="64" lengthAdjust="spacingAndGlyphs" fill="#fff" transform="rotate(-8 50 50)" font-family="Dela Gothic One,Hiragino Sans,sans-serif">ペタカー</text><text x="80" y="44" font-size="24" fill="#121820" transform="rotate(12 80 40)" font-family="Dela Gothic One,sans-serif">!</text><path d="M18 74h64" stroke="#121820" stroke-width="4" stroke-linecap="round" stroke-dasharray="2 8"/></svg>`;
 function showGate(html) { gate.hidden = false; gate.innerHTML = `<div class="gbox"><div class="glogo">${LOGO}</div>${html}</div>`; }
+// ストア審査（投稿のあるアプリ）：ログインの前に利用規約への同意を明示する
+const AGREE = '<p class="ghelp">ログインすると、<a href="https://seraphixjp.github.io/petacar-beta/terms.html" target="_blank" rel="noopener">利用規約</a>と<a href="https://seraphixjp.github.io/petacar-beta/privacy.html" target="_blank" rel="noopener">プライバシーポリシー</a>に同意したものとします。不快な写真や名前は禁止で、見つけしだい削除します。</p>';
 const step = t => showGate(`<p>${esc(t)}</p><div class="gspin"></div>`);
 function showError(where, e) { console.error(where, e); showGate(`<h1>うまく開けませんでした</h1><p>${esc(where)}</p><p class="gerr">${esc((e && (e.code || e.message)) || e)}</p><p>この画面のスクリーンショットを鈴木さんに送ってください。</p><button class="gbtn" onclick="location.reload()">開き直す</button>`) }
 addEventListener('error', e => { if (gate.hidden) { const b = document.createElement('div'); b.className = 'errbar'; b.textContent = 'エラー: ' + (e.message || '') + ' @' + (e.lineno || ''); document.body.appendChild(b) } });
@@ -148,7 +150,7 @@ async function firebaseBackend() {
       if (u) { un(); res(u); return }
       if (NATIVE) {
         showGate(`<h1>ペタカー!</h1><p>実際に会った人とだけ、車のスタンプを交換できます。</p>
-          ${IOS ? '<button class="gbtn apple" id="napple">Appleでサインイン</button>' : ''}<button class="gbtn${IOS ? ' sub' : ''}" id="ngoogle">Googleでログイン</button><p class="gerr" id="gerr" hidden></p>`);
+          ${IOS ? '<button class="gbtn apple" id="napple">Appleでサインイン</button>' : ''}<button class="gbtn${IOS ? ' sub' : ''}" id="ngoogle">Googleでログイン</button><p class="gerr" id="gerr" hidden></p>${AGREE}`);
         const go = kind => nativeCred(A, kind).then(c => A.signInWithCredential(auth, c)).catch(e => {
           const el = document.getElementById('gerr'); el.hidden = false;
           el.textContent = /cancel/i.test((e && (e.code || e.message)) || '') ? 'ログインがキャンセルされました。' : 'ログインできませんでした（' + ((e && (e.code || e.message)) || e) + '）';
@@ -163,7 +165,7 @@ async function firebaseBackend() {
         location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'openExternalBrowser=1'); return }
       showGate(`<h1>ペタカー! ベータ</h1><p>招待された人だけが使えるテスト版です。招待に使ったGoogleアカウントでログインしてください。</p>
         ${inApp ? '<p class="gerr">アプリの中のブラウザではログインできません。下のボタンでURLをコピーして、ChromeやSafariに貼り付けて開いてください。</p>' : ''}
-        <button class="gbtn" id="glogin">Googleでログイン</button><p class="gerr" id="gerr" hidden></p>
+        <button class="gbtn" id="glogin">Googleでログイン</button><p class="gerr" id="gerr" hidden></p>${AGREE}
         <p class="ghelp">ログインのあと白い画面で止まるときは、メールやLINEのリンクから開いている可能性があります。URLをコピーして、Chrome（iPhoneはSafari）で直接開いてください。</p>
         <button class="gbtn sub" id="gcopy">URLをコピー</button>`);
       document.getElementById('gcopy').onclick = e => {
