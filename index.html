@@ -592,14 +592,13 @@ const BADGES=[
   {k:'same3',m:'',ic:'car',num:'3',t:'同じ車種のオーナー3人',s:'自分と同じ車種の人と交換',f:s=>s.same||0,g:3,tier:'si'},
   {k:'kira3',m:'',ic:'spark',num:'3',t:'EXを3枚',s:'同じ人と会うほど出やすい',f:s=>s.kira||0,g:3,tier:'si'},
   {k:'ev5',m:'',ic:'flag',num:'5',t:'イベント5つに参加',s:'チェックインして交換',f:s=>s.evs||0,g:5,tier:'si'},
-  {k:'q1',m:'',ic:'flag',num:'1',t:'はじめてのお題',s:'週替わりのお題を達成',f:s=>s.qd||0,g:1,tier:'br'},{k:'q10',m:'',ic:'flag',num:'10',t:'お題10個',s:'週替わりのお題を達成した数',f:s=>s.qd||0,g:10,tier:'si'},{k:'qf1',m:'',ic:'flag',num:'3',t:'お題コンプリート',s:'1週間で3つのお題をすべて達成',f:s=>s.qfull||0,g:1,tier:'go'},
+  {k:'q1',m:'',ic:'flag',num:'1',t:'はじめてのお題',s:'今月のお題を達成',f:s=>s.qd||0,g:1,tier:'br'},{k:'q3',m:'',ic:'flag',num:'3',t:'お題3か月',s:'今月のお題を達成した回数',f:s=>s.qd||0,g:3,tier:'si'},{k:'q12',m:'',ic:'flag',num:'12',t:'お題1年分',s:'今月のお題を達成した回数',f:s=>s.qd||0,g:12,tier:'go'},
   {k:'pf10',m:'',ic:'road',num:'10',t:'10都府県を走る',s:'スポットを記録した都道府県の数',f:s=>s.prefs47||0,g:10,tier:'si'},{k:'pf47',m:'',ic:'road',num:'47',t:'47都道府県制覇',s:'すべての都道府県でスポットを記録',f:s=>s.prefs47||0,g:47,tier:'lg'},
   {k:'legA3',m:'',ic:'mountain',num:'3',t:'群馬の走り屋',s:'北関東・関東の名だたる峠を3か所（榛名・赤城・妙義・碓氷・いろは坂・正丸・定峰・筑波・椿ライン）',f:s=>s.legA||0,g:3,tier:'si'},
   {k:'legA',m:'',ic:'mountain',num:'9',t:'峠の伝説',s:'北関東・関東の名だたる9つの峠をすべて走破',f:s=>s.legA||0,g:9,tier:'lg'},
   {k:'legB2',m:'',ic:'road',num:'2',t:'箱根の公道ランナー',s:'箱根・伊豆の名コースを2か所（ターンパイク・芦ノ湖スカイライン・真鶴・熱海）',f:s=>s.legB||0,g:2,tier:'si'},
   {k:'legB',m:'',ic:'road',num:'4',t:'公道の亡霊',s:'箱根・伊豆の4つの名コースをすべて走破',f:s=>s.legB||0,g:4,tier:'lg'},
   {k:'c1',m:'',ic:'road',num:'C1',t:'C1ランナー',s:'首都高の名所PAをすべて（代官町・芝浦・箱崎・辰巳第一・大黒）',f:s=>s.legC1||0,g:5,tier:'go'},
-  {k:'st1',m:'',ic:'train',num:'1',t:'はじめての駅',s:'鉄道駅で記録',f:s=>s.st||0,g:1,tier:'br'},{k:'st5',m:'',ic:'train',num:'5',t:'駅を5か所',s:'別々の鉄道駅で記録',f:s=>s.st||0,g:5,tier:'si'},{k:'st20',m:'',ic:'train',num:'20',t:'駅を20か所',s:'別々の鉄道駅で記録',f:s=>s.st||0,g:20,tier:'go'},
   {k:'eki30',m:'',ic:'pin',num:'30',t:'道の駅30か所',s:'別々の道の駅にチェックイン',f:s=>s.eki||0,g:30,tier:'si'},
   {k:'allcat',m:'',ic:'road',num:'5',t:'スポット全種類',s:'峠・サーキット・PA・道の駅・ミュージアム',f:s=>s.allcat||0,g:5,tier:'si'},
   {k:'zk30',m:'',ic:'book',num:'30',t:'図鑑30車種',s:'会ったオーナーの車種',f:s=>s.zk||0,g:30,tier:'si'},
@@ -791,29 +790,27 @@ const JMAP=[['北海道',12,0],['青森',12,1],['秋田',11,2],['岩手',12,2],[
  ['長崎',0,7],['佐賀',1,7],['大分',2,7],['愛媛',3,7],['香川',4,7],['和歌山',5,7],['三重',6,7],['静岡',8,7],['神奈川',10,7],
  ['熊本',1,8],['宮崎',2,8],['高知',3,8],['徳島',4,8],['鹿児島',1,9],['沖縄',0,10]];
 const REGIONS=[['北海道・東北',['北海道','青森','岩手','宮城','秋田','山形','福島']],['関東',['茨城','栃木','群馬','埼玉','千葉','東京','神奈川']],['中部',['新潟','富山','石川','福井','山梨','長野','岐阜','静岡','愛知']],['近畿',['三重','滋賀','京都','大阪','兵庫','奈良','和歌山']],['中国',['鳥取','島根','岡山','広島','山口']],['四国',['徳島','香川','愛媛','高知']],['九州・沖縄',['福岡','佐賀','長崎','熊本','大分','宮崎','鹿児島','沖縄']]];
-let mapMode='sp';
 const inPref=(x,pf)=>x.pref===pf||x.pref.split('・').includes(pf);
 function prefProg(pf,mode,vis){const L=SPOTS.filter(x=>(mode==='st'?x.cat==='st':x.cat!=='st')&&inPref(x,pf));return [L.filter(x=>vis.has(x.id)).length,L.length]}
 function openMap(){
-  const vis=spotSet(),prog=Object.fromEntries(PREFS.map(pf=>[pf,prefProg(pf,mapMode,vis)]));
+  const vis=spotSet(),prog=Object.fromEntries(PREFS.map(pf=>[pf,prefProg(pf,'sp',vis)]));
   const col=([v,n])=>!n||!v?'var(--fill)':v>=n?'linear-gradient(135deg,#fff1a8,#e2a91c 60%,#b07c0a)':`color-mix(in srgb,var(--accent) ${Math.round(30+70*Math.min(1,v/n*3))}%,var(--fill))`;
-  const tot=Object.values(prog).reduce((a,[v,n])=>[a[0]+v,a[1]+n],[0,0]),been=Object.values(prog).filter(([v])=>v>0).length;
+  const uniq=ps=>{const L=SPOTS.filter(x=>x.cat!=='st'&&ps.some(pf=>inPref(x,pf)));return [L.filter(x=>vis.has(x.id)).length,L.length]}; // 2県にまたがるスポットは1つとして数える
+  const tot=uniq(PREFS),been=Object.values(prog).filter(([v])=>v>0).length;
   openSheet(`<b style="font-size:20px;display:block;text-align:center">制覇マップ</b>
-   <div class="seg" role="group" aria-label="表示" style="margin:10px 0"><button data-mm="sp" aria-pressed="${mapMode==='sp'}">スポット</button><button data-mm="st" aria-pressed="${mapMode==='st'}">鉄道駅${ST_READY?'':'（読み込み中）'}</button></div>
-   <div class="mapstat"><div><b>${been}</b><small>/47</small><span>行った都道府県</span></div><div><b>${tot[1]?(tot[0]/tot[1]*100).toFixed(1):0}</b><small>%</small><span>全国の制覇率</span></div><div><b>${tot[0]}</b><small>/${tot[1]}</small><span>${mapMode==='st'?'駅':'スポット'}</span></div></div>
+   <div class="mapstat"><div><b>${been}</b><small>/47</small><span>行った都道府県</span></div><div><b>${tot[1]?(tot[0]/tot[1]*100).toFixed(1):0}</b><small>%</small><span>全国の制覇率</span></div><div><b>${tot[0]}</b><small>/${tot[1]}</small><span>スポット</span></div></div>
    <div class="jmap" role="list">${JMAP.map(([pf,c,r])=>{const [v,n]=prog[pf]||[0,0];return `<button class="jt press${n&&v>=n?' full':''}${v?' on':''}" role="listitem" data-pf="${pf}" style="grid-column:${c+1};grid-row:${r+1};background:${col([v,n])}" aria-label="${pf} ${v}/${n}">${pf.slice(0,2)}</button>`}).join('')}</div>
    <div class="maplegend"><i style="background:var(--fill)"></i>まだ<i style="background:color-mix(in srgb,var(--accent) 45%,var(--fill))"></i>少し<i style="background:var(--accent)"></i>たくさん<i style="background:linear-gradient(135deg,#fff1a8,#e2a91c)"></i>制覇</div>
    <p class="note" style="text-align:center;margin:6px 0 0">都道府県をタップすると、行ったスポットが見られます</p>
-   <div class="list" style="margin-top:12px">${REGIONS.map(([rn,ps])=>{const a=ps.reduce((q,pf)=>[q[0]+prog[pf][0],q[1]+prog[pf][1]],[0,0]);return `<div class="rgrow"><div class="t"><b>${rn}</b></div><div class="bar"><i style="width:${a[1]?a[0]/a[1]*100:0}%"></i></div><span class="v" style="font:500 12px var(--mono);color:var(--muted);min-width:64px;text-align:right">${a[0]}/${a[1]}</span></div>`}).join('')}</div>
+   <div class="list" style="margin-top:12px">${REGIONS.map(([rn,ps])=>{const a=uniq(ps);return `<div class="rgrow"><div class="t"><b>${rn}</b></div><div class="bar"><i style="width:${a[1]?a[0]/a[1]*100:0}%"></i></div><span class="v" style="font:500 12px var(--mono);color:var(--muted);min-width:64px;text-align:right">${a[0]}/${a[1]}</span></div>`}).join('')}</div>
    <button class="btn sub press" style="margin-top:14px" data-close>閉じる</button>`);
   bindClose();
-  $$('[data-mm]').forEach(b=>b.onclick=()=>{mapMode=b.dataset.mm;closeSheet();setTimeout(openMap,260)});
   $$('[data-pf]').forEach(b=>b.onclick=()=>openPref(b.dataset.pf));
 }
 function openPref(pf){
-  const vis=spotSet(),L=SPOTS.filter(x=>x.cat!=='st'&&inPref(x,pf)),S=SPOTS.filter(x=>x.cat==='st'&&inPref(x,pf));
+  const vis=spotSet(),L=SPOTS.filter(x=>x.cat!=='st'&&inPref(x,pf));
   openSheet(`<b style="font-size:20px;display:block;text-align:center">${esc(pf)}</b>
-   <div class="mapstat" style="margin-top:10px"><div><b>${L.filter(x=>vis.has(x.id)).length}</b><small>/${L.length}</small><span>スポット</span></div><div><b>${S.filter(x=>vis.has(x.id)).length}</b><small>/${S.length}</small><span>鉄道駅</span></div></div>
+   <div class="mapstat" style="margin-top:10px"><div><b>${L.filter(x=>vis.has(x.id)).length}</b><small>/${L.length}</small><span>スポット</span></div></div>
    <div class="catrow" style="justify-content:center;margin:10px 0">${Object.entries(CAT).filter(([k])=>k!=='st').map(([k,c])=>{const a=L.filter(x=>x.cat===k);return a.length?`<span class="chip">${c.n} ${a.filter(x=>vis.has(x.id)).length}/${a.length}</span>`:''}).join('')}</div>
    <div class="list">${L.filter(x=>vis.has(x.id)).slice(0,30).map(x=>`<button class="li press" data-spot="${esc(x.id)}">${spotMark(x,true,36)}<div class="t"><b>${esc(x.n)}</b><span>${CAT[x.cat].n}</span></div></button>`).join('')||'<p class="note" style="text-align:center;padding:12px">まだ記録したスポットがありません。</p>'}</div>
    <div class="row" style="margin-top:14px"><button class="btn sub press" id="pfback">マップに戻る</button><button class="btn press" id="pfgo">${esc(pf)}のスポットを見る</button></div>`);
@@ -823,53 +820,49 @@ function openPref(pf){
   $$('#sh [data-spot]').forEach(b=>b.onclick=()=>openSpot(b.dataset.spot));
 }
 
-/* ===== 週替わりのお題（月曜はじまり。お題は週ごとに決まった組み合わせなので、運営の作業はいらない） ===== */
-const wkStart=ds=>{const d=new Date(ds+'T12:00:00');d.setDate(d.getDate()-((d.getDay()+6)%7));return ymd(d)};
-const wkEnd=w=>{const d=new Date(w+'T12:00:00');d.setDate(d.getDate()+6);return ymd(d)};
-const wkHash=(w,salt)=>{let h=2166136261;for(const c of w+salt)h=Math.imul(h^c.charCodeAt(0),16777619);return Math.abs(h)};
-function wkData(w){const e=wkEnd(w),sp=spotlog.filter(v=>v.d>=w&&v.d<=e).map(v=>SP(v.id)).filter(Boolean),ex=log.filter(l=>l.d>=w&&l.d<=e);
-  const us=[...new Map(sp.map(x=>[x.id,x])).values()];
+/* ===== 今月のお題（毎月1つ。月ごとに決まったお題なので、運営の作業も保存もいらない） ===== */
+const moStart=ds=>ds.slice(0,7)+'-01';
+const moEnd=m=>{const d=new Date(m+'T12:00:00');d.setMonth(d.getMonth()+1,0);return ymd(d)};
+const moHash=m=>{let h=2166136261;for(const c of m+'petacar')h=Math.imul(h^c.charCodeAt(0),16777619);return Math.abs(h)};
+const moName=m=>`${+m.slice(5,7)}月`;
+function moData(m){const e=moEnd(m),sp=spotlog.filter(v=>v.d>=m&&v.d<=e).map(v=>SP(v.id)).filter(Boolean),ex=log.filter(l=>l.d>=m&&l.d<=e);
+  const us=[...new Map(sp.map(x=>[x.id,x])).values()].filter(x=>x.cat!=='st');
   const first=pid=>log.filter(l=>l.pid===pid).map(l=>l.d).sort()[0];
   return {us,ex,ppl:[...new Set(ex.map(l=>l.pid))],
     newp:new Set(ex.filter(l=>first(l.pid)===l.d).map(l=>l.pid)).size,
-    again:new Set(ex.filter(l=>first(l.pid)<w).map(l=>l.pid)).size,
+    again:new Set(ex.filter(l=>first(l.pid)<m).map(l=>l.pid)).size,
     same:new Set(ex.filter(l=>{const c=l.car||person(l.pid)||{};return c.maker&&c.maker===me.maker}).map(l=>l.pid)).size}}
-const QPOOL={
- spot:[{k:'eki2',t:'道の駅を2か所',s:'別々の道の駅で記録',ic:'pin',g:2,f:d=>d.us.filter(x=>x.cat==='eki').length},
-   {k:'tg1',t:'峠を走りに行く',s:'峠のスポットを1か所記録',ic:'mountain',g:1,f:d=>d.us.filter(x=>x.cat==='tg').length},
-   {k:'pa3',t:'PA・SAを3か所',s:'高速のPA・SAで記録',ic:'road',g:3,f:d=>d.us.filter(x=>x.cat==='pa').length},
-   {k:'sp4',t:'スポットを4か所',s:'種類は問わず（鉄道駅は除く）',ic:'pin',g:4,f:d=>d.us.filter(x=>x.cat!=='st').length},
-   {k:'pref2',t:'県境をこえる',s:'2つの都道府県でスポットを記録',ic:'road',g:2,f:d=>new Set(d.us.filter(x=>x.cat!=='st').map(x=>x.pref)).size},
-   {k:'leg1',t:'名だたる峠へ',s:'聖地めぐりの峠・コースを1か所',ic:'mountain',g:1,f:d=>d.us.filter(x=>LEG.A.includes(x.id)||LEG.B.includes(x.id)).length}],
- extra:[{k:'st3',t:'駅めぐり',s:'鉄道駅を3か所記録',ic:'train',g:3,f:d=>d.us.filter(x=>x.cat==='st').length},
-   {k:'cir1',t:'サーキットへ行く',s:'サーキットのスポットを1か所',ic:'flag',g:1,f:d=>d.us.filter(x=>x.cat==='cir').length},
-   {k:'mus1',t:'クルマの博物館へ',s:'ミュージアムのスポットを1か所',ic:'museum',g:1,f:d=>d.us.filter(x=>x.cat==='mus').length},
-   {k:'eki3',t:'道の駅スタンプラリー',s:'別々の道の駅を3か所',ic:'pin',g:3,f:d=>d.us.filter(x=>x.cat==='eki').length}],
- meet:[{k:'ex2',t:'2人と交換',s:'今週、2人とスタンプを交換',ic:'swap',g:2,f:d=>d.ppl.length},
-   {k:'new1',t:'はじめましての交換',s:'はじめて会う人と交換',ic:'people',g:1,f:d=>d.newp},
-   {k:'again1',t:'再会',s:'前に会ったことがある人とまた交換',ic:'heart',g:1,f:d=>d.again},
-   {k:'same1',t:'同じメーカー仲間',s:'自分と同じメーカーの車の人と交換',ic:'swap',g:1,f:d=>d.same},
-   {k:'ex3',t:'交換を3回',s:'今週のうちに3回交換',ic:'swap',g:3,f:d=>d.ex.length}]};
-function quests(w){return ['spot','extra','meet'].map(g=>{const p=QPOOL[g];return p[wkHash(w,g)%p.length]})}
-function questDone(w){const d=wkData(w);return quests(w).filter(q=>q.f(d)>=q.g).length}
-const qWeeks=()=>[...new Set([...log.map(l=>wkStart(l.d)),...spotlog.map(v=>wkStart(v.d))])];
-function questTotals(){let n=0,full=0;qWeeks().forEach(w=>{const k=questDone(w);n+=k;if(k===3)full++});return {qd:n,qfull:full}}
-function questCard(){const w=wkStart(today()),d=wkData(w),Q=quests(w),left=Math.max(0,Math.round((new Date(wkEnd(w)+'T23:59:59')-Date.now())/864e5));
-  const done=Q.filter(q=>q.f(d)>=q.g).length;
-  return `<button class="qcard press" id="qcard"><div class="qh"><b>今週のお題</b><span>${done}/3 達成 · ${left?`あと${left}日`:'今日まで'}</span></div>
-   ${Q.map(q=>{const v=Math.min(q.g,q.f(d)),ok=v>=q.g;return `<div class="qrow${ok?' ok':''}"><span class="qi">${ok?'✓':''}</span><div class="t"><b>${q.t}</b><div class="bar"><i style="width:${v/q.g*100}%"></i></div></div><span class="v">${v}/${q.g}</span></div>`}).join('')}</button>`}
-function openQuests(){const w=wkStart(today()),d=wkData(w),Q=quests(w),t=questTotals();
-  const past=qWeeks().filter(x=>x<w).sort().reverse().slice(0,8);
-  openSheet(`<b style="font-size:20px;display:block;text-align:center">今週のお題</b><p class="note" style="text-align:center;margin:4px 0 12px">${fmtD(w)}〜${fmtD(wkEnd(w))} · 毎週月曜に新しいお題になります</p>
-   <div class="list">${Q.map(q=>{const v=Math.min(q.g,q.f(d)),ok=v>=q.g;return `<div class="badge">${medal({ic:q.ic,num:String(q.g),tier:'go'},46,ok)}<div><b>${q.t}${ok?'<span class="tier tier-go">達成</span>':''}</b><span>${q.s}</span><div class="bar"><i style="width:${v/q.g*100}%"></i></div></div><span class="v">${v}/${q.g}</span></div>`}).join('')}</div>
-   <div class="mapstat" style="margin-top:12px"><div><b>${t.qd}</b><span>達成したお題</span></div><div><b>${t.qfull}</b><span>全部達成した週</span></div></div>
-   ${past.length?`<div class="sec">これまでの週</div><div class="list">${past.map(x=>{const k=questDone(x);return `<div class="rgrow"><div class="t"><b style="font-size:13.5px">${fmtD(x)}の週</b><span style="display:block;font-size:11.5px;color:var(--muted)">${quests(x).map(q=>q.t).join('・')}</span></div><span class="v" style="font:600 13px var(--mono)">${k}/3${k===3?' ★':''}</span></div>`}).join('')}</div>`:''}
+const QPOOL=[
+ {k:'eki3',t:'道の駅を3か所',s:'今月のうちに、別々の道の駅で記録',ic:'pin',g:3,f:d=>d.us.filter(x=>x.cat==='eki').length},
+ {k:'tg2',t:'峠を2か所走る',s:'今月のうちに、峠のスポットを2か所記録',ic:'mountain',g:2,f:d=>d.us.filter(x=>x.cat==='tg').length},
+ {k:'pa5',t:'PA・SAを5か所',s:'今月のうちに、高速のPA・SAで記録',ic:'road',g:5,f:d=>d.us.filter(x=>x.cat==='pa').length},
+ {k:'sp6',t:'スポットを6か所',s:'今月のうちに、種類を問わず記録',ic:'pin',g:6,f:d=>d.us.length},
+ {k:'pref3',t:'3つの都道府県へ',s:'今月のうちに、3つの都道府県でスポットを記録',ic:'road',g:3,f:d=>new Set(d.us.flatMap(x=>x.pref.split('・'))).size},
+ {k:'leg1',t:'名だたる峠へ',s:'聖地めぐりの峠・コースを1か所',ic:'mountain',g:1,f:d=>d.us.filter(x=>LEG.A.includes(x.id)||LEG.B.includes(x.id)).length},
+ {k:'cir1',t:'サーキットへ行く',s:'サーキットのスポットを1か所記録',ic:'flag',g:1,f:d=>d.us.filter(x=>x.cat==='cir').length},
+ {k:'ex3',t:'3人と交換',s:'今月のうちに、3人とスタンプを交換',ic:'swap',g:3,f:d=>d.ppl.length},
+ {k:'new2',t:'はじめましてを2人',s:'はじめて会う人と2人交換',ic:'people',g:2,f:d=>d.newp},
+ {k:'again1',t:'再会',s:'前に会ったことがある人とまた交換',ic:'heart',g:1,f:d=>d.again},
+ {k:'same1',t:'同じメーカー仲間',s:'自分と同じメーカーの車の人と交換',ic:'swap',g:1,f:d=>d.same}];
+const quest=m=>QPOOL[moHash(m)%QPOOL.length];
+const questOk=m=>{const q=quest(m);return q.f(moData(m))>=q.g};
+const qMonths=()=>[...new Set([...log.map(l=>moStart(l.d)),...spotlog.map(v=>moStart(v.d))])];
+function questTotals(){return {qd:qMonths().filter(questOk).length}}
+function questCard(){const m=moStart(today()),q=quest(m),v=Math.min(q.g,q.f(moData(m))),ok=v>=q.g,left=Math.max(0,Math.round((new Date(moEnd(m)+'T23:59:59')-Date.now())/864e5));
+  return `<button class="qcard press" id="qcard"><div class="qh"><b>${moName(m)}のお題</b><span>${ok?'達成！':left?`あと${left}日`:'今日まで'}</span></div>
+   <div class="qrow${ok?' ok':''}"><span class="qi">${ok?'✓':''}</span><div class="t"><b>${q.t}</b><div class="bar"><i style="width:${v/q.g*100}%"></i></div></div><span class="v">${v}/${q.g}</span></div></button>`}
+function openQuests(){const m=moStart(today()),q=quest(m),v=Math.min(q.g,q.f(moData(m))),ok=v>=q.g,t=questTotals();
+  const past=qMonths().filter(x=>x<m).sort().reverse().slice(0,12);
+  openSheet(`<b style="font-size:20px;display:block;text-align:center">${moName(m)}のお題</b><p class="note" style="text-align:center;margin:4px 0 12px">${fmtD(m)}〜${fmtD(moEnd(m))} · 毎月1日に新しいお題になります</p>
+   <div class="list"><div class="badge">${medal({ic:q.ic,num:String(q.g),tier:'go'},46,ok)}<div><b>${q.t}${ok?'<span class="tier tier-go">達成</span>':''}</b><span>${q.s}</span><div class="bar"><i style="width:${v/q.g*100}%"></i></div></div><span class="v">${v}/${q.g}</span></div></div>
+   <div class="mapstat" style="margin-top:12px"><div><b>${t.qd}</b><span>これまでに達成したお題</span></div></div>
+   ${past.length?`<div class="sec">これまでのお題</div><div class="list">${past.map(x=>{const k=questOk(x);return `<div class="rgrow"><div class="t"><b style="font-size:13.5px">${x.slice(0,4)}年${moName(x)}</b><span style="display:block;font-size:11.5px;color:var(--muted)">${quest(x).t}</span></div><span class="v" style="font:600 13px var(--mono)">${k?'達成 ★':'—'}</span></div>`}).join('')}</div>`:''}
    <button class="btn sub press" style="margin-top:14px" data-close>閉じる</button>`);bindClose()}
 
 /* 聖地めぐり：決まったスポットの組を回るとバッジ */
 const LEG={A:['haruna','akagi','myogi','usui','irohazaka','shomaru','sadamine','tsukuba','tsubaki'],B:['turnpike','ashinoko','manazuru','atami'],C1:['daikan','pa:12:芝浦PA','pa:12:箱崎PA','pa:12:辰巳第一PA','pa:13:大黒PA']};
 const legCount=(v,k)=>LEG[k].filter(id=>v.has(id)).length;
-function spotStats(){const qt=questTotals(),vs=spotSet(),all=[...vs].map(SP).filter(Boolean),v=all.filter(x=>x.cat!=='st');return {qd:qt.qd,qfull:qt.qfull,prefs47:new Set(all.filter(x=>x.cat!=='st').flatMap(x=>x.pref.split('・'))).size,legA:legCount(vs,'A'),legB:legCount(vs,'B'),legC1:legCount(vs,'C1'),st:all.length-v.length,sp:v.length,tg:v.filter(x=>x.cat==='tg').length,cir:v.filter(x=>x.cat==='cir').length,eki:v.filter(x=>x.cat==='eki').length,pa:v.filter(x=>x.cat==='pa').length,allcat:new Set(v.map(x=>x.cat)).size}}
+function spotStats(){const qt=questTotals(),vs=spotSet(),all=[...vs].map(SP).filter(Boolean),v=all.filter(x=>x.cat!=='st');return {qd:qt.qd,prefs47:new Set(all.filter(x=>x.cat!=='st').flatMap(x=>x.pref.split('・'))).size,legA:legCount(vs,'A'),legB:legCount(vs,'B'),legC1:legCount(vs,'C1'),st:all.length-v.length,sp:v.length,tg:v.filter(x=>x.cat==='tg').length,cir:v.filter(x=>x.cat==='cir').length,eki:v.filter(x=>x.cat==='eki').length,pa:v.filter(x=>x.cat==='pa').length,allcat:new Set(v.map(x=>x.cat)).size}}
 const gotList=s=>BADGES.filter(b=>b.f(s)>=b.g);
 let pins=store.get('pins2',null);
 const PIN_MAX=8;let nearOpen=false;
