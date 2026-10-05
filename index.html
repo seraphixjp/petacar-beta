@@ -782,7 +782,7 @@ const legCount=(v,k)=>LEG[k].filter(id=>v.has(id)).length;
 function spotStats(){const vs=spotSet(),all=[...vs].map(SP).filter(Boolean),v=all.filter(x=>x.cat!=='st');return {legA:legCount(vs,'A'),legB:legCount(vs,'B'),legC1:legCount(vs,'C1'),st:all.length-v.length,sp:v.length,tg:v.filter(x=>x.cat==='tg').length,cir:v.filter(x=>x.cat==='cir').length,eki:v.filter(x=>x.cat==='eki').length,pa:v.filter(x=>x.cat==='pa').length,allcat:new Set(v.map(x=>x.cat)).size}}
 const gotList=s=>BADGES.filter(b=>b.f(s)>=b.g);
 let pins=store.get('pins2',null);
-const PIN_MAX=8;
+const PIN_MAX=8;let nearOpen=false;
 const myPins=()=>{const gl=gotList(myStats()),got=gl.map(b=>b.k);if(!pins)pins=gl.slice().sort((a,b)=>TIERS[b.tier].o-TIERS[a.tier].o).slice(0,PIN_MAX).map(b=>b.k);return pins.filter(k=>got.includes(k))};
 let settings=Object.assign({theme:'auto',pubRewards:true,pubStats:true,pubEvents:true,showSns:true,sns:['',''],eventOnly:false,autoIn:false,sound:true,reqFrom:'all',modeMin:5},store.get('set2',{}));
 const saveSet=()=>store.set('set2',settings);
@@ -903,14 +903,14 @@ const views={
  },
  rw(){
   const st=myStats(),mp=myPins(),gl=gotList(st),gk=gl.map(b=>b.k);
-  const near=BADGES.filter(b=>!gk.includes(b.k)&&b.f(st)>0).sort((a,b)=>b.f(st)/b.g-a.f(st)/a.g).slice(0,3);
+  const near=BADGES.filter(b=>!gk.includes(b.k)&&b.f(st)>0).sort((a,b)=>b.f(st)/b.g-a.f(st)/a.g||(a.g-a.f(st))-(b.g-b.f(st))); // 達成に近い順（割合→残り数）
   const show=b=>rwFilter==='all'||(rwFilter==='got')===gk.includes(b.k);
   return `${settings.pubRewards?'':`<div class="incoming" style="margin:0 0 12px"><div><b>リワードは非公開にしています</b><div class="note">ほかの人があなたのプロフィールを見ても、バッジは表示されません。マイスタンプの設定で変えられます。</div></div></div>`}
   <div class="group zhead"><div class="big">${gl.length}<small>/${BADGES.length}</small></div><b>獲得したバッジ</b>
     <div class="tiercount">${Object.entries(TIERS).map(([t,x])=>`<span class="tier tier-${t}">${x.n} ${gl.filter(b=>b.tier===t).length}</span>`).join('')}</div></div>
   <div class="sec">飾っているバッジ <span class="chip">${mp.length}/${PIN_MAX}</span></div>
   <div class="group">${pinRow(mp,'バッジをタップして「プロフィールに飾る」を押すと、ここに並びます')}</div>
-  ${near.length?`<div class="sec">もうすぐ獲得</div><div class="list">${near.map(b=>{const v=b.f(st);return `<button class="badge press" data-b="${b.k}">${medal(b,46,false)}<div><b>${b.t}<span class="tier tier-${b.tier}">${TIERS[b.tier].n}</span></b><span>${b.s} · あと${b.g-v}</span><div class="bar"><i style="width:${v/b.g*100}%"></i></div></div><span class="v">${v}/${b.g}</span></button>`}).join('')}</div>`:''}
+  ${near.length?`<div class="sec">もうすぐ獲得<span class="chip">${near.length}</span></div><div class="list">${near.slice(0,nearOpen?near.length:3).map(b=>{const v=b.f(st);return `<button class="badge press" data-b="${b.k}">${medal(b,46,false)}<div><b>${b.t}<span class="tier tier-${b.tier}">${TIERS[b.tier].n}</span></b><span>${b.s} · あと${b.g-v}</span><div class="bar"><i style="width:${v/b.g*100}%"></i></div></div><span class="v">${v}/${b.g}</span></button>`}).join('')}</div>${near.length>3?`<button class="btn sub press" id="nearMore" style="margin-top:10px">${nearOpen?'たたむ':`ほか${near.length-3}件を表示`}</button>`:''}`:''}
   <div class="seg" style="margin-top:22px" role="group" aria-label="表示">${[['all','すべて'],['got','獲得済み'],['not','未獲得']].map(([k,t])=>`<button data-rf="${k}" aria-pressed="${rwFilter===k}">${t}</button>`).join('')}</div>
   ${Object.entries(TIERS).map(([t,x])=>{const L=BADGES.filter(b=>b.tier===t&&show(b));if(!L.length)return '';
     return `<div class="sec">${x.n} <span class="chip">${BADGES.filter(b=>b.tier===t&&gk.includes(b.k)).length}/${BADGES.filter(b=>b.tier===t).length}</span></div>
@@ -1276,7 +1276,7 @@ function render(){
     $('#spq').oninput=e=>{spotQ=e.target.value;spotLim=40;$('#spl').innerHTML=spList();bindSpList()};$('#sppref').onchange=e=>{spotPref=e.target.value;spotLim=40;$('#spl').innerHTML=spList();bindSpList()}}
   if(tab==='col'){$$('[data-sort]').forEach(b=>b.onclick=()=>{colSort=b.dataset.sort;store.set('sort2',colSort);render()});
     const cq=$('#colq');if(cq)cq.oninput=e=>{colQ=e.target.value;$('#cgrid').innerHTML=colGrid();$$('#cgrid [data-p]').forEach(b=>b.onclick=()=>detail(b.dataset.p))}}
-  if(tab==='rw'){$$('[data-b]').forEach(b=>b.onclick=()=>openBadge(b.dataset.b));$$('[data-rf]').forEach(b=>b.onclick=()=>{rwFilter=b.dataset.rf;render()})}
+  if(tab==='rw'){$$('[data-b]').forEach(b=>b.onclick=()=>openBadge(b.dataset.b));if($('#nearMore'))$('#nearMore').onclick=()=>{nearOpen=!nearOpen;render()};$$('[data-rf]').forEach(b=>b.onclick=()=>{rwFilter=b.dataset.rf;render()})}
   if(tab==='ex')bindExBeta();
 }
 $$('.tab').forEach(b=>b.onclick=()=>{if(tab===b.dataset.t){$('#scroll').scrollTo({top:0,behavior:'smooth'});return}tab=b.dataset.t;render()});
