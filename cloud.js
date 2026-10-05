@@ -110,6 +110,11 @@ async function toRef(v, uid, mine) {
   return ref;
 }
 
+// Firestore が受け付けない値（undefined・NaN・Infinity）を書く前に取り除く。配列の中の undefined は null になる
+const fsSafe = o => JSON.parse(JSON.stringify(o, (k, v) => typeof v === 'number' && !isFinite(v) ? null : v));
+const MAX_DOC = 1000000; // 1文書の上限（約1MB）の手前
+const sizeCheck = (o, what) => { const n = JSON.stringify(o).length; if (n > MAX_DOC) { const e = new Error(what + ' too large: ' + n); e.code = 'invalid-argument'; throw e } return o };
+
 /* ---------- データを消さないための守り ---------- */
 const DEV = Math.random().toString(36).slice(2, 10); // この画面を開いた1回ごとの印
 const LOADED_AT = Date.now();
@@ -136,8 +141,8 @@ function makeStore(backend, profDoc, privDoc, mine) {
     blocked[kind] = true;
     bar('savebar', kind === 'priv' ? '記録が減る保存を止めました。アプリを開き直してください（データは守られています）' : 'プロフィールの保存を止めました。アプリを開き直してください（スタンプは守られています）');
   };
-  const retry = (f, e) => {
-    if (e && (e.code === 'invalid-argument' || e.code === 'permission-denied')) { bar('savebar', '保存できませんでした（' + e.code + '）。この画面のスクリーンショットを鈴木さんに送ってください'); return }
+  const retry = (f, e, what) => {
+    if (e && (e.code === 'invalid-argument' || e.code === 'permission-denied')) { bar('savebar', '保存できませんでした（' + (what || '') + '・' + e.code + '：' + String(e.message || '').replace(/^.*?:\s*/, '').slice(0, 90) + '）。この画面のスクリーンショットを鈴木さんに送ってください'); return }
     bar('savebar', '保存できませんでした。通信状態を確認してください（自動でやり直します）'); setTimeout(f, 5000) };
   const flushPriv = debounce(() => {
     if (frozen || blocked.priv) return;
@@ -145,7 +150,7 @@ function makeStore(backend, profDoc, privDoc, mine) {
     if (n.log2 < base.log2 || n.spot2 < base.spot2) return guardTrip('priv', `log ${base.log2}->${n.log2}, spot ${base.spot2}->${n.spot2}`);
     backend.setPriv({ ...priv, _dev: DEV, _at: Date.now() }).then(() => {
       base.log2 = Math.max(base.log2, n.log2); base.spot2 = Math.max(base.spot2, n.spot2); if (!blocked.prof) bar('savebar', '');
-    }, e => { console.warn('priv', e); retry(flushPriv, e) });
+    }, e => { console.warn('priv', e); retry(flushPriv, e, '記録') });
   }, 800);
   // プロフィールの画像は参照（im:）にしてから書く。書き込みは1つずつ順番に
   let profQ = Promise.resolve();
@@ -169,7 +174,7 @@ function makeStore(backend, profDoc, privDoc, mine) {
       await backend.setProfile(prof);
       if (!blocked.priv) bar('savebar', '');
     };
-    profQ = profQ.then(run).catch(e => { console.warn('profile', e); retry(flushProf, e) });
+    profQ = profQ.then(run).catch(e => { console.warn('profile', e); retry(flushProf, e, 'プロフィール') });
   }, 1000);
   const flushAll = () => { flushPriv.now(); flushProf.now() };
   addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushAll() });
@@ -312,8 +317,8 @@ async function firebaseBackend() {
   return {
     uid, demo, profDoc: profSnap.exists() ? profSnap.data() : null, privDoc: privSnap.exists() ? privSnap.data() : null,
     mine: mineSnap.exists() && Array.isArray(mineSnap.data().ids) ? mineSnap.data().ids : [],
-    setProfile: d => F.setDoc(D('users', uid), d),
-    setPriv: d => F.setDoc(D('users', uid, 'priv', 'state'), d),
+    setProfile: d => Promise.resolve().then(() => F.setDoc(D('users', uid), sizeCheck(fsSafe(d), 'profile'))),
+    setPriv: d => Promise.resolve().then(() => F.setDoc(D('users', uid, 'priv', 'state'), sizeCheck(fsSafe(d), 'state'))),
     getProfiles: ids => byIds('users', ids),
     subMyProf: cb => F.onSnapshot(D('users', uid), s => cb(s.exists() ? s.data() : null), e => console.warn('myprof', e)),
     getImgs: ids => byIds('img', ids),
