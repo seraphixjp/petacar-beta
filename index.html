@@ -53,7 +53,7 @@ button{font-family:inherit;color:inherit}
 .carhits{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.carhits .chip{border:0;cursor:pointer;font:inherit;font-size:13px;padding:6px 10px}
 .zhead{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;align-items:center}
 .zhead .big{font:700 30px var(--mono);font-variant-numeric:tabular-nums;grid-row:span 2}
-.zhead .big small{font-size:14px;color:var(--muted)}
+.zhead .big small{font-size:14px;color:var(--muted)}.zt2{display:flex;align-items:center;gap:8px;min-width:0}.zt2 .seclink{margin-left:auto;white-space:nowrap}
 .mkr{display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line);width:100%;background:none;border-left:0;border-right:0;border-top:0;text-align:left;cursor:pointer;color:inherit;font:inherit}
 .mkr b{font-size:14px}.mkr .v{font:700 12px var(--mono);color:var(--muted)}.mkr .bar{grid-column:span 2;margin-top:4px}
 .mkr.done .v{color:var(--accent)}
@@ -621,7 +621,7 @@ const BADGES=[
   {k:'cir15',m:'',ic:'flag',num:'15',t:'サーキット15か所',s:'別々のサーキットにチェックイン',f:s=>s.cir||0,g:15,tier:'pt'},
   {k:'eki100',m:'',ic:'pin',num:'100',t:'道の駅100か所',s:'別々の道の駅にチェックイン',f:s=>s.eki||0,g:100,tier:'pt'},
   {k:'zkmk',m:'',ic:'crown',num:'',t:'メーカーコンプリート',s:'1つのメーカーの車種を全部',f:s=>s.zkfull||0,g:1,tier:'pt'},
-  {k:'r5x1',m:'',ic:'crown',num:'',t:'伝説の車に会った',s:'★5の車のオーナーと交換',f:s=>s.r5||0,g:1,tier:'pt'},
+  {k:'r5x1',m:'',ic:'crown',num:'',t:'生ける伝説',s:'★5の車のオーナーと交換',f:s=>s.r5||0,g:1,tier:'pt'},
   {k:'soul',m:'',ic:'link',num:'30',t:'生涯の相棒',s:'同じ人と30日会う',f:s=>s.best||0,g:30,tier:'lg'},
   {k:'x3000',m:'',ic:'crown',num:'3K',t:'交換3000回',s:'スタンプを交換した回数',f:s=>s.ex||0,g:3000,tier:'lg'},
   {k:'eki500',m:'',ic:'pin',num:'500',t:'道の駅マスター',s:'別々の道の駅に500か所',f:s=>s.eki||0,g:500,tier:'lg'},
@@ -963,7 +963,7 @@ const views={
  },
  sp(){
   const vis=spotSet();
-  return `<div class="group zhead"><div class="big">${[...vis].filter(id=>!id.startsWith('rw:')).length}<small>/${SPOTS.filter(x=>x.cat!=='st').length}</small></div><b>行ったスポット</b><button class="seclink" id="mapb" style="margin-left:auto">制覇マップ ›</button>
+  return `<div class="group zhead"><div class="big">${[...vis].filter(id=>!id.startsWith('rw:')).length}<small>/${SPOTS.filter(x=>x.cat!=='st').length}</small></div><div class="zt2"><b>行ったスポット</b><button class="seclink" id="mapb">制覇マップ ›</button></div>
     <div class="catrow">${Object.entries(CAT).map(([k,c])=>`<span class="chip">${c.n} ${SPOTS.filter(x=>x.cat===k&&vis.has(x.id)).length}/${SPOTS.filter(x=>x.cat===k).length}</span>`).join('')}</div></div>
   ${busySpots().length?`<div class="sec">いま人がいるスポット<span class="chip">2時間以内</span></div><div class="list">${busySpots().map(([x,n,d])=>`<button class="li press" data-spot="${esc(x.id)}">${spotMark(x,spotDays(x.id)>0)}<div class="t"><b>${esc(x.n)}</b><span>${CAT[x.cat].n} · ${esc(x.ad||x.pref)}</span></div><span class="nowc big">${n}人</span>${d!=null?`<span class="d">${fmtKm(d)}</span>`:''}</button>`).join('')}</div>`:''}
   <div class="sec">近くのスポット${here?`<span class="chip">${esc(here.label)}から</span><button class="seclink" id="locate">更新</button>`:''}</div>
