@@ -342,7 +342,10 @@ async function firebaseBackend() {
       const baks = ['pre', 0, 1, 2, 3, 4, 5, 6].flatMap(k => ['b' + k, 'bp' + k]).map(k => F.deleteDoc(D('users', uid, 'priv', k)));
       const ms = await F.getDoc(D('users', uid, 'priv', 'imgs')).catch(() => null);
       const imgs = (ms && ms.exists() && Array.isArray(ms.data().ids) ? ms.data().ids : []).map(id => F.deleteDoc(D('img', id)).catch(() => { }));
-      await Promise.all([F.deleteDoc(D('live', uid)).catch(() => { }), ...baks, ...imgs]);
+      // 交換の申し込みの記録（自分が入っているもの）も消す。自分の side も先に消す
+      const exs = await Promise.all(['a', 'b'].map(k => F.getDocs(F.query(Col('ex'), F.where(k, '==', uid))).catch(() => null)));
+      const exDel = exs.filter(Boolean).flatMap(qs => qs.docs.map(d => F.deleteDoc(D('ex', d.id, 'side', uid)).catch(() => { }).then(() => F.deleteDoc(D('ex', d.id)).catch(() => { }))));
+      await Promise.all([F.deleteDoc(D('live', uid)).catch(() => { }), ...baks, ...imgs, ...exDel]);
       await Promise.all([F.deleteDoc(D('users', uid, 'priv', 'imgs')), F.deleteDoc(D('users', uid, 'priv', 'state')), F.deleteDoc(D('users', uid))]);
       try { await A.deleteUser(auth.currentUser) }
       catch (e) { if (e.code === 'auth/requires-recent-login') { if (NATIVE) { const apple = auth.currentUser.providerData.some(p => p.providerId === 'apple.com'); await A.reauthenticateWithCredential(auth.currentUser, await nativeCred(A, apple ? 'apple' : 'google')) } else await A.reauthenticateWithPopup(auth.currentUser, provider); await A.deleteUser(auth.currentUser) } else throw e }
