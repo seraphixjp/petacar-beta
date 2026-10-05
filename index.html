@@ -145,7 +145,7 @@ button{font-family:inherit;color:inherit}
 /* home */
 .member{border-radius:24px;padding:20px;display:grid;justify-items:center;gap:8px;text-align:center;color:#fff;position:relative;overflow:hidden}
 .member>*{position:relative}
-.member .nm{font-family:var(--display);font-size:22px;line-height:1.2}
+.member .nm{font-family:var(--display);font-size:22px;line-height:1.2} .member button.nmb{border:0;background:none;color:inherit;padding:2px 6px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;margin:0 auto} .nmb .npen{opacity:.65;flex:none}
 .hito{border:0;background:rgba(0,0,0,.28);color:#fff;font:500 13.5px/1.4 var(--sans);padding:5px 12px;border-radius:999px;max-width:92%;overflow-wrap:anywhere;cursor:pointer;backdrop-filter:blur(4px)}.hito.add{background:rgba(255,255,255,.16);color:rgba(255,255,255,.85);font-size:12.5px}
 .offb{display:inline-flex;align-items:center;gap:2px;margin-left:6px;padding:1px 7px 1px 5px;border-radius:999px;background:linear-gradient(135deg,#fff1a8,#e2a91c 55%,#b07c0a);color:#2a1d00;font:800 11px/1.5 var(--sans);vertical-align:3px;text-shadow:none;letter-spacing:.04em}
 .jmap{display:grid;grid-template-columns:repeat(13,1fr);gap:3px;margin:8px 0}.jt{aspect-ratio:1;border:0;border-radius:6px;padding:0;font:700 clamp(8px,2.6vw,11px)/1 var(--sans);color:var(--muted);cursor:pointer;display:grid;place-items:center}.jt.on{color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.35)}.jt.full{color:#2a1d00;text-shadow:none}
@@ -938,7 +938,7 @@ const views={
   return `<div class="member" style="background:${bgCSS(me)}">
     <button class="bgb" id="bgb" aria-label="背景を変える"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/></svg></button>
     <button class="edit" id="mk" aria-label="スタンプを作る">${stamp(me,{size:150,ev:inEvent()?LIVE:null})}<span class="pen"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></span></button>
-    <div class="nm">${esc(me.name)}${me.official?OFFB:''}</div>
+    <button class="nm nmb press" id="nmb" aria-label="表示名を変える">${esc(me.name)}${me.official?OFFB:''}<svg class="npen" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button>
     <button class="hito press${me.msg?'':' add'}" id="hito">${me.msg?esc(me.msg):'＋ ひとことを書く'}</button>
     <div><button class="chip carchip press" id="carb" aria-label="ガレージ（今日の車を選ぶ）">${CARI}${esc(carLabel(me))}${me.garage.length>1?`<small>${me.garage.length}台</small>`:''}<i aria-hidden="true">▾</i></button> <span class="chip">${esc(me.pref)}</span></div>
     ${inEvent()?`<div class="note" style="color:rgba(255,255,255,.85)">今日はイベント限定のフチで交換されます</div>`:''}
@@ -1374,7 +1374,7 @@ function render(){
   bindEv();
   $('.tab[data-t=rw]').classList.toggle('dot',tab!=='rw'&&unseen().length>0);
   $$('[data-p]').forEach(b=>b.onclick=()=>detail(b.dataset.p));
-  if(tab==='me'){$('#mk').onclick=openCrop;if($('#mkFirst'))$('#mkFirst').onclick=openCrop;if($('#qcard'))$('#qcard').onclick=openQuests;$('#hito').onclick=openHito;$('#carb').onclick=()=>openGarage(render);if($('#newsTop'))$('#newsTop').onclick=()=>openNewsItem($('#newsTop').dataset.n);$('#bgb').onclick=openBg;$('#wrapb').onclick=openWrap;$('#allrec').onclick=()=>{colView='stamp';store.set('colv2',colView);colSort='recent';store.set('sort2',colSort);tab='col';render()}}
+  if(tab==='me'){$('#mk').onclick=openCrop;if($('#mkFirst'))$('#mkFirst').onclick=openCrop;if($('#qcard'))$('#qcard').onclick=openQuests;$('#hito').onclick=openHito;if($('#nmb'))$('#nmb').onclick=openName;$('#carb').onclick=()=>openGarage(render);if($('#newsTop'))$('#newsTop').onclick=()=>openNewsItem($('#newsTop').dataset.n);$('#bgb').onclick=openBg;$('#wrapb').onclick=openWrap;$('#allrec').onclick=()=>{colView='stamp';store.set('colv2',colView);colSort='recent';store.set('sort2',colSort);tab='col';render()}}
   if(tab==='col'){$$('[data-cv]').forEach(b=>b.onclick=()=>{colView=b.dataset.cv;store.set('colv2',colView);render()});$$('[data-maker]').forEach(b=>b.onclick=()=>openMaker(b.dataset.maker))}
   if(tab==='sp'){$$('[data-spot]').forEach(b=>b.onclick=()=>openSpot(b.dataset.spot));if($('#mapb'))$('#mapb').onclick=openMap;bindSpList();$('#locate').onclick=locate;if($('#demoArr'))$('#demoArr').onclick=demoArrive;if($('#autoOn'))$('#autoOn').onclick=()=>askAlways(render);$$('[data-ss]').forEach(b=>b.onclick=()=>{spotSort=b.dataset.ss;spotLim=40;render()});$$('[data-cat]').forEach(b=>b.onclick=()=>{spotCat=b.dataset.cat;spotLim=40;render()});
     $('#spq').oninput=e=>{spotQ=e.target.value;spotLim=40;$('#spl').innerHTML=spList();bindSpList()};$('#sppref').onchange=e=>{spotPref=e.target.value;spotLim=40;$('#spl').innerHTML=spList();bindSpList()}}
@@ -1470,6 +1470,21 @@ function openSns(){
   $('#snsok').onclick=()=>{const a=[$('#sns0').value,$('#sns1').value].map(snsNorm);
     if(a.includes(null)){const e=$('#snserr');e.hidden=false;e.textContent='URLの形が正しくないものがあります。https:// から始まるプロフィールのURLを貼り付けてください。';return}
     settings.sns=a;saveSet();closeSheet();toast(a.filter(Boolean).length?'SNSリンクを保存しました':'SNSリンクを消しました');setTimeout(openSettings,350)}}
+/* 表示名だけを変える（スタンプは作り直さない） */
+const NAME_MAX=24;
+function openName(){
+  openSheet(`<b style="font-size:18px;display:block;text-align:center">表示名</b><p class="note" style="text-align:center;margin:4px 0 12px">スタンプはそのままで、名前だけ変わります。交換した人や近くの人に見えます。</p>
+   <label class="f">表示名<input type="text" id="nmin" maxlength="${NAME_MAX}" value="${esc(me.name||'')}" enterkeyhint="done" autocomplete="nickname"></label>
+   <div class="note" style="text-align:right" id="nmcnt"></div>
+   <div class="row" style="margin-top:12px"><button class="btn sub press" data-close>やめる</button><button class="btn press" id="nmok">保存</button></div>`);
+  bindClose();const i=$('#nmin'),cnt=()=>$('#nmcnt').textContent=`${[...i.value].length}/${NAME_MAX}`;cnt();i.oninput=cnt;
+  const save=()=>{const v=[...i.value.replace(/\s+/g,' ').trim()].slice(0,NAME_MAX).join('');
+    if(!v){i.focus();$('#nmcnt').textContent='名前を入れてください';return}
+    if(v===me.name){closeSheet();return}
+    me={...me,name:v};if(!me.sample)store.set('me2',me);closeSheet();render();toast('表示名を変えました')};
+  $('#nmok').onclick=save;i.onkeydown=e=>{if(e.key==='Enter'&&!e.isComposing){e.preventDefault();save()}};
+}
+
 /* ひとこと：スタンプの下に出る短い一文（30文字まで） */
 const HITO_MAX=30,HITO_EX=['今日は赤城にいます','STI乗り募集中！','週末は道の駅めぐり','初心者です。よろしく！'];
 function openHito(){
@@ -1667,9 +1682,9 @@ function openCrop(){
   $('#done').onclick=()=>{let out=me.def||!me.img?avatar(st.ring):me.img,def=!st.src&&(me.def||!me.img);
     if(st.src){const O=360,k=O/V,s=base()*st.z*k,cv=document.createElement('canvas');cv.width=cv.height=O;const g=cv.getContext('2d');
       g.beginPath();g.arc(O/2,O/2,O/2,0,Math.PI*2);g.clip();g.drawImage(img,O/2+st.x*k-st.w*s/2,O/2+st.y*k-st.h*s/2,st.w*s,st.h*s);out=cv.toDataURL('image/jpeg',.82)}
-    me={...me,name:$('#nm').value.trim()||'名無し',maker:$('#mkr').value,car:($('#car').value==='__other'?$('#carOther').value.trim():$('#car').value)||'未設定',pref:$('#pref').value,ring:st.ring,img:out,def:!st.src&&def,sample:false,ver:me.nost?1:(me.ver||1)+(st.src&&!me.def&&!me.sample?1:0),nost:me.nost&&!st.src,made:(me.made||0)+(st.src?1:0)};
+    me={...me,name:$('#nm').value.trim()||'名無し',maker:$('#mkr').value,car:($('#car').value==='__other'?$('#carOther').value.trim():$('#car').value)||'未設定',pref:$('#pref').value,ring:st.ring,img:out,def:!st.src&&def,sample:false,ver:me.nost?1:(me.ver||1)+(st.src&&!me.def&&!me.sample?1:0),nost:!!(me.nost&&!st.src),made:(me.made||0)+(st.src?1:0)};
     me.garage=me.garage.map(c=>c.id===me.cur?{...c,maker:me.maker,car:me.car,img:me.def||me.nost?null:me.img,ring:me.ring,ver:me.ver,n:(c.n||0)+(st.src?1:0)}:c);
-    save();closeSheet();render();toast(me.ver>1?`スタンプを作りました（${vName(me.ver)}）`:'スタンプを作りました')};
+    save();closeSheet();render();toast(!st.src?'保存しました':me.ver>1?`スタンプを作りました（${vName(me.ver)}）`:'スタンプを作りました')};
 }
 
 /* sheet, toast */
