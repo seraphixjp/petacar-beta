@@ -146,6 +146,11 @@ async function firebaseBackend() {
       subSides: (id, cb) => F.onSnapshot(Col('ex', id, 'side'), qs => cb(snapMap(qs)), e => console.warn('side', e)),
       setSide: (id, d) => F.setDoc(D('ex', id, 'side', uid), d),
     },
+    // スポットの「いま◯人」：誰が記録したかは書かない（spot と期限だけ）
+    here: {
+      add: spot => F.addDoc(Col('here'), { spot, until: Date.now() + 7200000 }),
+      sub: cb => F.onSnapshot(F.query(Col('here'), F.where('until', '>', Date.now())), qs => cb(qs.docs.map(d => d.data())), e => console.warn('here', e)),
+    },
     report: d => F.addDoc(Col('reports'), { ...d, by: uid, at: Date.now() }),
     signOut: () => (NATIVE ? FA.signOut().catch(() => { }) : Promise.resolve()).then(() => A.signOut(auth)).then(() => location.reload()),
     deleteAccount: async () => {
@@ -176,6 +181,7 @@ function mockBackend(uid) {
       subSides: (id, cb) => sub(() => cb(coll('ex/' + id + '/side'))),
       setSide: (id, d) => put('ex/' + id + '/side/' + uid, d),
     },
+    here: { add: spot => put('here/h' + Date.now() + (n++), { spot, until: Date.now() + 7200000 }), sub: cb => sub(() => cb(Object.values(coll('here')))) },
     report: d => put('reports/r' + Date.now(), { ...d, by: uid }),
     signOut: () => Promise.resolve(location.reload()),
     deleteAccount: async () => { ['users/' + uid, 'users/' + uid + '/priv/state', 'live/' + uid].forEach(k => M.docs.delete(k)); notify() },
@@ -192,7 +198,7 @@ if (be) {
   window.__cloud = {
     uid: be.uid, store: makeStore(be, be.profDoc, be.privDoc), people,
     onPeople: f => peopleCbs.push(f),
-    live: be.live, ex: be.ex, report: be.report, signOut: be.signOut, deleteAccount: be.deleteAccount,
+    live: be.live, ex: be.ex, here: be.here, report: be.report, signOut: be.signOut, deleteAccount: be.deleteAccount,
   };
   let first = true;
   step('参加者を読み込んでいます…');
