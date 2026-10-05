@@ -571,8 +571,10 @@ const BGS={
 };
 const okColor=v=>typeof v==='string'&&/^#[0-9a-fA-F]{3,8}$/.test(v)?v:'#e8551c';
 const okNum=(v,lo,hi,d)=>typeof v==='number'&&isFinite(v)?Math.min(hi,Math.max(lo,v)):d;
-function bgCSS(o){const bg=o.bg||{kind:'preset',id:'night'};
-  if(bg.kind==='photo'&&typeof bg.src==='string'&&/^data:image\/[a-z]+;base64,[A-Za-z0-9+/=]+$/.test(bg.src)){const d=okNum(bg.dim,0,1,.35);return `linear-gradient(180deg,rgba(0,0,0,${d*.6}),rgba(0,0,0,${Math.min(.9,d+.25)})),url(${bg.src}) center ${okNum(bg.y,0,100,50)}%/cover`}
+const IMG=r=>{if(!r)return null;const s=String(r);if(window.__cloud&&__cloud.img)return __cloud.img(s);return s.startsWith('im:')?null:s};
+const refOf=p=>{const s=String(p&&p.img||'');return s&&!s.startsWith('data:')?s:null}; // 交換の記録に残す、その日のスタンプの控え
+function bgCSS(o){const bg=o.bg||{kind:'preset',id:'night'},src=bg.kind==='photo'&&typeof bg.src==='string'?IMG(bg.src):null;
+  if(src&&/^data:image\/[a-z]+;base64,[A-Za-z0-9+/=]+$/.test(src)){const d=okNum(bg.dim,0,1,.35);return `linear-gradient(180deg,rgba(0,0,0,${d*.6}),rgba(0,0,0,${Math.min(.9,d+.25)})),url(${src}) center ${okNum(bg.y,0,100,50)}%/cover`}
   return (Object.hasOwn(BGS,bg.id)?BGS[bg.id]:BGS.ring).css(okColor(o.ring))}
 const ghostOf=id=>({id,name:'退会したユーザー',maker:'その他',car:'—',pref:'',ring:'#8a8f96',img:avatar('#8a8f96'),vers:[],stats:{pins:[]},showStats:false,showRewards:false,ghost:true});
 const person=id=>POOL.find(p=>p.id===id)||ghostOf(id);
@@ -762,8 +764,10 @@ let me=store.get('me2',null)||{name:'ゲスト',maker:'その他',car:'未設定
 if(!me.maker){const mk=MAKERS.find(m=>CARS[m].includes(me.car));me={...me,maker:mk||'その他'}}
 delete me.code;
 if(!me.garage)me={...me,garage:[{id:'g1',maker:me.maker,car:me.car}],cur:'g1'};
+// 車ごとのスタンプにする前に作ったスタンプは、ガレージの全部の車に引き継ぐ（見た目は今までと同じ）
+if(!me.gv){if(!me.def&&!me.sample&&me.img)me={...me,garage:me.garage.map(c=>c.img?c:{...c,img:me.img,ring:me.ring,ver:me.ver||1})};me={...me,gv:1}}
 if(!me.bgv){if(!me.bg||(me.bg.kind==='preset'&&me.bg.id==='ring'))me={...me,bg:{kind:'preset',id:'night'}};me={...me,bgv:2};if(!me.sample)store.set('me2',me)}
-if(!me.sample&&(!me.img||String(me.img).startsWith('data:image/png'))){me={...me,img:avatar(me.ring||'#e8551c'),def:true};store.set('me2',me)}
+if(!me.sample&&(!me.img||String(me.img).startsWith('data:image/png'))){const has=me.garage.some(c=>c.img);me={...me,img:avatar(me.ring||'#e8551c'),def:!has,nost:has};if(!has)store.set('me2',me)}
 let log=store.get('log2',null)||[];
 const save=()=>{if(!me.sample)store.set('me2',me);store.set('log2',log)};
 
@@ -880,7 +884,8 @@ function pinRow(keys,empty){return keys.length?`<div class="pins">${keys.map(k=>
 let uid=0;
 function stamp(p,o={}){
   if(o.v&&p.vers&&p.vers[o.v-1])p={...p,...p.vers[o.v-1]};
-  p={...p,img:esc(p.img||avatar(okColor(p.ring))),ring:okColor(p.ring)}; // 他の人の値はそのまま埋め込まない
+  if(o.im)p={...p,img:o.im,ring:o.rg||p.ring}; // その日に交換したスタンプ（車ごと・作り直しごと）
+  p={...p,img:esc(IMG(p.img)||avatar(okColor(p.ring))),ring:okColor(p.ring)}; // 他の人の値はそのまま埋め込まない
   const size=o.size||84, off=o.off??!!p.official, ev=!off&&o.ev&&EVENTS[o.ev];
   let svg;
   if(off){const id='rp'+(++uid),txt='OFFICIAL ★ PETACAR ★ OFFICIAL ★ PETACAR ★ ';
@@ -901,6 +906,7 @@ const OFFB='<span class="offb" title="運営が本人確認した公式アカウ
 const curV=p=>p.vers?p.vers.length:(p.ver||1);
 const vOf=(p,l)=>l&&l.v?l.v:curV(p);
 const vName=v=>v===1?'初版':`第${v}版`;
+const albName=(p,l)=>l.im?((l.car&&l.car.car)||'')+((l.vr||1)>1?' '+vName(l.vr):''):vName(l.v||1);
 const best=id=>{const ls=log.filter(l=>l.pid===id);return ls.filter(l=>l.kira).pop()||ls.filter(l=>l.rare).pop()||ls[ls.length-1]};
 
 /* event pieces */
@@ -943,7 +949,7 @@ const views={
   ${questCard()}
   <button class="yrcard press" id="wrapb"><span class="yk">PETACAR ${new Date().getFullYear()}</span><b>${new Date().getFullYear()}年のまとめ</b><span class="ys">この1年の出会いとスポットを振り返る</span><span class="ya" aria-hidden="true">›</span></button>
   <div class="sec">最近の交換<button class="seclink" id="allrec">すべて見る ›</button></div>
-  <div class="list">${log.slice().sort((a,b)=>b.d.localeCompare(a.d)).slice(0,4).map(l=>{const p=person(l.pid);return `<button class="li press" data-p="${p.id}">${stamp(p,{size:44,ev:l.ev,kira:l.kira,rare:l.rare,v:l.v})}<div class="t"><b>${esc(p.name)} ${l.kira?'<span class="tag kira">EX</span>':l.rare?'<span class="tag rare">レア</span>':''}</b><span>${esc(placeOf(l))}</span></div><span class="d">${fmtD(l.d)}</span></button>`}).join('')}</div>`;
+  <div class="list">${log.slice().sort((a,b)=>b.d.localeCompare(a.d)).slice(0,4).map(l=>{const p=person(l.pid);return `<button class="li press" data-p="${p.id}">${stamp(p,{size:44,ev:l.ev,kira:l.kira,rare:l.rare,v:l.v,im:l.im,rg:l.rg})}<div class="t"><b>${esc(p.name)} ${l.kira?'<span class="tag kira">EX</span>':l.rare?'<span class="tag rare">レア</span>':''}</b><span>${esc(placeOf(l))}</span></div><span class="d">${fmtD(l.d)}</span></button>`}).join('')}</div>`;
  },
  ex(){
   const on=nearOn();
@@ -1009,7 +1015,7 @@ const views={
 
 function colGrid(){
   const lastMet=id=>log.filter(l=>l.pid===id).map(l=>l.d).sort().pop()||'';
-  const rare=id=>{const ls=log.filter(l=>l.pid===id);return ls.filter(l=>l.kira).length*100+new Set(ls.map(l=>(l.v||1)+(l.ev||'-')+(l.kira?'k':l.rare?'r':''))).size*10+ls.filter(l=>l.ev).length};
+  const rare=id=>{const ls=log.filter(l=>l.pid===id);return ls.filter(l=>l.kira).length*100+new Set(ls.map(l=>(l.im||l.v||1)+(l.ev||'-')+(l.kira?'k':l.rare?'r':''))).size*10+ls.filter(l=>l.ev).length};
   const S={love:(a,b)=>daysWith(b)-daysWith(a)||lastMet(b).localeCompare(lastMet(a)),rare:(a,b)=>rare(b)-rare(a)||daysWith(b)-daysWith(a),
     recent:(a,b)=>lastMet(b).localeCompare(lastMet(a)),car:(a,b)=>(MAKERS.indexOf(person(a).maker)-MAKERS.indexOf(person(b).maker))||person(a).car.localeCompare(person(b).car,'ja')};
   const N=t=>t.normalize('NFKC').toLowerCase().replace(/\s/g,''),q=N(colQ);
@@ -1017,8 +1023,8 @@ function colGrid(){
   if(q)ids=ids.filter(id=>{const p=person(id);return N(p.name+p.maker+p.car+p.pref).includes(q)});
   if(!ids.length)return `<p class="note" style="text-align:center;margin-top:18px">${q?'見つかりません。':colSort==='fav'?'まだお気に入りがいません。相手のプロフィールの「☆ お気に入りに追加」で登録できます。':'まだ交換した人がいません。'}</p>`;
   return `${q?`<p class="note" style="margin:0 4px 8px">${ids.length}人</p>`:''}<div class="grid">${ids.map(id=>{const p=person(id),n=daysWith(id),b=best(id),kc=log.filter(l=>l.pid===id&&l.kira).length;
-    const sub=colSort==='recent'?`<span class="s">${fmtD(lastMet(id))}</span>`:colSort==='car'?`<span class="s">${esc(carLabel(p))}</span>`:colSort==='rare'?`<span class="s">${kc?`EX×${kc} · `:''}${new Set(log.filter(l=>l.pid===id).map(l=>(l.v||1)+(l.ev||'-')+(l.kira?'k':l.rare?'r':''))).size}種類</span>`:`<span class="hearts">♥${n} ${rank(n)}</span>`;
-    return `<button class="cell press" data-p="${id}">${favMark(id)}${stamp(p,{ev:b.ev,kira:b.kira,rare:b.rare,v:b.v})}<span class="n">${esc(p.name)}</span>${sub}</button>`}).join('')}</div>`;
+    const sub=colSort==='recent'?`<span class="s">${fmtD(lastMet(id))}</span>`:colSort==='car'?`<span class="s">${esc(carLabel(p))}</span>`:colSort==='rare'?`<span class="s">${kc?`EX×${kc} · `:''}${new Set(log.filter(l=>l.pid===id).map(l=>(l.im||l.v||1)+(l.ev||'-')+(l.kira?'k':l.rare?'r':''))).size}種類</span>`:`<span class="hearts">♥${n} ${rank(n)}</span>`;
+    return `<button class="cell press" data-p="${id}">${favMark(id)}${stamp(p,{ev:b.ev,kira:b.kira,rare:b.rare,v:b.v,im:b.im,rg:b.rg})}<span class="n">${esc(p.name)}</span>${sub}</button>`}).join('')}</div>`;
 }
 const PINI='<svg viewBox="0 0 24 24" width="11" height="11" fill="#fff"><path d="M12 2.5l2.8 6 6.6.7-5 4.5 1.4 6.5L12 17l-5.8 3.2 1.4-6.5-5-4.5 6.6-.7z"/></svg>';
 function openBadge(k){
@@ -1194,29 +1200,35 @@ function demoArrive(){
 /* ガレージ：複数台を登録して「今日の車」で交換する */
 const CARI='<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 16l1.6-5.2A2 2 0 0 1 8.5 9.4h7a2 2 0 0 1 1.9 1.4L19 16"/><rect x="3" y="15" width="18" height="4.5" rx="1.6"/><circle cx="7" cy="19.5" r="1.4"/><circle cx="17" cy="19.5" r="1.4"/></svg>';
 const GMAX=5;
+// 今の車のスタンプをガレージに戻す／別の車のスタンプを出す
+const stashCur=()=>me.garage.map(c=>c.id===me.cur?{...c,img:me.def||me.nost?null:me.img,ring:me.ring,ver:me.ver||1}:c);
+const useCar=(G,c)=>({...me,garage:G,cur:c.id,maker:c.maker,car:c.car,img:c.img||avatar(c.ring||me.ring),ring:c.ring||me.ring,ver:c.ver||1,nost:!c.img,def:!G.some(x=>x.img),sample:false});
+const carStamp=c=>c.id===me.cur?me:{...me,img:c.img||avatar(c.ring||me.ring),ring:c.ring||me.ring};
 function openGarage(back){
   const G=me.garage;
   openSheet(`<b style="font-size:20px;display:block;text-align:center">ガレージ</b>
-   <p class="note" style="text-align:center;margin:4px 0 12px">交換すると、相手の記録には「今日の車」が残ります。${GMAX}台まで登録できます。</p>
-   <div class="list garage">${G.map(c=>{const on=c.id===me.cur;return `<div class="li gli${on?' on':''}"><button class="gsel press" data-g="${c.id}" aria-pressed="${on}"><span class="gck" aria-hidden="true">${on?'✓':''}</span><div class="t"><b>${esc(carLabel(c))}</b><span>${on?'今日の車':'タップで今日の車にする'}</span></div></button>${G.length>1?`<button class="gdel press" data-del="${c.id}" aria-label="${esc(carLabel(c))}を削除">削除</button>`:''}</div>`}).join('')}</div>
+   <p class="note" style="text-align:center;margin:4px 0 12px">車ごとにスタンプを作れます。交換すると、相手の手元には「今日の車」のスタンプが残ります。${GMAX}台まで登録できます。</p>
+   <div class="list garage">${G.map(c=>{const on=c.id===me.cur;return `<div class="li gli${on?' on':''}"><button class="gsel press" data-g="${c.id}" aria-pressed="${on}"><span class="gck" aria-hidden="true">${on?'✓':''}</span>${stamp(carStamp(c),{size:40})}<div class="t"><b>${esc(carLabel(c))}</b><span>${on?'今日の車':'タップで今日の車にする'}${(on?!me.nost&&!me.def:c.img)?'':' · スタンプ未作成'}</span></div></button><button class="gdel press" data-mk="${c.id}">${(on?!me.nost&&!me.def:c.img)?'作り直す':'作る'}</button>${G.length>1?`<button class="gdel press" data-del="${c.id}" aria-label="${esc(carLabel(c))}を削除">削除</button>`:''}</div>`}).join('')}</div>
    ${G.length<GMAX?`<button class="btn sub press" id="gadd" style="margin-top:12px">＋ 車を追加</button>
    <div id="gform" class="group" hidden style="margin-top:12px">
      <div class="row"><label class="f">メーカー<select id="gmk">${MAKERS.map(x=>`<option>${x}</option>`).join('')}</select></label><label class="f">車種<select id="gcar"></select></label></div>
      <label class="f" id="goW" style="margin-top:8px" hidden>車種を入力<input type="text" id="go" maxlength="24" placeholder="例）ロータス エリーゼ"></label>
      <button class="btn press" id="gok" style="margin-top:10px">ガレージに入れる</button></div>`:`<p class="note" style="text-align:center">${GMAX}台まで登録しています</p>`}
-   <p class="note" style="margin-top:12px">スタンプの写真は1枚のままです。車ごとに写真を変えたいときは、乗り換えた日に「スタンプを作る」から撮り直してください（版が上がります）。</p>
+   <p class="note" style="margin-top:12px">作り直すと版が上がります。前のスタンプをもらった人の手元には、前のスタンプが残ります。</p>
    <button class="btn sub press" style="margin-top:10px" data-close>閉じる</button>`);
   bindClose(back);
   const reopen=()=>{closeSheet();setTimeout(()=>{render();openGarage(back)},280)};
-  $$('[data-g]').forEach(b=>b.onclick=()=>{const c=G.find(x=>x.id===b.dataset.g);if(c.id===me.cur)return;me={...me,cur:c.id,maker:c.maker,car:c.car,sample:false};save();toast(`今日の車：${carLabel(c)}`);reopen()});
+  const pick=c=>{if(c.id===me.cur)return;const G2=stashCur();me=useCar(G2,G2.find(x=>x.id===c.id));save()};
+  $$('[data-g]').forEach(b=>b.onclick=()=>{const c=G.find(x=>x.id===b.dataset.g);if(c.id===me.cur)return;pick(c);toast(`今日の車：${carLabel(c)}`);reopen()});
+  $$('[data-mk]').forEach(b=>b.onclick=()=>{pick(G.find(x=>x.id===b.dataset.mk));closeSheet();setTimeout(()=>{render();openCrop()},280)});
   $$('[data-del]').forEach(b=>b.onclick=()=>{const id=b.dataset.del,c=G.find(x=>x.id===id);if(b.dataset.arm!=='1'){b.dataset.arm='1';b.textContent='本当に削除';b.classList.add('arm');return}
-    const rest=G.filter(x=>x.id!==id),cur=id===me.cur?rest[0]:G.find(x=>x.id===me.cur);me={...me,garage:rest,cur:cur.id,maker:cur.maker,car:cur.car,sample:false};save();toast(`${carLabel(c)}を削除しました`);reopen()});
+    const rest=stashCur().filter(x=>x.id!==id);me=id===me.cur?useCar(rest,rest[0]):{...me,garage:rest,def:!rest.some(x=>x.img)&&!!me.def,sample:false};save();toast(`${carLabel(c)}を削除しました`);reopen()});
   const add=$('#gadd');if(!add)return;
   const fill=()=>{const L=CARS[$('#gmk').value]||[];$('#gcar').innerHTML=L.map(x=>`<option>${esc(x)}</option>`).join('')+'<option value="__other">その他（入力する）</option>';if(!L.length)$('#gcar').value='__other';$('#goW').hidden=$('#gcar').value!=='__other'};
   add.onclick=()=>{add.hidden=true;$('#gform').hidden=false;$('#gmk').value=me.maker;fill()};
   $('#gmk').onchange=fill;$('#gcar').onchange=()=>{$('#goW').hidden=$('#gcar').value!=='__other'};
   $('#gok').onclick=()=>{const car=$('#gcar').value==='__other'?$('#go').value.trim():$('#gcar').value;if(!car){toast('車種を入力してください');return}
-    const c={id:'g'+Date.now().toString(36),maker:$('#gmk').value,car};me={...me,garage:[...G,c],sample:false};save();toast(`${carLabel(c)}を追加しました`);reopen()};
+    const c={id:'g'+Date.now().toString(36),maker:$('#gmk').value,car};me={...me,garage:[...stashCur(),c],sample:false};save();toast(`${carLabel(c)}を追加しました。「作る」でこの車のスタンプを作れます`);reopen()};
 }
 
 /* 公式からのお知らせ（本番は管理画面から配信） */
@@ -1380,9 +1392,9 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('#sh'))dismissShe
 function grant(p){
   const already=log.some(l=>l.pid===p.id&&l.d===today());
   const ev=inEvent()?LIVE:null;
-  if(already)return `<div class="result">${stamp(p,{size:140,ev:best(p.id).ev,kira:best(p.id).kira,rare:best(p.id).rare,v:best(p.id).v})}<b style="font-size:18px">${esc(p.name)} さんとは今日もう交換しています</b><div class="note">仲良し度とEXの抽選は、同じ人とは1日1回です。</div></div><button class="btn sub press" style="margin-top:14px" data-close>閉じる</button>`;
+  if(already)return `<div class="result">${stamp(p,{size:140,ev:best(p.id).ev,kira:best(p.id).kira,rare:best(p.id).rare,v:best(p.id).v,im:best(p.id).im,rg:best(p.id).rg})}<b style="font-size:18px">${esc(p.name)} さんとは今日もう交換しています</b><div class="note">仲良し度とEXの抽選は、同じ人とは1日1回です。</div></div><button class="btn sub press" style="margin-top:14px" data-close>閉じる</button>`;
   const before=daysWith(p.id),rate=kiraRate(before,ev),rrate=rareRate(before,ev),roll=Math.random(),kira=roll<rate,rare=!kira&&roll<rate+rrate;
-  const gb=gotKeys();log.push({pid:p.id,d:today(),ev,place:ev?null:placeHere(),kira,rare,v:curV(p),...(p.official?{off:true}:{}),car:{maker:p.maker,car:p.car},my:{maker:me.maker,car:me.car}});save();const nb=gotList(myStats()).filter(b=>!gb.includes(b.k));buzz(kira?[40,60,40,60,140]:[30,50,90]);sfx.peta(kira);
+  const gb=gotKeys();log.push({pid:p.id,d:today(),ev,place:ev?null:placeHere(),kira,rare,v:curV(p),im:refOf(p),rg:p.ring,vr:p.ver||1,...(p.official?{off:true}:{}),car:{maker:p.maker,car:p.car},my:{maker:me.maker,car:me.car}});save();const nb=gotList(myStats()).filter(b=>!gb.includes(b.k));buzz(kira?[40,60,40,60,140]:[30,50,90]);sfx.peta(kira);
   return `<div class="result"><div class="peta" aria-hidden="true">ペタッ!</div>${kira?'<div class="kirahit">EXが出た！</div>':rare?'<div class="rarehit">レアが出た！</div>':''}${stamp(p,{size:150,ev,kira,rare})}
    <b style="font-size:20px">${esc(p.name)} さんと交換</b>${rarity(p.maker,p.car)>=4?`<span class="raretag">${'★'.repeat(rarity(p.maker,p.car))} レア車に会えた！</span>`:''}
    <div><span class="chip">${esc(carLabel(p))}</span>${ev?` <span class="chip">${esc(EVENTS[ev].name)}</span>`:''}</div>
@@ -1474,8 +1486,8 @@ function openHito(){
   i.onkeydown=e=>{if(e.key==='Enter')save(i.value)}}
 function detail(id){
   const p=person(id),n=daysWith(id),h=log.filter(l=>l.pid===id).slice().reverse(),b=best(id),ps=PST[id];
-  const seen=new Set(),variants=h.filter(l=>{const k=(l.v||1)+(l.ev||'-')+(l.kira?'k':l.rare?'r':'');if(seen.has(k))return false;seen.add(k);return true});
-  openSheet(`<div class="result pcard" style="background:${bgCSS(p)}">${stamp(p,{size:120,ev:b.ev,kira:b.kira,rare:b.rare,v:b.v})}<b style="font-size:20px">${esc(p.name)}${p.official?OFFB:''}</b>${p.msg?`<div class="hitop">${esc(p.msg)}</div>`:''}${snsRow(p.sns)}
+  const seen=new Set(),variants=h.filter(l=>{const k=(l.im||l.v||1)+(l.ev||'-')+(l.kira?'k':l.rare?'r':'');if(seen.has(k))return false;seen.add(k);return true});
+  openSheet(`<div class="result pcard" style="background:${bgCSS(p)}">${stamp(p,{size:120,ev:b.ev,kira:b.kira,rare:b.rare,v:b.v,im:b.im,rg:b.rg})}<b style="font-size:20px">${esc(p.name)}${p.official?OFFB:''}</b>${p.msg?`<div class="hitop">${esc(p.msg)}</div>`:''}${snsRow(p.sns)}
    <div><span class="chip">${esc(carLabel(p))}</span> <span class="chip">${esc(p.pref)}</span></div>
    <button class="favbtn press" id="favb" aria-pressed="${favs.has(id)}">${favs.has(id)?'★ お気に入り':'☆ お気に入りに追加'}</button>
    <div class="lv" style="margin-top:4px">${Array.from({length:10},(_,i)=>`<i class="${i<n?'on':''}"></i>`).join('')}</div>
@@ -1483,8 +1495,8 @@ function detail(id){
    <div class="note">次に会ったとき EX ${pct(kiraRate(n,false))} · レア ${pct(rareRate(n,false))}（イベント中は EX ${pct(kiraRate(n,true))}）</div></div>
    ${rewardsBlock(p.name,ps,ps.pins,ps.showStats!==false,ps.showRewards!==false)}
    <div class="sec">もらったスタンプ <span class="chip">${variants.length}種類</span></div>
-   <div class="album">${variants.map(l=>`<div class="alb">${stamp(p,{size:64,ev:l.ev,kira:l.kira,rare:l.rare,v:l.v})}${p.vers&&p.vers.length>1?`<span>${vName(l.v||1)}</span>`:''}</div>`).join('')}</div>
-   ${p.vers&&p.vers.length>1?`<p class="note" style="margin:6px 4px 0">${esc(p.name)}さんはスタンプを${p.vers.length}回作っています。前の版はもう手に入りません。</p>`:''}
+   <div class="album">${variants.map(l=>`<div class="alb">${stamp(p,{size:64,ev:l.ev,kira:l.kira,rare:l.rare,v:l.v,im:l.im,rg:l.rg})}${variants.length>1?`<span>${esc(albName(p,l))}</span>`:''}</div>`).join('')}</div>
+   ${variants.length>1?`<p class="note" style="margin:6px 4px 0">${esc(p.name)}さんのスタンプは、車ごと・作り直すごとに変わります。前のスタンプは、その日に会えた人だけの記録です。</p>`:''}
    ${(()=>{const cc={};h.forEach(l=>{const k=carLabel(l.car||p);cc[k]=(cc[k]||0)+1});const e=Object.entries(cc);return e.length>1?`<div class="sec">乗ってきた車</div><div class="group" style="display:flex;flex-wrap:wrap;gap:6px">${e.map(([k,n])=>`<span class="chip">${esc(k)} ×${n}</span>`).join('')}</div>`:''})()}
    <div class="sec">会った記録</div>
    <div class="list" data-hist>${h.map(l=>`<div class="li" style="cursor:default"><div class="t"><b>${esc(placeOf(l))} ${l.kira?'<span class="tag kira">EX</span>':l.rare?'<span class="tag rare">レア</span>':''}</b><span>${esc(carLabel(l.car||p))}${l.my?`　マイカー：${esc(carLabel(l.my))}`:''}</span></div><span class="d">${l.d.replace(/-/g,'/')}</span></div>`).join('')}</div>
@@ -1601,7 +1613,7 @@ function openBg(){
 function loadPhoto(f,maxPx){
   return new Promise((ok,ng)=>{
     const done=im=>{try{const k=Math.min(1,maxPx/Math.max(im.naturalWidth,im.naturalHeight)),w=Math.round(im.naturalWidth*k),h=Math.round(im.naturalHeight*k);
-        const cv=document.createElement('canvas');cv.width=w;cv.height=h;cv.getContext('2d').drawImage(im,0,0,w,h);ok({src:cv.toDataURL('image/jpeg',.88),w,h})}catch(e){ng(e)}};
+        const cv=document.createElement('canvas');cv.width=w;cv.height=h;cv.getContext('2d').drawImage(im,0,0,w,h);ok({src:cv.toDataURL('image/jpeg',maxPx<=720?.8:.88),w,h})}catch(e){ng(e)}};
     const viaReader=()=>{const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>done(im);im.onerror=ng;im.src=r.result};r.onerror=ng;r.readAsDataURL(f)};
     try{const u=URL.createObjectURL(f),im=new Image();im.onload=()=>{done(im);URL.revokeObjectURL(u)};im.onerror=()=>{URL.revokeObjectURL(u);viaReader()};im.src=u}catch(e){viaReader()}
   });
@@ -1610,11 +1622,11 @@ function loadPhoto(f,maxPx){
 /* crop */
 function openCrop(){
   let st={src:null,w:0,h:0,z:1,x:0,y:0,ring:me.ring||RINGS[0]};
-  openSheet(`<b style="font-size:18px;display:block;text-align:center">スタンプを作る</b>
+  openSheet(`<b style="font-size:18px;display:block;text-align:center">${me.garage.length>1?esc(carLabel(me))+'の':''}スタンプを作る</b>
    <div class="crop" id="crop"><img id="cimg" alt=""><label class="pick" id="pickHint" for="file"><svg viewBox="0 0 24 24"><path d="M4 8h3l2-2.5h6L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>写真を選ぶ</label></div>
    <label class="btn sub press filebtn" for="file">写真を選ぶ・撮る<input type="file" id="file" accept="image/*"></label>
    <p class="note err" id="ferr" hidden></p>
-   <p class="note" style="text-align:center;margin:0">ドラッグで位置、つまみで大きさを調整します。${me.def||me.sample?'':`写真を変えると${vName((me.ver||1)+1)}になります。前の版をもらった人の手元には、前の版が残ります。`}ナンバープレートが写らない位置にしてください。</p>
+   <p class="note" style="text-align:center;margin:0">ドラッグで位置、つまみで大きさを調整します。${me.def||me.sample||me.nost?'':`写真を変えると${vName((me.ver||1)+1)}になります。前の版をもらった人の手元には、前の版が残ります。`}ナンバープレートが写らない位置にしてください。</p>
    <input type="range" id="zoom" min="1" max="4" step="0.01" value="1" style="width:100%;margin:10px 0" aria-label="拡大">
    <div class="note" style="text-align:center">フチの色（イベント中は限定のフチに変わります）</div>
    <div class="rings" id="rings">${RINGS.map(c=>`<button style="background:${c}" data-c="${c}" aria-pressed="${c===st.ring}" aria-label="フチの色"></button>`).join('')}</div>
@@ -1653,10 +1665,10 @@ function openCrop(){
   crop.onpointerup=crop.onpointercancel=()=>drag=null;
   $('#rings').onclick=e=>{const c=e.target.dataset.c;if(!c)return;st.ring=c;$$('#rings button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.c===c))};
   $('#done').onclick=()=>{let out=me.def||!me.img?avatar(st.ring):me.img,def=!st.src&&(me.def||!me.img);
-    if(st.src){const O=400,k=O/V,s=base()*st.z*k,cv=document.createElement('canvas');cv.width=cv.height=O;const g=cv.getContext('2d');
-      g.beginPath();g.arc(O/2,O/2,O/2,0,Math.PI*2);g.clip();g.drawImage(img,O/2+st.x*k-st.w*s/2,O/2+st.y*k-st.h*s/2,st.w*s,st.h*s);out=cv.toDataURL('image/jpeg',.85)}
-    me={...me,name:$('#nm').value.trim()||'名無し',maker:$('#mkr').value,car:($('#car').value==='__other'?$('#carOther').value.trim():$('#car').value)||'未設定',pref:$('#pref').value,ring:st.ring,img:out,def:!st.src&&def,sample:false,ver:(me.ver||1)+(st.src&&!me.def&&!me.sample?1:0)};
-    me.garage=me.garage.map(c=>c.id===me.cur?{...c,maker:me.maker,car:me.car}:c);
+    if(st.src){const O=360,k=O/V,s=base()*st.z*k,cv=document.createElement('canvas');cv.width=cv.height=O;const g=cv.getContext('2d');
+      g.beginPath();g.arc(O/2,O/2,O/2,0,Math.PI*2);g.clip();g.drawImage(img,O/2+st.x*k-st.w*s/2,O/2+st.y*k-st.h*s/2,st.w*s,st.h*s);out=cv.toDataURL('image/jpeg',.82)}
+    me={...me,name:$('#nm').value.trim()||'名無し',maker:$('#mkr').value,car:($('#car').value==='__other'?$('#carOther').value.trim():$('#car').value)||'未設定',pref:$('#pref').value,ring:st.ring,img:out,def:!st.src&&def,sample:false,ver:me.nost?1:(me.ver||1)+(st.src&&!me.def&&!me.sample?1:0),nost:me.nost&&!st.src,made:(me.made||0)+(st.src?1:0)};
+    me.garage=me.garage.map(c=>c.id===me.cur?{...c,maker:me.maker,car:me.car,img:me.def||me.nost?null:me.img,ring:me.ring,ver:me.ver,n:(c.n||0)+(st.src?1:0)}:c);
     save();closeSheet();render();toast(me.ver>1?`スタンプを作りました（${vName(me.ver)}）`:'スタンプを作りました')};
 }
 
@@ -1708,6 +1720,7 @@ C.onPeople(()=>{me.official=C.isOfficial(C.uid);if(nearOn())fillNearby();if(!$('
 
 function request(id,accepted,exArg){
   const p=person(id);if(!p)return;
+  C.need([id],true); // 交換の直前に相手の今のスタンプ（今日の車）を読み直す
   if(!accepted&&incoming===id){accepted=true;exArg=incomingEx}
   if(accepted){incoming=null;incomingEx=null}
   let exId=accepted?exArg:null,round=1,sides={},state=accepted?'accepted':'asked',finished=false,gone=false,unSide=()=>{},motionOff=()=>{},askT=null,sent=-1;
