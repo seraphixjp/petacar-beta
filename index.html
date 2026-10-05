@@ -965,7 +965,7 @@ const views={
   const vis=spotSet();
   return `<div class="group zhead"><div class="big">${[...vis].filter(id=>!id.startsWith('rw:')).length}<small>/${SPOTS.filter(x=>x.cat!=='st').length}</small></div><div class="zt2"><b>行ったスポット</b><button class="seclink" id="mapb">制覇マップ ›</button></div>
     <div class="catrow">${Object.entries(CAT).map(([k,c])=>`<span class="chip">${c.n} ${SPOTS.filter(x=>x.cat===k&&vis.has(x.id)).length}/${SPOTS.filter(x=>x.cat===k).length}</span>`).join('')}</div></div>
-  ${busySpots().length?`<div class="sec">いま人がいるスポット<span class="chip">2時間以内</span></div><div class="list">${busySpots().map(([x,n,d])=>`<button class="li press" data-spot="${esc(x.id)}">${spotMark(x,spotDays(x.id)>0)}<div class="t"><b>${esc(x.n)}</b><span>${CAT[x.cat].n} · ${esc(x.ad||x.pref)}</span></div><span class="nowc big">${n}人</span>${d!=null?`<span class="d">${fmtKm(d)}</span>`:''}</button>`).join('')}</div>`:''}
+  ${busySpots().length?`<div class="sec">近くでいま人がいるスポット<span class="chip">${busyScope()} · 2時間以内</span></div><div class="list">${busySpots().map(([x,n,d])=>`<button class="li press" data-spot="${esc(x.id)}">${spotMark(x,spotDays(x.id)>0)}<div class="t"><b>${esc(x.n)}</b><span>${CAT[x.cat].n} · ${esc(x.ad||x.pref)}</span></div><span class="nowc big">${n}人</span>${d!=null?`<span class="d">${fmtKm(d)}</span>`:''}</button>`).join('')}</div>`:''}
   <div class="sec">近くのスポット${here?`<span class="chip">${esc(here.label)}から</span><button class="seclink" id="locate">更新</button>`:''}</div>
   ${here?`<div class="list">${nearest(5).map(([x,d])=>`<button class="li press" data-spot="${esc(x.id)}">${spotMark(x,spotDays(x.id)>0)}<div class="t"><b>${esc(x.n)}${nowTag(x.id)}</b><span>${CAT[x.cat].n} · ${esc(x.ad||x.pref)}</span></div><span class="d">${fmtKm(d)}</span></button>`).join('')}</div>`
    :`<button class="btn press locbtn" id="locate"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3.2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="7.5"/></svg>現在地から近くのスポットを探す</button>
@@ -1088,7 +1088,11 @@ function spMatch(){const q=spotQ.normalize('NFKC').toLowerCase().replace(/\s/g,'
 let HERE_N={akagi:3,haruna:1};
 const hereN=id=>HERE_N[id]||0,nowTag=id=>hereN(id)?`<em class="nowc">いま${hereN(id)}人</em>`:'';
 function onSpotRecorded(id){HERE_N[id]=hereN(id)+1}
-function busySpots(){return Object.keys(HERE_N).filter(id=>hereN(id)>0&&SP(id)).map(id=>[SP(id),hereN(id),here&&SP(id).la!=null?dist(here,SP(id)):null]).sort((a,b)=>b[1]-a[1]||(a[2]??1e9)-(b[2]??1e9)).slice(0,5)}
+const BUSY_KM=50;
+/* 近くだけ：現在地がわかれば50km以内、わからなければ自分の都道府県 */
+function busySpots(){return Object.keys(HERE_N).filter(id=>hereN(id)>0&&SP(id)).map(id=>[SP(id),hereN(id),here&&SP(id).la!=null?dist(here,SP(id)):null])
+  .filter(([x,,d])=>here?d!=null&&d<=BUSY_KM:(me.pref&&inPref(x,me.pref))).sort((a,b)=>(a[2]??1e9)-(b[2]??1e9)||b[1]-a[1]).slice(0,5)}
+const busyScope=()=>here?`${BUSY_KM}km以内`:(me.pref?`${me.pref}内`:'');
 function spList(){const near=here&&spotSort==='near',L=spMatch().map(x=>[x,spotDays(x.id),here&&x.la!=null?dist(here,x):1e9]).sort(near?(a,b)=>a[2]-b[2]:(a,b)=>b[1]-a[1]||PREFS.indexOf(a[0].pref)-PREFS.indexOf(b[0].pref)||a[0].n.localeCompare(b[0].n,'ja'));
   if(!L.length)return '<p class="note" style="text-align:center">見つかりません。</p>';
   return `<p class="note" style="margin:0 4px 6px">${L.length}件</p><div class="list">${L.slice(0,spotLim).map(([x,n,d])=>`<button class="li press" data-spot="${esc(x.id)}">${spotMark(x,n>0)}<div class="t"><b>${esc(x.n)}${nowTag(x.id)}</b><span>${CAT[x.cat].n} · ${esc(x.st||x.ad||x.pref)}</span></div><span class="d">${near&&d<1e9?fmtKm(d):n?n+'回':'未訪問'}</span></button>`).join('')}</div>
