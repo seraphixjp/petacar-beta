@@ -24,16 +24,46 @@ const step = t => showGate(`<p>${esc(t)}</p><div class="gspin"></div>`);
 function showError(where, e) { console.error(where, e); showGate(`<h1>うまく開けませんでした</h1><p>${esc(where)}</p><p class="gerr">${esc((e && (e.code || e.message)) || e)}</p><p>この画面のスクリーンショットを鈴木さんに送ってください。</p><button class="gbtn" onclick="location.reload()">開き直す</button>`) }
 addEventListener('error', e => { if (gate.hidden) { const b = document.createElement('div'); b.className = 'errbar'; b.textContent = 'エラー: ' + (e.message || '') + ' @' + (e.lineno || ''); document.body.appendChild(b) } });
 addEventListener('unhandledrejection', e => { if (gate.hidden) { const b = document.createElement('div'); b.className = 'errbar'; b.textContent = 'エラー: ' + ((e.reason && (e.reason.code || e.reason.message)) || e.reason); document.body.appendChild(b) } });
-const debounce = (fn, ms) => { let t; const f = () => { clearTimeout(t); t = setTimeout(fn, ms) }; f.now = () => { clearTimeout(t); fn() }; return f };
+// .now() は書き込み待ちがあるときだけ走る（何も変えていない古い画面が、閉じるときに上書きしないように）
+const debounce = (fn, ms) => { let t = null; const f = () => { clearTimeout(t); t = setTimeout(() => { t = null; fn() }, ms) }; f.now = () => { if (t === null) return; clearTimeout(t); t = null; fn() }; f.cancel = () => { clearTimeout(t); t = null }; return f };
+
+/* ---------- データを消さないための守り ---------- */
+const DEV = Math.random().toString(36).slice(2, 10); // この画面を開いた1回ごとの印
+const LOADED_AT = Date.now();
+let frozen = null;            // 'maint' | 'stale' | 'guard' のとき、クラウドへは書かない
+const bar = (id, text, color) => {
+  let b = document.getElementById(id);
+  if (!text) { if (b) b.remove(); return }
+  if (!b) { b = document.createElement('div'); b.id = id; b.className = 'errbar'; document.body.appendChild(b) }
+  b.textContent = text; if (color) b.style.background = color;
+};
 
 function makeStore(backend, profDoc, privDoc) {
   const priv = { ...(privDoc || {}) };
   let prof = profDoc || null;
-  const ME_SKIP = ['sns', 'vers', 'stats', 'showStats', 'showRewards', 'pubEvents', 'upd'];
+  const ME_SKIP = ['sns', 'vers', 'stats', 'showStats', 'showRewards', 'pubEvents', 'upd', 'dev'];
   const pickMe = p => { const o = {}; for (const k in p) if (!ME_SKIP.includes(k)) o[k] = p[k]; return o };
-  const flushPriv = debounce(() => backend.setPriv(priv).catch(e => console.warn('priv', e)), 800);
+  // 交換とスポットの記録はアプリの操作では減らない。減った内容を書こうとしたら不具合なので書かない
+  const cnt = p => ({ log2: Array.isArray(p.log2) ? p.log2.length : 0, spot2: Array.isArray(p.spot2) ? p.spot2.length : 0 });
+  const base = { ...cnt(priv), real: !!(prof && !prof.def) };
+  const guardTrip = what => {
+    if (frozen !== 'guard') console.error('save blocked:', what);
+    frozen = frozen || 'guard';
+    bar('savebar', '記録が減る保存を止めました。アプリを開き直してください（データは守られています）');
+  };
+  const retry = f => { bar('savebar', '保存できませんでした。通信状態を確認してください（自動でやり直します）'); setTimeout(f, 5000) };
+  const flushPriv = debounce(() => {
+    if (frozen) return;
+    const n = cnt(priv);
+    if (n.log2 < base.log2 || n.spot2 < base.spot2) return guardTrip(`log ${base.log2}->${n.log2}, spot ${base.spot2}->${n.spot2}`);
+    backend.setPriv({ ...priv, _dev: DEV, _at: Date.now() }).then(() => {
+      base.log2 = Math.max(base.log2, n.log2); base.spot2 = Math.max(base.spot2, n.spot2); bar('savebar', '');
+    }, e => { console.warn('priv', e); retry(flushPriv) });
+  }, 800);
   const flushProf = debounce(() => {
+    if (frozen) return;
     const a = window.__app; if (!a) return;
+    if (base.real && a.me.def) return guardTrip('profile reset to default');
     const me = { ...a.me }; delete me.sample; delete me.official;
     let vers = (prof && prof.vers) || [];
     if (!me.def) {
@@ -42,11 +72,14 @@ function makeStore(backend, profDoc, privDoc) {
       if (vers.length > 8) vers = vers.map((x, i) => i < vers.length - 8 ? { ring: x.ring, img: null } : x);
     }
     const s = a.settings;
-    prof = { ...me, sns: s.showSns ? (s.sns || []).filter(Boolean).slice(0, 2) : [], vers, stats: { ...a.myStats(), pins: a.myPins() }, showStats: !!s.pubStats, showRewards: !!s.pubRewards, pubEvents: !!s.pubEvents, upd: Date.now() };
-    backend.setProfile(prof).catch(e => console.warn('profile', e));
+    prof = { ...me, sns: s.showSns ? (s.sns || []).filter(Boolean).slice(0, 2) : [], vers, stats: { ...a.myStats(), pins: a.myPins() }, showStats: !!s.pubStats, showRewards: !!s.pubRewards, pubEvents: !!s.pubEvents, upd: Date.now(), dev: DEV };
+    if (!me.def) base.real = true;
+    backend.setProfile(prof).then(() => bar('savebar', ''), e => { console.warn('profile', e); retry(flushProf) });
   }, 1000);
-  addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') { flushPriv.now(); flushProf.now() } });
+  const flushAll = () => { flushPriv.now(); flushProf.now() };
+  addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushAll() });
   return {
+    flushAll, cancelAll: () => { flushPriv.cancel(); flushProf.cancel() },
     get(k, d) {
       if (LOCAL_KEYS.includes(k)) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d } catch (e) { return d } }
       if (k === 'me2') return prof ? pickMe(prof) : d;
@@ -155,10 +188,17 @@ async function firebaseBackend() {
       sub: cb => F.onSnapshot(F.query(Col('here'), F.where('until', '>', Date.now())), qs => cb(qs.docs.map(d => d.data())), e => console.warn('here', e)),
     },
     official: cb => F.onSnapshot(Col('official'), qs => { const m = {}; qs.forEach(d => m[d.id] = true); cb(m) }, e => console.warn('official', e)),
+    // メンテナンスのスイッチ（運営がコンソールで config/app を書き換える）。読めないときはスイッチなし扱い
+    config: cb => F.onSnapshot(D('config', 'app'), s => cb(s.exists() ? s.data() : {}), e => { console.warn('config', e); cb({}) }),
+    subMine: cb => F.onSnapshot(D('users', uid, 'priv', 'state'), s => cb(s.exists() ? s.data() : null), e => console.warn('mine', e)),
+    // バックアップ：曜日ごとの7枠（b0〜b6）と、復元の直前の状態（bpre）。自分しか読めない場所に置く
+    bakGet: (slot, withProf) => Promise.all([F.getDoc(D('users', uid, 'priv', 'b' + slot)), withProf ? F.getDoc(D('users', uid, 'priv', 'bp' + slot)) : null]).then(([a, b]) => a.exists() ? { ...a.data(), prof: b && b.exists() ? b.data().data : null } : null),
+    bakPut: (slot, day, privD, profD) => Promise.all([F.setDoc(D('users', uid, 'priv', 'b' + slot), { day, at: Date.now(), data: privD }), profD ? F.setDoc(D('users', uid, 'priv', 'bp' + slot), { day, at: Date.now(), data: profD }) : null]),
     report: d => F.addDoc(Col('reports'), { ...d, by: uid, at: Date.now() }),
     signOut: () => (NATIVE ? FA.signOut().catch(() => { }) : Promise.resolve()).then(() => A.signOut(auth)).then(() => location.reload()),
     deleteAccount: async () => {
-      await Promise.all([F.deleteDoc(D('live', uid)).catch(() => { }), F.deleteDoc(D('users', uid, 'priv', 'state')), F.deleteDoc(D('users', uid))]);
+      const baks = ['pre', 0, 1, 2, 3, 4, 5, 6].flatMap(k => ['b' + k, 'bp' + k]).map(k => F.deleteDoc(D('users', uid, 'priv', k)));
+      await Promise.all([F.deleteDoc(D('live', uid)).catch(() => { }), ...baks, F.deleteDoc(D('users', uid, 'priv', 'state')), F.deleteDoc(D('users', uid))]);
       try { await A.deleteUser(auth.currentUser) }
       catch (e) { if (e.code === 'auth/requires-recent-login') { if (NATIVE) { const apple = auth.currentUser.providerData.some(p => p.providerId === 'apple.com'); await A.reauthenticateWithCredential(auth.currentUser, await nativeCred(A, apple ? 'apple' : 'google')) } else await A.reauthenticateWithPopup(auth.currentUser, provider); await A.deleteUser(auth.currentUser) } else throw e }
     },
@@ -187,9 +227,13 @@ function mockBackend(uid) {
     },
     here: { add: spot => put('here/h' + Date.now() + (n++), { spot, until: Date.now() + 7200000 }), sub: cb => sub(() => cb(Object.values(coll('here')))) },
     official: cb => sub(() => { const m = {}; Object.keys(coll('official')).forEach(k => m[k] = true); cb(m) }),
+    config: cb => sub(() => cb(JSON.parse(JSON.stringify(M.docs.get('config/app') || {})))),
+    subMine: cb => sub(() => cb(JSON.parse(JSON.stringify(M.docs.get('users/' + uid + '/priv/state') || null)))),
+    bakGet: slot => { const a = M.docs.get('users/' + uid + '/priv/b' + slot), b = M.docs.get('users/' + uid + '/priv/bp' + slot); return Promise.resolve(a ? JSON.parse(JSON.stringify({ ...a, prof: b ? b.data : null })) : null) },
+    bakPut: (slot, day, privD, profD) => { put('users/' + uid + '/priv/b' + slot, { day, at: Date.now(), data: privD }); if (profD) put('users/' + uid + '/priv/bp' + slot, { day, at: Date.now(), data: profD }); return Promise.resolve() },
     report: d => put('reports/r' + Date.now(), { ...d, by: uid }),
     signOut: () => Promise.resolve(location.reload()),
-    deleteAccount: async () => { ['users/' + uid, 'users/' + uid + '/priv/state', 'live/' + uid].forEach(k => M.docs.delete(k)); notify() },
+    deleteAccount: async () => { for (const k of [...M.docs.keys()]) if (k === 'users/' + uid || k.startsWith('users/' + uid + '/') || k === 'live/' + uid) M.docs.delete(k); notify() },
   };
 }
 
@@ -199,21 +243,99 @@ const mockId = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) && params.ge
 let be = null;
 try { be = mockId ? mockBackend(mockId) : await firebaseBackend() }
 catch (e) { showError('ログインまたは読み込みの途中で止まりました。', e) }
-if (be) {
+const ymdL = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const counts = d => ({ log: d && Array.isArray(d.log2) ? d.log2.length : 0, spot: d && Array.isArray(d.spot2) ? d.spot2.length : 0 });
+
+// 1日1回、読み込んだ直後（まだ何も変えていない状態）を曜日の枠に残す
+async function dailyBackup() {
+  if (!be.privDoc) return;
+  const day = ymdL(), slot = new Date().getDay();
+  const cur = await be.bakGet(slot, false);
+  if (cur && cur.day === day) return;
+  await be.bakPut(slot, day, be.privDoc, be.profDoc);
+}
+
+// ?restore を付けて開くと、バックアップから戻す画面になる
+async function showRestore() {
+  step('バックアップを探しています…');
+  const slots = ['pre', 0, 1, 2, 3, 4, 5, 6];
+  const got = (await Promise.all(slots.map(s => be.bakGet(s, false).then(b => b && { ...b, slot: s }).catch(() => null)))).filter(Boolean).sort((a, b) => b.at - a.at);
+  const now = counts(be.privDoc), name = b => b.slot === 'pre' ? '戻す前の状態' : b.day + ' の状態';
+  const back = () => location.replace(location.pathname + (mockId ? '?mock=' + mockId : ''));
+  showGate(`<h1>バックアップから戻す</h1><p>いまのデータ：交換${now.log}件・スポット${now.spot}件</p>
+    <p>アプリを開いた日ごとに、最大7日分を自動で保存しています。戻す直前の状態も残るので、やり直せます。</p>
+    ${got.length ? got.map(b => { const n = counts(b.data); return `<button class="gbtn sub" data-slot="${b.slot}">${esc(name(b))}<br><small>交換${n.log}件・スポット${n.spot}件</small></button>` }).join('') : '<p class="gerr">まだバックアップがありません。</p>'}
+    <button class="gbtn" id="rback">戻さずにアプリを開く</button>`);
+  document.getElementById('rback').onclick = back;
+  gate.querySelectorAll('[data-slot]').forEach(btn => btn.onclick = async () => {
+    const b = got.find(x => String(x.slot) === btn.dataset.slot);
+    if (!confirm(`${name(b)}に戻しますか？`)) return;
+    step('戻しています…');
+    try {
+      const full = await be.bakGet(b.slot, true);
+      if (b.slot !== 'pre') await be.bakPut('pre', ymdL(), be.privDoc || {}, be.profDoc);
+      await be.setPriv({ ...full.data, _dev: DEV, _at: Date.now() });
+      if (full.prof) await be.setProfile({ ...full.prof, dev: DEV, upd: Date.now() });
+      showGate(`<h1>戻しました</h1><p>${esc(name(b))}に戻りました。</p><button class="gbtn" id="rdone">アプリを開く</button>`);
+      document.getElementById('rdone').onclick = back;
+    } catch (e) { showError('戻せませんでした。', e) }
+  });
+}
+
+if (be && params.has('restore')) showRestore().catch(e => showError('バックアップを読み込めませんでした。', e));
+else if (be) {
+  const store = makeStore(be, be.profDoc, be.privDoc);
   window.__cloud = {
-    uid: be.uid, store: makeStore(be, be.profDoc, be.privDoc), people,
+    uid: be.uid, store, people,
     onPeople: f => peopleCbs.push(f), isOfficial: id => !!OFF[id],
     live: be.live, ex: be.ex, here: be.here, report: be.report, signOut: be.signOut, deleteAccount: be.deleteAccount,
   };
-  let first = true;
+  let started = false, gotPeople = false, gotCfg = false, cfg = {};
   step('参加者を読み込んでいます…');
-  const slow = setTimeout(() => { if (first) showError('参加者の一覧を読み込めません（15秒たっても応答がありません）。', 'timeout') }, 15000);
+  const slow = setTimeout(() => { if (!started && !frozen) showError('参加者の一覧を読み込めません（15秒たっても応答がありません）。', 'timeout') }, 15000);
+  function start() {
+    if (started || !gotPeople || !gotCfg || frozen) return;
+    started = true; clearTimeout(slow);
+    try { window.__startApp(); gate.hidden = true; gate.innerHTML = ''; dailyBackup().catch(e => console.warn('backup', e)) }
+    catch (e) { showError('画面の準備中にエラーが起きました。', e) }
+  }
+
+  // メンテナンス：config/app の maint が true の間は、運営（staff に uid がある人）以外は止める
+  const isStaff = c => String(c.staff || '').split(/[\s,]+/).includes(be.uid);
+  be.config(c => {
+    cfg = c || {}; gotCfg = true;
+    const staff = isStaff(cfg);
+    bar('maintbar', cfg.maint && staff ? 'メンテナンス中（運営だけ使えます）' : '', '#6d4fd8');
+    if (cfg.maint && !staff) {
+      if (frozen === 'maint') return;
+      if (started) store.flushAll();   // 押した直後の記録は先に保存してから止める
+      store.cancelAll(); frozen = frozen || 'maint'; clearTimeout(slow);
+      showGate(`<h1>ただいまメンテナンス中です</h1><p>${esc(cfg.msg || 'アプリの更新作業をしています。終わると自動で開き直します。')}</p><p>これまでの記録はそのまま残っています。</p><div class="gspin"></div>`);
+      return;
+    }
+    if (frozen === 'maint') { location.reload(); return }
+    start();
+  });
+
+  // 別の端末・タブが新しい内容を書いたら、この画面の古い内容で上書きしないように止めて読み込み直す
+  const stale = () => {
+    if (frozen === 'stale' || frozen === 'maint') return;
+    store.cancelAll(); frozen = 'stale';
+    const go = () => location.reload();
+    if (document.visibilityState === 'hidden') { addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') go() }); return }
+    showGate(`<h1>別の画面で記録が更新されました</h1><p>ほかのスマホやタブで、ペタカー! の記録が変わりました。古い内容で上書きしないように、最新の状態を読み込み直します。</p><button class="gbtn" id="sreload">読み込み直す</button>`);
+    document.getElementById('sreload').onclick = go;
+  };
+  const p0 = be.privDoc || {}, f0 = be.profDoc || {};
+  be.subMine(d => { if (d && d._dev !== DEV && !(d._dev === p0._dev && d._at === p0._at)) stale() });
+
   let lastMap = {};
   be.official(m => { OFF = m; setPeople(lastMap, be.uid) });
   be.subPeople(map => {
     lastMap = map; setPeople(map, be.uid);
-    if (!first) return;
-    first = false; clearTimeout(slow);
-    try { window.__startApp(); gate.hidden = true; gate.innerHTML = '' } catch (e) { showError('画面の準備中にエラーが起きました。', e) }
-  }, e => { if (first) { clearTimeout(slow); showError('参加者の一覧を読み込めませんでした。', e) } });
+    const mine = map[be.uid];
+    if (mine && mine.dev !== DEV && !(mine.dev === f0.dev && mine.upd === f0.upd)) stale();
+    if (gotPeople) return;
+    gotPeople = true; start();
+  }, e => { if (!gotPeople) { clearTimeout(slow); showError('参加者の一覧を読み込めませんでした。', e) } });
 }
