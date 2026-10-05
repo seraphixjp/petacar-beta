@@ -407,7 +407,7 @@ body{margin:0}img{max-width:100%}
 html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 #gate{position:fixed;inset:0;z-index:100;background:var(--bg);display:grid;place-items:center;padding:24px}
 #gate .gbox{max-width:360px;text-align:center;display:grid;gap:14px;justify-items:center}
-#gate .glogo{width:96px;height:96px}#gate .glogo svg{width:100%;height:100%;display:block}
+#gate .glogo{width:96px;height:96px;-webkit-tap-highlight-color:transparent}#gate .rvf{display:grid;gap:8px;width:100%}#gate .rvf input{font:inherit;padding:10px 12px;border-radius:10px;border:1px solid #39424e;background:#151b23;color:#e8ebf0}#gate .glogo svg{width:100%;height:100%;display:block}
 #gate .gspin{width:28px;height:28px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--accent);animation:gsp 1s linear infinite}@keyframes gsp{to{transform:rotate(360deg)}}
 .errbar{position:fixed;left:8px;right:8px;bottom:calc(env(safe-area-inset-bottom,0px) + 70px);z-index:120;background:var(--ng);color:#fff;font:600 12px var(--mono);padding:8px 10px;border-radius:10px;word-break:break-all}
 #gate h1{font:400 24px var(--display);margin:0}#gate p{margin:0;color:var(--muted);line-height:1.7}
@@ -1419,7 +1419,7 @@ function request_demo(id,accepted){
     setTimeout(()=>{setCheck('c3',true,inEvent()?'同じ会場':'近く');setTimeout(()=>showResult(p),450)},500)};
   const ask=()=>{if(!$('#c2'))return;$('#c2 small').textContent='30秒以内';
     $('#res').innerHTML=`<div style="text-align:center;margin-bottom:12px"><span class="shake" aria-hidden="true">📱</span><div><b>2人で同時にシェイク！</b></div><div class="note">スマホを振るタイミングが2秒以内でそろえば、スタンプがペタッと貼られます</div></div>
-     <div class="row"><button class="btn sub press" data-close>やめる</button><button class="btn press" id="shk">（試作）振ったことにする</button></div>`;
+     <div class="row"><button class="btn sub press" data-close>やめる</button><button class="btn press" id="shk">振れないときはタップ</button></div>`;
     bindClose(()=>off());$('#shk').onclick=shaken;
     const h=e=>{const a=e.accelerationIncludingGravity||{};if(Math.hypot(a.x||0,a.y||0,a.z||0)>28)shaken()};
     try{window.addEventListener('devicemotion',h);off=()=>window.removeEventListener('devicemotion',h)}catch(e){}};
@@ -1696,8 +1696,12 @@ const getPos=()=>new Promise(ok=>{if(!navigator.geolocation)return ok(null);
   navigator.geolocation.getCurrentPosition(p=>{myPos={la:p.coords.latitude,lo:p.coords.longitude,acc:p.coords.accuracy,at:Date.now()};startWatch();ok(myPos)},()=>ok(null),{enableHighAccuracy:true,timeout:8000,maximumAge:30000})});
 async function askMotion(){try{if(typeof DeviceMotionEvent==='undefined'){motionOK=false;return}
   if(typeof DeviceMotionEvent.requestPermission==='function')motionOK=(await DeviceMotionEvent.requestPermission())==='granted';else motionOK=true}catch(e){motionOK=false}}
-function fillNearby(){const mine=liveMap[C.uid];
-  nearby=Object.entries(liveMap).filter(([id,x])=>id!==C.uid&&x.until>Date.now()&&!blocked.has(id)&&POOL.some(p=>p.id===id)&&nearCell(mine&&mine.cell,x.cell)).map(([id])=>id)}
+// 審査用アカウント（招待リストに demo:true）だけに出る、1人で交換を試せる相手
+const DEMO_P={...POOL_DEMO[0],id:'demo',name:'デモの相手',msg:'審査・お試し用の相手です',official:false,vers:[{img:POOL_DEMO[0].img,ring:POOL_DEMO[0].ring}]};
+const addDemo=()=>{if(C.demo&&!POOL.some(p=>p.id==='demo'))POOL.push(DEMO_P)};addDemo();
+function fillNearby(){const mine=liveMap[C.uid];addDemo();
+  nearby=Object.entries(liveMap).filter(([id,x])=>id!==C.uid&&x.until>Date.now()&&!blocked.has(id)&&POOL.some(p=>p.id===id)&&nearCell(mine&&mine.cell,x.cell)).map(([id])=>id);
+  if(C.demo)nearby.unshift('demo')}
 C.live.sub(m=>{liveMap=m;if(nearOn()){const b=nearby.join();fillNearby();if(b!==nearby.join()&&tab==='ex'&&!$('#sh'))render()}});
 let incT=null;
 const fresh=x=>Math.abs(Date.now()-x.at)<ASK_MS; // 相手の時計が進んでいても期限切れにする
@@ -1716,9 +1720,10 @@ const wipes=new Map(); // exId -> 位置を外した side
 const flushWipes=()=>{for(const [id,b] of wipes)C.ex.setSide(id,b).catch(()=>{});wipes.clear()};
 addEventListener('pagehide',()=>{if(nearOn())C.live.clear();flushWipes()});
 document.addEventListener('visibilitychange',()=>{if(document.hidden)flushWipes()});
-C.onPeople(()=>{me.official=C.isOfficial(C.uid);if(nearOn())fillNearby();if(!$('#sh'))render()});me.official=C.isOfficial(C.uid);
+C.onPeople(()=>{addDemo();me.official=C.isOfficial(C.uid);if(nearOn())fillNearby();if(!$('#sh'))render()});me.official=C.isOfficial(C.uid);
 
 function request(id,accepted,exArg){
+  if(id==='demo')return request_demo(id,false); // デモの相手：サーバーを使わずに交換の流れだけ見せる
   const p=person(id);if(!p)return;
   C.need([id],true); // 交換の直前に相手の今のスタンプ（今日の車）を読み直す
   if(!accepted&&incoming===id){accepted=true;exArg=incomingEx}

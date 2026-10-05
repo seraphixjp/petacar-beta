@@ -23,6 +23,24 @@ function showGate(html) { gate.hidden = false; gate.innerHTML = `<div class="gbo
 // ストア審査（投稿のあるアプリ）：ログインの前に利用規約への同意を明示する
 const AGREE = '<p class="ghelp">ログインすると、<a href="https://seraphixjp.github.io/petacar-beta/terms.html" target="_blank" rel="noopener">利用規約</a>と<a href="https://seraphixjp.github.io/petacar-beta/privacy.html" target="_blank" rel="noopener">プライバシーポリシー</a>に同意したものとします。不快な写真や名前は禁止で、見つけしだい削除します。</p>';
 const step = t => showGate(`<p>${esc(t)}</p><div class="gspin"></div>`);
+// ロゴを5回続けてタップすると、審査用のメール／パスワードのログイン欄が出る
+function bindReviewLogin(A, auth) {
+  const logo = gate.querySelector('.glogo'); if (!logo) return;
+  let n = 0, t = null;
+  logo.onclick = () => {
+    n++; clearTimeout(t); t = setTimeout(() => n = 0, 1500);
+    if (n < 5 || document.getElementById('rvf')) return;
+    const f = document.createElement('form'); f.id = 'rvf'; f.className = 'rvf';
+    f.innerHTML = '<p class="ghelp">審査用ログイン</p><input type="email" id="rvm" placeholder="メールアドレス" autocomplete="username" required><input type="password" id="rvp" placeholder="パスワード" autocomplete="current-password" required><button class="gbtn sub" type="submit">ログイン</button><p class="gerr" id="rve" hidden></p>';
+    gate.querySelector('.gbox').appendChild(f);
+    f.onsubmit = e => {
+      e.preventDefault();
+      A.signInWithEmailAndPassword(auth, document.getElementById('rvm').value.trim(), document.getElementById('rvp').value).catch(er => {
+        const el = document.getElementById('rve'); el.hidden = false; el.textContent = 'ログインできませんでした（' + (er.code || er.message) + '）';
+      });
+    };
+  };
+}
 function showError(where, e) { console.error(where, e); showGate(`<h1>うまく開けませんでした</h1><p>${esc(where)}</p><p class="gerr">${esc((e && (e.code || e.message)) || e)}</p><p>この画面のスクリーンショットを鈴木さんに送ってください。</p><button class="gbtn" onclick="location.reload()">開き直す</button>`) }
 addEventListener('error', e => { if (gate.hidden) { const b = document.createElement('div'); b.className = 'errbar'; b.textContent = 'エラー: ' + (e.message || '') + ' @' + (e.lineno || ''); document.body.appendChild(b) } });
 addEventListener('unhandledrejection', e => { if (gate.hidden) { const b = document.createElement('div'); b.className = 'errbar'; b.textContent = 'エラー: ' + ((e.reason && (e.reason.code || e.reason.message)) || e.reason); document.body.appendChild(b) } });
@@ -249,6 +267,7 @@ async function firebaseBackend() {
         });
         document.getElementById('ngoogle').onclick = () => go('google');
         if (IOS) document.getElementById('napple').onclick = () => go('apple');
+        bindReviewLogin(A, auth);
         return;
       }
       // LINEなどアプリ内のブラウザではGoogleログインが戻ってこない。LINEは外部ブラウザで開き直せる
@@ -264,6 +283,7 @@ async function firebaseBackend() {
         const url = location.origin + location.pathname;
         (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject()).then(() => e.target.textContent = 'コピーしました', () => prompt('このURLをコピーしてください', url));
       };
+      bindReviewLogin(A, auth);
       document.getElementById('glogin').onclick = () => A.signInWithPopup(auth, provider).catch(e => {
         const el = document.getElementById('gerr'); el.hidden = false;
         el.textContent = e.code === 'auth/popup-blocked' ? 'ログイン画面が開けませんでした。ブラウザのポップアップを許可してください。' : e.code === 'auth/popup-closed-by-user' ? 'ログインがキャンセルされました。' : 'ログインできませんでした（' + e.code + '）';
@@ -273,7 +293,8 @@ async function firebaseBackend() {
   step('招待リストを確認しています…');
   const email = (user.email || '').toLowerCase();
   let allowErr = null;
-  const allowed = await F.getDoc(F.doc(db, 'allow', email)).then(s => s.exists()).catch(e => { allowErr = e; return false });
+  let demo = false;
+  const allowed = await F.getDoc(F.doc(db, 'allow', email)).then(s => { demo = !!(s.exists() && s.data().demo); return s.exists() }).catch(e => { allowErr = e; return false });
   if (allowErr && allowErr.code !== 'permission-denied') throw allowErr;
   if (!allowed) {
     showGate(`<h1>まだ招待されていません</h1><p><b>${esc(email)}</b> はテストの参加者リストに入っていません。鈴木さんに、このアドレスを伝えてください。</p><button class="gbtn sub" id="gout">別のアカウントでログイン</button>`);
@@ -289,7 +310,7 @@ async function firebaseBackend() {
   const liveQs = c => c ? [F.query(Col('live'), F.where('ck', 'in', cellsNear(c))), F.query(Col('live'), F.where('ck', '==', 'none'))] : [F.query(Col('live'), F.where('until', '>', Date.now() - 60000))];
   const hereId = spot => encodeURIComponent(spot).slice(0, 700);
   return {
-    uid, profDoc: profSnap.exists() ? profSnap.data() : null, privDoc: privSnap.exists() ? privSnap.data() : null,
+    uid, demo, profDoc: profSnap.exists() ? profSnap.data() : null, privDoc: privSnap.exists() ? privSnap.data() : null,
     mine: mineSnap.exists() && Array.isArray(mineSnap.data().ids) ? mineSnap.data().ids : [],
     setProfile: d => F.setDoc(D('users', uid), d),
     setPriv: d => F.setDoc(D('users', uid, 'priv', 'state'), d),
@@ -362,7 +383,7 @@ function mockBackend(uid) {
   const sub = (fn) => { const f = () => fn(); M.subs.add(f); setTimeout(f, 10); return () => M.subs.delete(f) };
   let n = 0;
   return {
-    uid, profDoc: M.docs.get('users/' + uid) || null, privDoc: M.docs.get('users/' + uid + '/priv/state') || null,
+    uid, demo: !!params.get('demo'), profDoc: M.docs.get('users/' + uid) || null, privDoc: M.docs.get('users/' + uid + '/priv/state') || null,
     mine: ((M.docs.get('users/' + uid + '/priv/imgs') || {}).ids || []).slice(),
     setProfile: d => put('users/' + uid, d), setPriv: d => put('users/' + uid + '/priv/state', d),
     getProfiles: ids => { M.reads = (M.reads || 0) + ids.length; const m = {}; ids.forEach(id => { const d = M.docs.get('users/' + id); if (d) m[id] = JSON.parse(JSON.stringify(d)) }); return Promise.resolve(m) },
@@ -454,7 +475,7 @@ else if (be) {
     sub: cb => { liveCb = cb },
   };
   window.__cloud = {
-    uid: be.uid, store, people,
+    uid: be.uid, demo: !!be.demo, store, people,
     onPeople: f => peopleCbs.push(f), isOfficial: id => !!OFF[id],
     img: imgOf, need,
     live, ex: { ...be.ex, sub: cb => be.ex.sub(m => { need(Object.values(m).flatMap(x => [x.a, x.b])); cb(m) }) }, here: be.here, report: be.report, signOut: be.signOut,
