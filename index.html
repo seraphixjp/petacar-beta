@@ -389,6 +389,7 @@ button.badge{width:100%;background:none;border:0;border-bottom:1px solid var(--l
 .gli.on .gck{background:var(--accent);border-color:var(--accent);color:#fff}
 .gdel{border:0;background:none;color:var(--ng);font:700 13px var(--sans);padding:12px 14px;cursor:pointer}.gdel.arm{background:var(--ng);color:#fff;border-radius:10px;margin-right:8px;padding:8px 10px}
 .newsrow{display:flex;align-items:center;gap:10px;width:100%;margin-top:12px;padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;text-align:left;cursor:pointer}
+.openrow .oav{display:flex;flex:none}.openrow .oav>*{margin-left:-8px;border-radius:50%;box-shadow:0 0 0 2px var(--surface)}.openrow .oav>*:first-child{margin-left:0}
 .newsrow b{flex:1;min-width:0;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.newsrow .nmore{font-size:11px;color:var(--muted);flex:none}.newsrow .val{color:var(--muted)}
 .ntag{flex:none;display:inline-block;font:700 10.5px var(--sans);color:var(--nc);border:1.5px solid var(--nc);border-radius:6px;padding:1px 6px;letter-spacing:.02em}
 .nh{display:flex;align-items:center;gap:8px;margin-bottom:3px}.nd{font:500 11.5px var(--mono);color:var(--muted)}.npin{font-size:10.5px;color:var(--muted)}
@@ -1010,7 +1011,7 @@ const gotList=s=>BADGES.filter(b=>b.f(s)>=b.g);
 let pins=store.get('pins2',null);
 const PIN_MAX=8;let nearOpen=false;
 const myPins=()=>{const gl=gotList(myStats()),got=gl.map(b=>b.k);if(!pins)pins=gl.slice().sort((a,b)=>TIERS[b.tier].o-TIERS[a.tier].o).slice(0,PIN_MAX).map(b=>b.k);return pins.filter(k=>got.includes(k))};
-let settings=Object.assign({theme:'auto',pubRewards:true,pubStats:true,pubEvents:true,showSns:true,sns:['',''],eventOnly:false,autoIn:false,sound:true,reqFrom:'all',modeMin:5},store.get('set2',{}));
+let settings=Object.assign({theme:'auto',pubRewards:true,pubStats:true,pubEvents:true,showSns:true,sns:['',''],eventOnly:false,autoIn:false,sound:true,reqFrom:'all',modeMin:5,showOpen:true},store.get('set2',{}));
 const saveSet=()=>store.set('set2',settings);
 const applyTheme=()=>{const t=settings.theme;if(t==='light'||t==='dark')document.documentElement.dataset.theme=t;else delete document.documentElement.dataset.theme};
 applyTheme();
@@ -1106,6 +1107,17 @@ function bindEv(){
     if(f>=1){clearInterval(ciTimer);ci={state:'in'};nearby=[];if(nearOn())fillNearby();render();sfx.chime();toast('チェックインしました');}},100)};
   const o=$('#ckout');if(o)o.onclick=()=>{ci={state:'far'};if(nearOn())fillNearby();render();toast('チェックアウトしました')};
 }
+let openNear=[],openNeedPos=false;
+function fillOpen_demo(){if(!settings.showOpen){openNear=[];return}if(!openNear.length)openNear=POOL.filter(p=>!blocked.has(p.id)).sort(()=>Math.random()-.5).slice(0,3).map(p=>p.id);openNear=openNear.filter(id=>!blocked.has(id))}
+const openList=()=>settings.showOpen?openNear.filter(id=>!nearby.includes(id)&&person(id)):[];
+function openRow(){if(incoming&&person(incoming)){const p=person(incoming);return `<button class="newsrow openrow press" id="openRow"><span class="oav">${stamp(p,{size:28})}</span><b>${esc(p.name)} さんから交換の申し込み</b><span class="val" aria-hidden="true">›</span></button>`}
+  const l=openList();if(!l.length||tab==='ex')return '';
+  return `<button class="newsrow openrow press" id="openRow"><span class="oav">${l.slice(0,3).map(id=>stamp(person(id),{size:28})).join('')}</span><b>近くでペタカーを開いている人 ${l.length}人</b><span class="val" aria-hidden="true">›</span></button>`}
+function openSec(){if(!settings.showOpen)return '';const l=openList();
+  if(!l.length)return openNeedPos?`<button class="li press" id="openPos" style="margin-top:16px;border-radius:16px;background:var(--surface)">${PEOPLEI}<div class="t"><b>近くでペタカーを開いている人を探す</b><span>位置情報を使います（だいたいの場所だけ）</span></div><span class="d">›</span></button>`:'';
+  return `<div class="sec">ペタカーを開いている人 <span class="chip">${l.length}人</span></div>
+    <div class="grid">${l.map(id=>{const p=person(id),n=daysWith(id);return `<button class="cell press" data-o="${id}">${favMark(id)}${stamp(p)}<span class="n">${esc(p.name)}</span><span class="s">${esc(p.car)}${n?` · ♥${n}`:''}</span></button>`}).join('')}</div>
+    <p class="note" style="text-align:center;margin-top:14px">この辺りでアプリを開いている人です。タップすると交換を申し込めます。</p>`}
 function fillNearby_demo(){nearby=POOL_DEMO.filter(p=>!blocked.has(p.id)).sort(()=>Math.random()-.5).slice(0,inEvent()?6:4).map(p=>p.id)}
 
 /* クラスと称号（RPGっぽいリワード・2026-10-06 鈴木さん。見た目はほかのカードと同じ）
@@ -1184,7 +1196,7 @@ const views={
     ${inEvent()?`<div class="note" style="color:rgba(255,255,255,.85)">今日はイベント限定のフチで交換されます</div>`:''}
     ${myPins().length?`<div style="margin-top:6px">${pinRow(myPins())}</div>`:''}</div>
   ${me.def?`<button class="newsrow press" id="mkFirst"><span class="ntag" style="--nc:var(--accent)">はじめに</span><b>自分の車の写真でスタンプを作る</b><span class="val" aria-hidden="true">›</span></button>`:''}
-  ${newsTop()}
+  ${newsTop()}${openRow()}
   <div class="stats"><div class="stat"><b>${log.length}</b><span>交換した数</span></div><div class="stat"><b>${ppl.length}</b><span>会った人</span></div><div class="stat"><b>${kc}</b><span>EX</span></div></div>
   ${questCard()}
   <button class="yrcard press" id="wrapb"><span class="yk">PETACAR ${new Date().getFullYear()}</span><b>${new Date().getFullYear()}年のまとめ</b><span class="ys">この1年の出会いとスポットを振り返る</span><span class="ya" aria-hidden="true">›</span></button>
@@ -1198,7 +1210,7 @@ const views={
     <button class="btn sm sub press" id="tog" role="switch" aria-checked="true" aria-label="交換を終える">終える</button></div>`
    :`<button class="bigex press" id="tog" role="switch" aria-checked="false"><span class="bx"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h13l-3.5-3.5M20 15H7l3.5 3.5"/></svg></span><b>交換をはじめる</b><span>${settings.modeMin}分間だけ、近くの人の一覧に出ます</span></button>
     <button class="li press todaycar" id="todayCar">${CARI}<div class="t"><b>今日の車</b><span>${esc(carLabel(me))}${me.garage.length>1?` · ガレージ${me.garage.length}台`:''}</span></div><span class="val">変更 ›</span></button>
-    <div class="note" style="text-align:center;margin-top:10px">はじめると、同じ場所で交換をはじめた人が並びます。<br>はじめるまでは、誰の一覧にも出ません。</div>`}
+    <div class="note" style="text-align:center;margin-top:10px">はじめると、同じ場所で交換をはじめた人が並びます。<br>${settings.showOpen?'はじめる前も、アプリを開いている間は近くの人に表示されます。':'はじめるまでは、誰の一覧にも出ません。'}</div>`}
     ${incoming?`<div class="incoming"><div style="display:flex;gap:10px;align-items:center">${stamp(person(incoming),{size:44})}<div><b>${esc(person(incoming).name)}</b> さん（${esc(person(incoming).car)}）から交換の申し込み</div></div><div class="row"><button class="btn sub press" id="inNo">断る</button><button class="btn press" id="inYes">受ける</button></div></div>`:''}
     ${on&&partyNear?`<div class="incoming"><div style="display:flex;gap:10px;align-items:center">${stamp(person(partyNear.host),{size:44})}<div><b>${esc(person(partyNear.host).name)}</b> さんが「みんなで交換」をはじめました</div></div><button class="btn press" id="ptJoin">参加する</button></div>`:''}
     ${on?`<button class="li press partyb" id="ptHost">${PEOPLEI}<div class="t"><b>みんなで交換</b><span>3人以上で同時に振って、一度に交換</span></div><span class="d">›</span></button>`:''}
@@ -1206,7 +1218,8 @@ const views={
   ${on?`<div class="sec">${inEvent()?'このイベントの参加者':'近くにいる人'} <span class="chip">${nearby.length}人</span></div>
     <div class="grid">${nearby.map(id=>{const p=person(id),n=daysWith(id);return `<button class="cell press" data-n="${id}">${favMark(id)}${stamp(p)}<span class="n">${esc(p.name)}</span><span class="s">${esc(p.car)}${n?` · ♥${n}`:''}</span></button>`}).join('')}</div>
     <p class="note" style="text-align:center;margin-top:14px">距離の数字は出しません。車の写真で相手を見つけてタップします。</p>`
-  :''}`;
+  :''}
+  ${openSec()}`;
  },
  col(){
   const seg=`<div class="seg" role="group" aria-label="表示"><button data-cv="stamp" aria-pressed="${colView==='stamp'}">スタンプ</button><button data-cv="zukan" aria-pressed="${colView==='zukan'}">車種図鑑</button><button data-cv="shop" aria-pressed="${colView==='shop'}">ストア</button></div>`;
@@ -1566,6 +1579,7 @@ function openGarage(back){
 const BELL='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg>';
 const NTAG={info:['お知らせ','var(--accent)'],event:['イベント','#2f6fd6'],update:['アップデート','#1d8a4b'],mainte:['メンテナンス','#6b7480']};
 const NEWS=[
+ {id:'b7',d:'2026-10-06',tag:'update',t:'近くでペタカーを開いている人が見えるようになりました',b:'交換をはじめていなくても、アプリを開いている近くの人が、マイスタンプと交換タブに出ます。車の写真を見て、駐車場で相手を探してみてください。\n\nタップすると交換を申し込めます。相手がアプリを開いていれば、音と表示でお知らせします。\n\n出るのはだいたいの場所（約5km四方）だけで、アプリを閉じると消えます。出たくないときは、設定→交換でオフにできます（オフにすると、自分からも見えなくなります）。'},
  {id:'b6',d:'2026-10-06',tag:'update',t:'「みんなで交換」ができるようになりました',b:'3人以上で、同時にスマホを振って一度に交換できます。\n\n交換をはじめたら「みんなで交換」を押して部屋を作ります。近くで交換をはじめている人には「参加する」が出ます。3人以上そろったら、ホストが合図を出して全員で「せーの」で振ってください。\n\nタイミングが2秒以内で、近くにいる人どうしで交換されます。合わなかった人とは、ホストの「もう一度振る」でやり直せます。'},
  {id:'b1',d:'2026-10-05',tag:'info',pin:true,t:'ベータ版へようこそ',b:'ペタカー! のテストに参加してくれてありがとうございます。\n\nまずはマイスタンプから、自分の車の写真でスタンプを作ってください。そのあと、会った人と「交換をはじめる」→相手をタップ→2人で同時にスマホを振る、で交換できます。\n\n気づいたことは、鈴木までLINEなどで気軽に送ってください。'},
  {id:'b2',d:'2026-10-05',tag:'update',t:'ベータ版でできること・まだできないこと',b:'できること：スタンプ作り、ガレージ、近くの人との交換（振る・GPSで確認）、仲良し度、車種図鑑、スポットの記録（その場で「ここにいる」）、バッジ。\n\nまだできないこと：イベントのチェックイン、QRでの交換、アプリを閉じたままの自動記録、通知。\n\nテスト中はデータを消すことがあります。'},
@@ -1707,7 +1721,7 @@ function render(){
   if($('#ttlb'))$('#ttlb').onclick=openTitles;if($('#rpghelp'))$('#rpghelp').onclick=openRpgHelp;checkLevelUp();
   $('.tab[data-t=rw]').classList.toggle('dot',tab!=='rw'&&unseen().length>0);
   $$('[data-p]').forEach(b=>b.onclick=()=>detail(b.dataset.p));
-  if(tab==='me'){$('#mk').onclick=openCrop;if($('#mkFirst'))$('#mkFirst').onclick=openCrop;if($('#qcard'))$('#qcard').onclick=openQuests;$('#hito').onclick=openHito;if($('#nmb'))$('#nmb').onclick=openName;$('#carb').onclick=()=>openGarage(render);if($('#newsTop'))$('#newsTop').onclick=()=>openNewsItem($('#newsTop').dataset.n);$('#bgb').onclick=openBg;$('#wrapb').onclick=openWrap;$('#allrec').onclick=()=>{colView='stamp';store.set('colv2',colView);colSort='recent';store.set('sort2',colSort);tab='col';render()}}
+  if(tab==='me'){$('#mk').onclick=openCrop;if($('#mkFirst'))$('#mkFirst').onclick=openCrop;if($('#qcard'))$('#qcard').onclick=openQuests;$('#hito').onclick=openHito;if($('#nmb'))$('#nmb').onclick=openName;$('#carb').onclick=()=>openGarage(render);if($('#newsTop'))$('#newsTop').onclick=()=>openNewsItem($('#newsTop').dataset.n);if($('#openRow'))$('#openRow').onclick=()=>{tab='ex';render()};$('#bgb').onclick=openBg;$('#wrapb').onclick=openWrap;$('#allrec').onclick=()=>{colView='stamp';store.set('colv2',colView);colSort='recent';store.set('sort2',colSort);tab='col';render()}}
   if(tab==='col'||tab==='sp'){$$('[data-shop]').forEach(b=>b.onclick=()=>openShop(b.dataset.shop));if($('#demoShop'))$('#demoShop').onclick=demoShop}
   if(tab==='col'){$$('[data-cv]').forEach(b=>b.onclick=()=>{colView=b.dataset.cv;store.set('colv2',colView);render()});$$('[data-maker]').forEach(b=>b.onclick=()=>openMaker(b.dataset.maker))}
   if(tab==='sp'){$$('[data-spot]').forEach(b=>b.onclick=()=>openSpot(b.dataset.spot));if($('#mapb'))$('#mapb').onclick=openMap;bindSpList();$('#locate').onclick=locate;if($('#demoArr'))$('#demoArr').onclick=demoArrive;if($('#autoOn'))$('#autoOn').onclick=()=>askAlways(render);$$('[data-ss]').forEach(b=>b.onclick=()=>{spotSort=b.dataset.ss;spotLim=40;render()});$$('[data-cat]').forEach(b=>b.onclick=()=>{spotCat=b.dataset.cat;spotLim=40;render()});
@@ -1930,6 +1944,7 @@ function openSettings(){
    <div class="sec">交換</div>
    <div class="set">${segRow('modeMin','交換の自動終了',[[3,'3分'],[5,'5分'],[10,'10分']])}
      ${segRow('reqFrom','交換の申し込みを受ける相手',[['all','誰からでも'],['known','会ったことがある人だけ']])}
+     ${sw('showOpen','アプリを開いている間、近くの人に表示する','交換をはじめていなくても、近くの人の一覧に出て申し込みを受けられます。オフにすると、あなたからも見えなくなります')}
 </div>
    <div class="sec">スポット</div>
    <div class="set">${sw('autoIn','開いている間は、着いたら自動で記録する','タップしなくても印を押します。アプリを閉じている間の自動記録は、アプリ版で対応します')}</div>
@@ -1950,7 +1965,7 @@ function openSettings(){
      <button class="srow press" style="width:100%;border:0;background:none;cursor:pointer;text-align:left" id="delAcc"><div class="t"><b class="danger">アカウントを削除</b><span>スタンプ・交換の記録・写真をすべて消します</span></div><span class="val">›</span></button></div>
    <button class="btn sub press" style="margin-top:16px" data-close>閉じる</button>`);
   bindClose(()=>render());
-  $$('[data-set]').forEach(b=>b.onclick=()=>{const k=b.dataset.set;settings[k]=!settings[k];if(k==='autoIn'){saveSet();openSettings();return}if(k==='sound'&&settings.sound)sfx.peta(false,.02);b.setAttribute('aria-checked',settings[k]);saveSet();
+  $$('[data-set]').forEach(b=>b.onclick=()=>{const k=b.dataset.set;settings[k]=!settings[k];if(k==='autoIn'){saveSet();openSettings();return}if(k==='sound'&&settings.sound)sfx.peta(false,.02);b.setAttribute('aria-checked',settings[k]);saveSet();if(k==='showOpen'){openNear=[];presence(true)}
     if(k==='eventOnly'&&settings[k]&&!inEvent()&&nearOn()){nearUntil=0;incoming=null}});
   $$('[data-segset]').forEach(g=>g.querySelectorAll('button').forEach(b=>b.onclick=()=>{const k=g.dataset.segset,v=b.dataset.v;settings[k]=k==='modeMin'?+v:v;saveSet();if(k==='theme')applyTheme();
     g.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b))}));
@@ -1963,7 +1978,7 @@ function openSettings(){
   let armed=false;
   if($('#reset'))$('#reset').onclick=()=>{if(!armed){armed=true;$('#reset .danger').textContent='もう一度押すと最初に戻します';return}
     ['me2','log2','pins2','sort2','set2','spot2','colv2','fav2','seen2','news1','blk1','cls3','lv1','rwv2','qok1'].forEach(k=>{try{localStorage.removeItem(k)}catch(e){}});
-    me=SAMPLE_ME;log=SAMPLE_LOG.slice();pins=null;seenB=null;colSort='love';blocked=new Set();favs=new Set();newsRead=new Set();settings={theme:'auto',pubRewards:true,pubStats:true,pubEvents:true,showSns:true,sns:['',''],eventOnly:false,autoIn:false,sound:true,reqFrom:'all',modeMin:5};
+    me=SAMPLE_ME;log=SAMPLE_LOG.slice();pins=null;seenB=null;colSort='love';blocked=new Set();favs=new Set();newsRead=new Set();settings={theme:'auto',pubRewards:true,pubStats:true,pubEvents:true,showSns:true,sns:['',''],eventOnly:false,autoIn:false,sound:true,reqFrom:'all',modeMin:5,showOpen:true};
     applyTheme();closeSheet();tab='me';render();toast('最初の状態に戻しました')};
 }
 function previewMe(){
@@ -2093,11 +2108,11 @@ async function askMotion(){try{if(typeof DeviceMotionEvent==='undefined'){motion
 const DEMO_P={...POOL_DEMO[0],id:'demo',name:'デモの相手',msg:'審査・お試し用の相手です',official:false,vers:[{img:POOL_DEMO[0].img,ring:POOL_DEMO[0].ring}]};
 const addDemo=()=>{if(C.demo&&!POOL.some(p=>p.id==='demo'))POOL.push(DEMO_P)};addDemo();
 function fillNearby(){const mine=liveMap[C.uid];addDemo();
-  nearby=Object.entries(liveMap).filter(([id,x])=>id!==C.uid&&x.until>Date.now()&&!blocked.has(id)&&POOL.some(p=>p.id===id)&&nearCell(mine&&mine.cell,x.cell)).map(([id])=>id);
+  nearby=Object.entries(liveMap).filter(([id,x])=>id!==C.uid&&x.m!=='o'&&x.until>Date.now()&&!blocked.has(id)&&POOL.some(p=>p.id===id)&&nearCell(mine&&mine.cell,x.cell)).map(([id])=>id);
   if(C.demo)nearby.unshift('demo');
   const pt=Object.entries(liveMap).find(([id,x])=>id!==C.uid&&x.pt&&x.until>Date.now()&&!blocked.has(id)&&POOL.some(p=>p.id===id)&&nearCell(mine&&mine.cell,x.cell));
   partyNear=pt&&!curParty?{id:pt[1].pt,host:pt[0]}:null}
-C.live.sub(m=>{liveMap=m;if(nearOn()){const b=nearby.join()+JSON.stringify(partyNear);fillNearby();if(b!==nearby.join()+JSON.stringify(partyNear)&&tab==='ex'&&!$('#sh'))render()}});
+C.live.sub(m=>{liveMap=m;const b=nearby.join()+JSON.stringify(partyNear)+openNear.join();if(nearOn())fillNearby();fillOpen();if(b!==nearby.join()+JSON.stringify(partyNear)+openNear.join()&&(tab==='ex'||tab==='me')&&!$('#sh'))render()});
 let incT=null;
 const fresh=x=>Math.abs(Date.now()-x.at)<ASK_MS; // 相手の時計が進んでいても期限切れにする
 function onExMap(m){const prev=exMine;exMine=m;
@@ -2113,9 +2128,9 @@ function onExMap(m){const prev=exMine;exMine=m;
 C.ex.sub(onExMap);
 const wipes=new Map(); // exId -> 位置を外した side
 const flushWipes=()=>{for(const [id,b] of wipes)C.ex.setSide(id,b).catch(()=>{});wipes.clear()};
-addEventListener('pagehide',()=>{if(nearOn())C.live.clear();flushWipes()});
+addEventListener('pagehide',()=>{if(nearOn()||liveBody)C.live.clear();flushWipes()});
 document.addEventListener('visibilitychange',()=>{if(document.hidden)flushWipes()});
-C.onPeople(()=>{addDemo();me.official=C.isOfficial(C.uid);if(nearOn())fillNearby();if(!$('#sh'))render()});me.official=C.isOfficial(C.uid);
+C.onPeople(()=>{addDemo();me.official=C.isOfficial(C.uid);if(nearOn())fillNearby();fillOpen();if(!$('#sh'))render()});me.official=C.isOfficial(C.uid);
 
 function request(id,accepted,exArg){
   if(id==='demo')return request_demo(id,false); // デモの相手：サーバーを使わずに交換の流れだけ見せる
@@ -2176,9 +2191,11 @@ function request(id,accepted,exArg){
     const x=exMine[nid];if(x)self.onEx(x)}).catch(()=>{if(gone)return;stop();closeSheet();toast('申し込めませんでした。もう一度お試しください')});
 }
 function bindExBeta(){
+  $$('[data-o]').forEach(b=>b.onclick=()=>request(b.dataset.o,false));
+  if($('#openPos'))$('#openPos').onclick=async()=>{const p=await getPos();if(!p){toast('位置情報が使えませんでした。設定で許可してください');return}openNeedPos=false;presence(true)};
   if($('#todayCar'))$('#todayCar').onclick=()=>openGarage(render);
   $('#tog').onclick=async()=>{if(Date.now()-lastTog<600)return;lastTog=Date.now();
-    if(nearOn()){nearUntil=0;nearby=[];partyNear=null;liveBody=null;C.live.clear();render();return}
+    if(nearOn()){nearUntil=0;nearby=[];partyNear=null;liveBody=null;C.live.clear();render();setTimeout(presence,300);return}
     if(settings.eventOnly&&!inEvent()){toast('設定で「イベント中だけ表示」になっています');return}
     askMotion();nearUntil=Date.now()+settings.modeMin*60000;render();
     const p=await getPos();
@@ -2187,7 +2204,7 @@ function bindExBeta(){
   if(incoming){$('#inNo').onclick=()=>{const x=incomingEx;incoming=null;incomingEx=null;render();if(x)C.ex.update(x,{state:'declined'}).catch(()=>toast('お断りを送れませんでした。電波のよい場所でもう一度お試しください'))};
     $('#inYes').onclick=()=>{const id=incoming,x=incomingEx;render();request(id,true,x)}}
   if(nearOn()){
-    const tick=()=>{const s=Math.max(0,Math.ceil((nearUntil-Date.now())/1000)),el=$('#left');if(el)el.textContent=`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;if(!s){nearUntil=0;nearby=[];partyNear=null;liveBody=null;C.live.clear();render()}};
+    const tick=()=>{const s=Math.max(0,Math.ceil((nearUntil-Date.now())/1000)),el=$('#left');if(el)el.textContent=`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;if(!s){nearUntil=0;nearby=[];partyNear=null;liveBody=null;C.live.clear();render();setTimeout(presence,300)}};
     tick();modeTimer=setInterval(tick,1000);
     $$('[data-n]').forEach(b=>b.onclick=()=>request(b.dataset.n,false));
     $('#ptHost').onclick=()=>openParty(true);
@@ -2328,6 +2345,26 @@ const recountHere=()=>{const now=Date.now(),m={};hereRows.forEach(r=>{if(r&&r.un
 C.here.sub(rows=>{hereRows=rows;recountHere()});setInterval(recountHere,60000);
 onSpotRecorded=id=>{HERE_N[id]=hereN(id)+1;C.here.add(id).catch(()=>{})};
 window.__app={get me(){return me},myStats,myPins,get settings(){return settings},rerender:()=>{if(!$('#sh'))render()}};
+
+/* ===== アプリを開いている人（2026-10-06）=====
+   開いている間だけ live に m:'o'（だいたいの場所＝約5kmのマス目）を出し、近くの人の一覧に出る。交換をはじめた人（m なし）は今までどおり。
+   位置が分からないときは出さない（全国の人に出てしまうので）。閉じたら消す。期限5分を4分ごとに延ばす */
+const OPEN_MS=300000;
+function fillOpen(){const mine=liveMap[C.uid];
+  openNear=settings.showOpen&&mine?Object.entries(liveMap).filter(([id,x])=>id!==C.uid&&x.until>Date.now()&&!blocked.has(id)&&POOL.some(p=>p.id===id)&&nearCell(mine.cell,x.cell)).map(([id])=>id):[]}
+const posIfAllowed=async()=>{if(myPos&&Date.now()-myPos.at<600000)return myPos;
+  try{const st=await navigator.permissions.query({name:'geolocation'});if(st.state!=='granted')return null}catch(e){return null}return getPos()};
+let presBusy=false;
+async function presence(force){
+  if(presBusy||document.hidden||nearOn()||curParty)return;
+  if(!settings.showOpen){if(liveBody&&liveBody.m==='o'){liveBody=null;C.live.clear();openNear=[];render()}return}
+  if(!force&&liveBody&&liveBody.m==='o'&&liveBody.until-Date.now()>60000)return;
+  presBusy=true;try{const p=await posIfAllowed();
+    if(!p){openNeedPos=true;if(tab==='ex'&&!$('#sh'))render();return}
+    openNeedPos=false;if(document.hidden||nearOn()||curParty)return;
+    liveBody={until:Date.now()+OPEN_MS,cell:cellOf(p),upd:Date.now(),m:'o'};await C.live.set(liveBody)}catch(e){}finally{presBusy=false}}
+document.addEventListener('visibilitychange',()=>{if(document.hidden){if(liveBody&&liveBody.m==='o'&&!nearOn()){liveBody=null;C.live.clear()}}else presence(true)});
+setInterval(()=>presence(),30000);setTimeout(()=>presence(true),1500);
 
 render();
 if(!store.get('onb2',0))showOnb();
