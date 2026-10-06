@@ -212,6 +212,19 @@ function cleanStats(st) {
   }
   return o;
 }
+// 協力店（ストアスタンプ）：運営がコンソールで shops/{id} を作る。期間外・止めた店・おかしな値は出さない
+function cleanShop(id, d) {
+  if (!d || !/^[A-Za-z0-9_-]{1,40}$/.test(id) || d.active === false) return null;
+  const num = (v, a, b) => typeof v === 'number' && isFinite(v) && v >= a && v <= b ? v : null;
+  const la = num(d.la, 20, 46), lo = num(d.lo, 122, 154); if (la == null || lo == null) return null;
+  const day = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10);
+  if (typeof d.from === 'string' && d.from > day) return null;
+  if (typeof d.until === 'string' && d.until < day) return null;
+  const col = v => typeof v === 'string' && /^#[0-9a-fA-F]{6}$/.test(v) ? v : null;
+  const img = typeof d.img === 'string' && d.img.length <= 400000 && /^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(d.img) ? d.img : undefined;
+  return { id, name: str(d.name, 24, '協力店'), short: str(d.short, 28).replace(/[^ -~]/g, '').toUpperCase(), pref: str(d.pref, 4), ad: str(d.ad, 60), la, lo,
+    r: num(d.r, 30, 300) || 100, c1: col(d.c1) || '#6b2a17', c2: col(d.c2) || '#f4d7a1', hours: str(d.hours, 40), note: str(d.note, 80), mark: str(d.mark, 1), img };
+}
 function toPerson(id, d) {
   const sns = Array.isArray(d.sns) ? d.sns.filter(u => typeof u === 'string' && /^https:\/\/[^\s"'<>]+$/.test(u) && u.length <= 200).slice(0, 2) : [];
   const ring = okCol(d.ring), img = okImg(d.img);
@@ -356,6 +369,7 @@ async function firebaseBackend() {
       sub: cb => F.onSnapshot(F.query(Col('here'), F.where('last', '>', Date.now()), F.limit(200)), qs => cb(qs.docs.flatMap(d => { const x = d.data(); let spot = ''; try { spot = decodeURIComponent(d.id) } catch (e) { } return Array.isArray(x.t) ? x.t.map(until => ({ spot, until })) : [] })), e => console.warn('here', e)),
     },
     official: cb => F.onSnapshot(Col('official'), qs => { const m = {}; qs.forEach(d => m[d.id] = true); cb(m) }, e => console.warn('official', e)),
+    shops: cb => F.onSnapshot(Col('shops'), qs => { const a = []; qs.forEach(d => { const x = cleanShop(d.id, d.data()); if (x) a.push(x) }); cb(a) }, e => { console.warn('shops', e); cb([]) }),
     // メンテナンスのスイッチ（運営がコンソールで config/app を書き換える）。読めないときはスイッチなし扱い
     config: cb => F.onSnapshot(D('config', 'app'), s => cb(s.exists() ? s.data() : {}), e => { console.warn('config', e); cb({}) }),
     subMine: cb => F.onSnapshot(D('users', uid, 'priv', 'state'), s => cb(s.exists() ? s.data() : null), e => console.warn('mine', e)),
@@ -412,6 +426,7 @@ function mockBackend(uid) {
       sub: cb => sub(() => { const out = []; for (const [k, v] of M.docs) if (k.startsWith('here/') && v.last > Date.now()) v.t.forEach(until => out.push({ spot: decodeURIComponent(k.slice(5)), until })); cb(out) }),
     },
     official: cb => sub(() => { const m = {}; Object.keys(coll('official')).forEach(k => m[k] = true); cb(m) }),
+    shops: cb => sub(() => cb(Object.entries(coll('shops')).map(([k, v]) => cleanShop(k, v)).filter(Boolean))),
     config: cb => sub(() => cb(JSON.parse(JSON.stringify(M.docs.get('config/app') || {})))),
     subMine: cb => sub(() => cb(JSON.parse(JSON.stringify(M.docs.get('users/' + uid + '/priv/state') || null)))),
     bakGet: slot => { const a = M.docs.get('users/' + uid + '/priv/b' + slot), b = M.docs.get('users/' + uid + '/priv/bp' + slot); return Promise.resolve(a ? JSON.parse(JSON.stringify({ ...a, prof: b ? b.data : null })) : null) },
@@ -483,7 +498,7 @@ else if (be) {
     uid: be.uid, demo: !!be.demo, store, people,
     onPeople: f => peopleCbs.push(f), isOfficial: id => !!OFF[id],
     img: imgOf, need,
-    live, ex: { ...be.ex, sub: cb => be.ex.sub(m => { need(Object.values(m).flatMap(x => [x.a, x.b])); cb(m) }) }, here: be.here, report: be.report, signOut: be.signOut,
+    live, ex: { ...be.ex, sub: cb => be.ex.sub(m => { need(Object.values(m).flatMap(x => [x.a, x.b])); cb(m) }) }, here: be.here, shops: be.shops, report: be.report, signOut: be.signOut,
     deleteAccount: async () => { store.cancelAll(); const was = frozen; frozen = 'deleting'; try { await be.deleteAccount() } catch (e) { frozen = was; throw e } },
   };
   let started = false, gotPeople = false, gotCfg = false, cfg = {}, maintShown = false;
