@@ -1223,6 +1223,7 @@ const views={
   ${here?`<div class="list">${nearest(5).map(([x,d])=>`<button class="li press" data-spot="${esc(x.id)}">${spotMark(x,spotDays(x.id)>0)}<div class="t"><b>${esc(x.n)}${nowTag(x.id)}</b><span>${CAT[x.cat].n} · ${esc(x.ad||x.pref)}</span></div><span class="d">${fmtKm(d)}</span></button>`).join('')}</div>`
    :`<button class="btn press locbtn" id="locate"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3.2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="7.5"/></svg>現在地から近くのスポットを探す</button>
     <p class="note" style="text-align:center;margin:8px 0 0">位置は近い順に並べるためだけに使い、保存しません。</p>`}
+  ${webAutoRow()}
   ${shopSection()}
   <input type="search" class="srch" id="spq" value="${esc(spotQ)}" placeholder="スポット名で探す（例：大黒、甘楽）" autocomplete="off" aria-label="スポットを検索" style="margin-top:18px">
   <div class="sortbar" role="group" aria-label="種類">${[['all','すべて'],...Object.entries(CAT).map(([k,c])=>[k,c.n])].map(([k,t])=>`<button class="sortchip press" data-cat="${k}" aria-pressed="${spotCat===k}">${t}</button>`).join('')}</div>
@@ -1685,7 +1686,7 @@ function openSpot(id,back){
    ${x.la!=null?`<div class="maprow"><a class="btn sub press" href="${gmap(x)}" target="_blank" rel="noopener">${MAPI}Googleマップで見る</a><a class="btn press" href="${gnav(x)}" target="_blank" rel="noopener">${NAVI}ナビを開始</a></div>
    <button class="linkbtn" id="spCopy" style="padding:10px">名前と住所をコピー</button>`:`<div class="maprow"><a class="btn sub press" href="${gmap(x)}" target="_blank" rel="noopener">${MAPI}Googleマップで探す</a></div><p class="note" style="text-align:center;margin-top:8px">このスポットはまだ位置を登録していないため、名前で検索します。</p>`}
    <div class="row" style="margin-top:12px"><button class="btn sub press" data-close>閉じる</button><button class="btn press" id="spIn" ${done?'disabled':''}>${done?'今日は記録済み':'ここにいる（位置で確認）'}</button></div>
-   <p class="note" style="text-align:center;margin-top:10px">${PASSCAT[x.cat]?(x.cat==='tg'?'峠は通過するだけで印が押されます。':'近くを通るだけで印が押されます。停まらなくて大丈夫です。'):`スポットに着いたら「ここにいる」を押してください。位置で確かめてから印を押します。`}</p>`);
+   <p class="note" style="text-align:center;margin-top:10px">${PASSCAT[x.cat]?(x.cat==='tg'?'峠は通過するだけで印が押されます。':'近くを通るだけで印が押されます。停まらなくて大丈夫です。'):`スポットに着いたら「ここにいる」を押してください。位置で確かめてから印を押します。${settings.autoIn?'（自動記録オン：アプリを開いている間は、着いたら自動で押されます）':''}`}</p>`);
   bindClose(back);
   const cp=$('#spCopy');if(cp)cp.onclick=()=>{const t=x.n+' '+(x.ad||x.pref);try{navigator.clipboard.writeText(t).then(()=>toast('コピーしました'),()=>toast(t))}catch(e){toast(t)}};
   const b=$('#spIn');if(b&&!done)b.onclick=()=>betaCheckin(x,b,()=>{const before=gotList(myStats()).map(q=>q.k);spotlog.push({id,d:today()});saveSpots();onSpotRecorded(id);sfx.chime();
@@ -1930,6 +1931,8 @@ function openSettings(){
    <div class="set">${segRow('modeMin','交換の自動終了',[[3,'3分'],[5,'5分'],[10,'10分']])}
      ${segRow('reqFrom','交換の申し込みを受ける相手',[['all','誰からでも'],['known','会ったことがある人だけ']])}
 </div>
+   <div class="sec">スポット</div>
+   <div class="set">${sw('autoIn','開いている間は、着いたら自動で記録する','タップしなくても印を押します。アプリを閉じている間の自動記録は、アプリ版で対応します')}</div>
    <div class="sec">その他</div>
    <div class="set"><button class="srow press" style="width:100%;border:0;background:none;cursor:pointer;text-align:left" id="blkList"><div class="t"><b>ブロックした人</b></div><span class="val">${blocked.size}人 ›</span></button>
      <div class="srow"><div class="t"><b>通知</b><span>イベントの開催や交換の申し込み。本番のアプリで設定できます</span></div></div>
@@ -1947,7 +1950,7 @@ function openSettings(){
      <button class="srow press" style="width:100%;border:0;background:none;cursor:pointer;text-align:left" id="delAcc"><div class="t"><b class="danger">アカウントを削除</b><span>スタンプ・交換の記録・写真をすべて消します</span></div><span class="val">›</span></button></div>
    <button class="btn sub press" style="margin-top:16px" data-close>閉じる</button>`);
   bindClose(()=>render());
-  $$('[data-set]').forEach(b=>b.onclick=()=>{const k=b.dataset.set;if(k==='autoIn'&&!settings.autoIn){askAlways(openSettings);return}settings[k]=!settings[k];if(k==='autoIn'){saveSet();openSettings();return}if(k==='sound'&&settings.sound)sfx.peta(false,.02);b.setAttribute('aria-checked',settings[k]);saveSet();
+  $$('[data-set]').forEach(b=>b.onclick=()=>{const k=b.dataset.set;settings[k]=!settings[k];if(k==='autoIn'){saveSet();openSettings();return}if(k==='sound'&&settings.sound)sfx.peta(false,.02);b.setAttribute('aria-checked',settings[k]);saveSet();
     if(k==='eventOnly'&&settings[k]&&!inEvent()&&nearOn()){nearUntil=0;incoming=null}});
   $$('[data-segset]').forEach(g=>g.querySelectorAll('button').forEach(b=>b.onclick=()=>{const k=g.dataset.segset,v=b.dataset.v;settings[k]=k==='modeMin'?+v:v;saveSet();if(k==='theme')applyTheme();
     g.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b))}));
@@ -2279,12 +2282,12 @@ function stopWatch(){if(watchId!=null)navigator.geolocation.clearWatch(watchId);
 document.addEventListener('visibilitychange',()=>document.hidden?stopWatch():startWatch());
 try{navigator.permissions.query({name:'geolocation'}).then(s=>{if(s.state==='granted')startWatch()}).catch(()=>{})}catch(e){}
 function arrive(x){arrived.add(x.id);buzz([30,60,30]);sfx.chime();
-  if(PASSCAT[x.cat]){ // 峠・橋・道は停まる場所がないので、通過で印を押す（運転中に画面を触らせない）
+  if(PASSCAT[x.cat]||settings.autoIn){ // 自動記録オン（開いている間）も、ここでそのまま押す // 峠・橋・道は停まる場所がないので、通過で印を押す（運転中に画面を触らせない）
     if(spotlog.some(v=>v.id===x.id&&v.d===today()))return;
     const before=gotList(myStats()).map(q=>q.k);spotlog.push({id:x.id,d:today()});saveSpots();onSpotRecorded(x.id);
     const nb=gotList(myStats()).filter(q=>!before.includes(q.k));if(tab==='sp'&&!$('#sh'))render();
     $('#pnote').innerHTML=`<div class="pnote" id="pnb"><span class="pic" aria-hidden="true">P</span><div class="t"><div class="h"><b>ペタカー!</b><span>いま</span></div>
-    <b>${esc(x.n)}を通過しました！</b><span>${nb.length?`バッジ獲得：${esc(nb.map(q=>q.t).join('・'))}`:`印を押しました（${spotDays(x.id)}回目）`}</span></div></div>`;
+    <b>${esc(x.n)}${PASSCAT[x.cat]?'を通過しました':'に着きました'}！</b><span>${nb.length?`バッジ獲得：${esc(nb.map(q=>q.t).join('・'))}`:`印を押しました（${spotDays(x.id)}回目）`}</span></div></div>`;
     clearTimeout(pnT);pnT=setTimeout(()=>{const e=$('#pnb');if(e){e.classList.add('out');setTimeout(()=>$('#pnote').innerHTML='',300)}},8000);return}
   $('#pnote').innerHTML=`<button class="pnote press" id="pnb"><span class="pic" aria-hidden="true">P</span><div class="t"><div class="h"><b>ペタカー!</b><span>いま</span></div>
     <b>${esc(x.n)}に着きました！</b><span>タップすると印をペタッと押します</span></div></button>`;
@@ -2294,6 +2297,12 @@ function arrive(x){arrived.add(x.id);buzz([30,60,30]);sfx.chime();
     if(!myPos||Date.now()-myPos.at>120000||!inRange(x,myPos)){tab='sp';render();openSpot(x.id);return}
     const before=gotList(myStats()).map(q=>q.k);spotlog.push({id:x.id,d:today()});saveSpots();onSpotRecorded(x.id);sfx.chime();buzz(30);
     const nb=gotList(myStats()).filter(q=>!before.includes(q.k));render();toast(nb.length?`バッジ獲得：${nb.map(q=>q.t).join('・')}`:`${x.n} の印を押しました（${spotDays(x.id)}回目）`)}}
+// Web版の自動記録：アプリを開いている間だけ、着いたらタップなしで印を押す（2026-10-06 鈴木さん）
+function webAutoRow(){return settings.autoIn
+  ?`<div class="autorow"><span class="livedot"></span><div class="t"><b>自動記録オン（開いている間）</b><span>スポットに着いたら、タップしなくても印を押します</span></div><button class="seclink" id="wAutoOff">オフにする</button></div>`
+  :`<button class="autorow off press" id="wAutoOn"><span class="aico">${NAVI}</span><div class="t"><b>着いたら自動で記録する</b><span>アプリを開いている間だけ動きます（閉じている間はアプリ版で）</span></div><span class="val">›</span></button>`}
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#wAutoOn,#wAutoOff');if(!b)return;
+  settings.autoIn=b.id==='wAutoOn';saveSet();render();if(settings.autoIn){getPos();toast('開いている間は、着いたら自動で記録します')}else toast('自動記録をオフにしました')});
 /* ストアスタンプ：協力店の範囲に5分いたら知らせる（アプリを開いている間だけ）。もらう直前にもう一度位置を確かめる */
 SHOPS=[];if(C.shops)C.shops(a=>{SHOPS=a;if(!$('#sh'))render();onShopPos()});
 const shopIn={},shopSeen={};
