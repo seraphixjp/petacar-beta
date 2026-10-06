@@ -620,6 +620,9 @@ const BADGES=[
   {k:'kira3',m:'',ic:'spark',num:'3',t:'EXを3枚',s:'同じ人と会うほど出やすい',f:s=>s.kira||0,g:3,tier:'si'},
   {k:'ev5',m:'',ic:'flag',num:'5',t:'イベント5つに参加',s:'チェックインして交換',f:s=>s.evs||0,g:5,tier:'si'},
   {k:'q1',m:'',ic:'flag',num:'1',t:'はじめてのお題',s:'今月のお題を達成',f:s=>s.qd||0,g:1,tier:'br'},{k:'q3',m:'',ic:'flag',num:'3',t:'お題3か月',s:'今月のお題を達成した回数',f:s=>s.qd||0,g:3,tier:'si'},{k:'q12',m:'',ic:'flag',num:'12',t:'お題1年分',s:'今月のお題を達成した回数',f:s=>s.qd||0,g:12,tier:'go'},
+  {k:'q24',m:'',ic:'flag',num:'24',t:'お題2年分',s:'今月のお題を達成した回数',f:s=>s.qd||0,g:24,tier:'pt',add:1},{k:'q50',m:'',ic:'flag',num:'50',t:'お題マスター',s:'今月のお題を達成した回数',f:s=>s.qd||0,g:50,tier:'lg',add:1},
+  {k:'qs3',m:'',ic:'flag',num:'3',t:'3か月連続',s:'お題を続けて達成した月数（いちばん長い記録）',f:s=>s.qs||0,g:3,tier:'si',add:1},{k:'qs6',m:'',ic:'flag',num:'6',t:'半年連続',s:'お題を続けて達成した月数（いちばん長い記録）',f:s=>s.qs||0,g:6,tier:'go',add:1},
+  {k:'qs12',m:'',ic:'flag',num:'12',t:'皆勤賞',s:'お題を12か月続けて達成',f:s=>s.qs||0,g:12,tier:'pt',add:1},
   {k:'pf10',m:'',ic:'road',num:'10',t:'10都府県を走る',s:'スポットを記録した都道府県の数',f:s=>s.prefs47||0,g:10,tier:'si'},{k:'pf47',m:'',ic:'road',num:'47',t:'47都道府県制覇',s:'すべての都道府県でスポットを記録',f:s=>s.prefs47||0,g:47,tier:'lg'},
   {k:'legA3',m:'',ic:'mountain',num:'3',t:'群馬の走り屋',s:'北関東・関東の名だたる峠を3か所（榛名・赤城・妙義・碓氷・いろは坂・正丸・定峰・筑波・椿ライン）',f:s=>s.legA||0,g:3,tier:'si'},
   {k:'legA',m:'',ic:'mountain',num:'9',t:'峠の伝説',s:'北関東・関東の名だたる9つの峠をすべて走破（榛名・赤城・妙義・碓氷・いろは坂・正丸・定峰・筑波・椿ライン）',f:s=>s.legA||0,g:9,tier:'lg'},
@@ -833,7 +836,7 @@ const spotSet=()=>new Set(spotlog.map(v=>v.id));
 let blocked=new Set(store.get('blk1',[]));const saveBlk=()=>store.set('blk1',[...blocked]);
 let favs=new Set(store.get('fav2',[]));const saveFav=()=>store.set('fav2',[...favs]);
 const favMark=id=>favs.has(id)?'<span class="favmark" aria-label="お気に入り">★</span>':'';
-let here=null,spotSort='visit',colView=store.get('colv2','stamp'),spotCat='all',spotPref='',spotQ='',spotLim=40,colQ='',rwFilter='all',rwView=store.get('rwv1','cls'),newShown=[],seenB=store.get('seen2',null),sheetAfter=null;
+let here=null,spotSort='visit',colView=store.get('colv2','stamp'),spotCat='all',spotPref='',spotQ='',spotLim=40,colQ='',rwFilter='all',rwView=store.get('rwv2','bd'),newShown=[],seenB=store.get('seen2',null),sheetAfter=null;
 const ZTOTAL=MAKERS.reduce((n,m)=>n+CARS[m].length,0);
 function zukanMap(){const z={};log.forEach(l=>{const c=l.car||person(l.pid),known=(Object.hasOwn(CARS,c.maker)?CARS[c.maker]:[]).includes(c.car),k=(known?c.maker:'その他')+'|'+c.car,a=(z[k]=z[k]||[]);if(!a.includes(l.pid))a.push(l.pid)});return z}
 /* 車種図鑑の写真（Wikimedia Commons。出典は zukan-credits.html） */
@@ -946,7 +949,8 @@ const moName=m=>`${+m.slice(5,7)}月`;
 function moData(m){const e=moEnd(m),sp=spotlog.filter(v=>v.d>=m&&v.d<=e).map(v=>SP(v.id)).filter(Boolean),ex=log.filter(l=>l.d>=m&&l.d<=e);
   const us=[...new Map(sp.map(x=>[x.id,x])).values()].filter(x=>x.cat!=='st');
   const fm={};log.forEach(l=>{if(!fm[l.pid]||l.d<fm[l.pid])fm[l.pid]=l.d});const first=pid=>fm[pid];
-  return {us,ex,ppl:[...new Set(ex.map(l=>l.pid))],
+  const byD={};ex.forEach(l=>(byD[l.d]=byD[l.d]||new Set()).add(l.pid));
+  return {us,ex,ppl:[...new Set(ex.map(l=>l.pid))],dayMax:Math.max(0,...Object.values(byD).map(x=>x.size)),
     newp:new Set(ex.filter(l=>first(l.pid)===l.d).map(l=>l.pid)).size,
     again:new Set(ex.filter(l=>first(l.pid)<m).map(l=>l.pid)).size,
     same:new Set(ex.filter(l=>{const c=l.car||person(l.pid)||{};return c.maker&&c.maker!=='その他'&&c.maker===me.maker}).map(l=>l.pid)).size}}
@@ -961,11 +965,23 @@ const QPOOL=[
  {k:'ex3',t:'3人と交換',s:'今月のうちに、3人とスタンプを交換',ic:'swap',g:3,f:d=>d.ppl.length},
  {k:'new2',t:'はじめましてを2人',s:'はじめて会う人と2人交換',ic:'people',g:2,f:d=>d.newp},
  {k:'again1',t:'再会',s:'前に会ったことがある人とまた交換',ic:'heart',g:1,f:d=>d.again},
- {k:'same1',t:'同じメーカー仲間',s:'自分と同じメーカーの車の人と交換',ic:'swap',g:1,f:d=>d.same}];
-const quest=m=>QPOOL[moHash(m)%QPOOL.length];
+ {k:'same1',t:'同じメーカー仲間',s:'自分と同じメーカーの車の人と交換',ic:'swap',g:1,f:d=>d.same},
+ // ここから下は 2026年11月から（2026-10-06 追加）
+ {k:'all3',t:'みんなで交換！',s:'1日のうちに3人とスタンプを交換（オフ会やミーティングで）',ic:'people',g:3,f:d=>d.dayMax},
+ {k:'jin3',t:'神社を3社めぐる',s:'今月のうちに、別々の神社で記録',ic:'torii',g:3,f:d=>d.us.filter(x=>x.cat==='jin').length},
+ {k:'bri2',t:'名橋を2つ渡る',s:'今月のうちに、名橋を2か所記録（通るだけでOK）',ic:'bridge',g:2,f:d=>d.us.filter(x=>x.cat==='bri').length},
+ {k:'mel1',t:'メロディロードを走る',s:'メロディを奏でる道路を1か所記録',ic:'note',g:1,f:d=>d.us.filter(x=>x.cat==='mel').length},
+ {k:'rd1',t:'日本の道100選を走る',s:'日本の道100選を1か所記録',ic:'route',g:1,f:d=>d.us.filter(x=>x.cat==='rd').length},
+ {k:'top1',t:'日本一に会いに行く',s:'日本一・世界一のスポットを1か所記録',ic:'spark',g:1,f:d=>d.us.filter(x=>x.cat==='top').length},
+ {k:'tg4',t:'峠を4か所走る',s:'今月のうちに、峠のスポットを4か所記録',ic:'mountain',g:4,f:d=>d.us.filter(x=>x.cat==='tg').length},
+ {k:'ex5',t:'5人と交換',s:'今月のうちに、5人とスタンプを交換',ic:'swap',g:5,f:d=>d.ppl.length}];
+const QPOOL_OLD=11; // 2026年10月までは最初の11種から選ぶ
+const quest=m=>QPOOL[moHash(m)%(m<'2026-11-01'?QPOOL_OLD:QPOOL.length)];
 const questOk=m=>{const q=quest(m);return q.f(moData(m))>=q.g};
 const qMonths=()=>[...new Set([...log.map(l=>moStart(l.d)),...spotlog.map(v=>moStart(v.d))])];
-function questTotals(){return {qd:qMonths().filter(questOk).length}}
+function questTotals(){const ok=qMonths().filter(questOk).map(m=>+m.slice(0,4)*12+ +m.slice(5,7)).sort((a,b)=>a-b);let qs=0,run=0;
+  ok.forEach((x,i)=>{run=i&&x===ok[i-1]+1?run+1:1;qs=Math.max(qs,run)});return {qd:ok.length,qs}}
+const QXP=150; // お題1回のEXP
 function questCard(){const m=moStart(today()),q=quest(m),v=Math.min(q.g,q.f(moData(m))),ok=v>=q.g,left=Math.round((Date.parse(moEnd(m))-Date.parse(today()))/864e5);
   return `<button class="qcard press" id="qcard"><div class="qh"><b>${moName(m)}のお題</b><span>${ok?'達成！':left?`あと${left}日`:'今日まで'}</span></div>
    <div class="qrow${ok?' ok':''}"><span class="qi">${ok?'✓':''}</span><div class="t"><b>${q.t}</b><div class="bar"><i style="width:${v/q.g*100}%"></i></div></div><span class="v">${v}/${q.g}</span></div></button>`}
@@ -973,14 +989,15 @@ function openQuests(){const m=moStart(today()),q=quest(m),v=Math.min(q.g,q.f(moD
   const past=qMonths().filter(x=>x<m).sort().reverse().slice(0,12);
   openSheet(`<b style="font-size:20px;display:block;text-align:center">${moName(m)}のお題</b><p class="note" style="text-align:center;margin:4px 0 12px">${fmtD(m)}〜${fmtD(moEnd(m))} · 毎月1日に新しいお題になります</p>
    <div class="list"><div class="badge">${medal({ic:q.ic,num:String(q.g),tier:'go'},46,ok)}<div><b>${q.t}${ok?'<span class="tier tier-go">達成</span>':''}</b><span>${q.s}</span><div class="bar"><i style="width:${v/q.g*100}%"></i></div></div><span class="v">${v}/${q.g}</span></div></div>
-   <div class="mapstat" style="margin-top:12px"><div><b>${t.qd}</b><span>これまでに達成したお題</span></div></div>
-   ${past.length?`<div class="sec">これまでのお題</div><div class="list">${past.map(x=>{const k=questOk(x);return `<div class="rgrow"><div class="t"><b style="font-size:13.5px">${x.slice(0,4)}年${moName(x)}</b><span style="display:block;font-size:11.5px;color:var(--muted)">${quest(x).t}</span></div><span class="v" style="font:600 13px var(--mono)">${k?'達成 ★':'—'}</span></div>`}).join('')}</div>`:''}
+   <div class="note" style="margin-top:10px;text-align:center">達成のごほうび：<b style="color:var(--accent)">EXP +${QXP}</b>・お題バッジ（回数・連続記録）</div>
+   <div class="mapstat" style="margin-top:12px"><div><b>${t.qd}</b><span>これまでに達成したお題</span></div><div><b>${t.qs}</b><span>いちばん長い連続達成（か月）</span></div></div>
+   ${past.length?`<div class="sec">これまでのお題</div><div class="list">${past.map(x=>{const k=questOk(x);return `<div class="rgrow">${medal({ic:quest(x).ic,num:String(quest(x).g),tier:'go'},34,k)}<div class="t"><b style="font-size:13.5px">${x.slice(0,4)}年${moName(x)}</b><span style="display:block;font-size:11.5px;color:var(--muted)">${quest(x).t}</span></div><span class="v" style="font:600 13px var(--mono)">${k?'達成 ★':'—'}</span></div>`}).join('')}</div>`:''}
    <button class="btn sub press" style="margin-top:14px" data-close>閉じる</button>`);bindClose()}
 
 /* 聖地めぐり：決まったスポットの組を回るとバッジ */
 const LEG={A:['haruna','akagi','myogi','usui','irohazaka','shomaru','sadamine','tsukuba','tsubaki'],B:['turnpike','ashinoko','manazuru','atami'],C1:['daikan','pa:12:芝浦PA','pa:12:箱崎PA','pa:12:辰巳第一PA','pa:13:大黒PA'],D:['cir:21:富士スピードウェイ','cir:23:鈴鹿サーキット','cir:8:モビリティリゾートもてぎ','cir:3:スポーツランドSUGO','cir:32:岡山国際サーキット','cir:43:オートポリス','cir:7:筑波サーキット']};
 const legCount=(v,k)=>LEG[k].filter(id=>v.has(id)).length;
-function spotStats(){const qt=questTotals(),vs=spotSet(),all=[...vs].map(SP).filter(Boolean),v=all.filter(x=>x.cat!=='st');return {qd:qt.qd,prefs47:new Set(all.filter(x=>x.cat!=='st').flatMap(x=>x.pref.split('・'))).size,legA:legCount(vs,'A'),legB:legCount(vs,'B'),legC1:legCount(vs,'C1'),legD:legCount(vs,'D'),mu:v.filter(x=>x.cat==='mus').length,gunsai:new Set(spotlog.filter(x=>x.id==='gunsai').map(x=>x.d)).size,...ekiFullStats(vs),st:all.length-v.length,sp:v.length,tg:v.filter(x=>x.cat==='tg').length,cir:v.filter(x=>x.cat==='cir').length,eki:v.filter(x=>x.cat==='eki').length,pa:v.filter(x=>x.cat==='pa').length,jin:v.filter(x=>x.cat==='jin').length,bri:v.filter(x=>x.cat==='bri').length,mel:v.filter(x=>x.cat==='mel').length,rd:v.filter(x=>x.cat==='rd').length,top:v.filter(x=>x.cat==='top').length,allcat:new Set(v.map(x=>x.cat)).size}}
+function spotStats(){const qt=questTotals(),vs=spotSet(),all=[...vs].map(SP).filter(Boolean),v=all.filter(x=>x.cat!=='st');return {qd:qt.qd,qs:qt.qs,prefs47:new Set(all.filter(x=>x.cat!=='st').flatMap(x=>x.pref.split('・'))).size,legA:legCount(vs,'A'),legB:legCount(vs,'B'),legC1:legCount(vs,'C1'),legD:legCount(vs,'D'),mu:v.filter(x=>x.cat==='mus').length,gunsai:new Set(spotlog.filter(x=>x.id==='gunsai').map(x=>x.d)).size,...ekiFullStats(vs),st:all.length-v.length,sp:v.length,tg:v.filter(x=>x.cat==='tg').length,cir:v.filter(x=>x.cat==='cir').length,eki:v.filter(x=>x.cat==='eki').length,pa:v.filter(x=>x.cat==='pa').length,jin:v.filter(x=>x.cat==='jin').length,bri:v.filter(x=>x.cat==='bri').length,mel:v.filter(x=>x.cat==='mel').length,rd:v.filter(x=>x.cat==='rd').length,top:v.filter(x=>x.cat==='top').length,allcat:new Set(v.map(x=>x.cat)).size}}
 function ekiFullStats(vs){const full=PREFS.filter(pf=>{const L=SPOTS.filter(x=>x.cat==='eki'&&inPref(x,pf));return L.length&&L.every(x=>vs.has(x.id))});return {ekiFull:full.length,gmEki:full.includes('群馬')?1:0}}
 const gotList=s=>BADGES.filter(b=>b.f(s)>=b.g);
 let pins=store.get('pins2',null);
@@ -1090,7 +1107,7 @@ function fillNearby_demo(){nearby=POOL_DEMO.filter(p=>!blocked.has(p.id)).sort((
    称号＝獲得したバッジ名を1つ、クラスの横に付けられる */
 const XP_SP={eki:10,pa:5,tg:15,cir:20,mu:15,jin:10,bri:10,mel:15,rd:10,top:30};
 const XP_TIER={br:30,si:80,go:200,pt:500,lg:1200};
-function expOf(s){if(!s)return 0;let e=(+s.ex||0)*10+(+s.ppl||0)*20+(+s.prefs47||0)*30+(+s.st||0)*2+(+s.zk||0)*5;
+function expOf(s){if(!s)return 0;let e=(+s.ex||0)*10+(+s.ppl||0)*20+(+s.prefs47||0)*30+(+s.st||0)*2+(+s.zk||0)*5+(+s.qd||0)*QXP;
   for(const k in XP_SP)e+=(+s[k]||0)*XP_SP[k];gotList(s).forEach(b=>e+=XP_TIER[b.tier]||0);return Math.round(e)}
 const LV_MAX=99,needXP=L=>Math.round(40*Math.pow(L-1,1.8)); // Lv L になるのに必要な累計EXP
 function lvOf(e){let L=1;while(L<LV_MAX&&e>=needXP(L+1))L++;return L}
@@ -1124,7 +1141,7 @@ function openTitles(){const st=myStats(),gl=gotList(st).sort((a,b)=>TIERS[b.tier
   const o=$('#ttloff');if(o)o.onclick=()=>{settings.title='';saveSet();closeSheet();render();toast('称号を外しました')}}
 function openRpgHelp(){openSheet(`<b style="font-size:20px;display:block;text-align:center">クラスのしくみ</b>
   <div class="note" style="line-height:1.8;margin-top:8px">${RSTATS.map(x=>`<b>${x.n}</b>（${x.cls}）`).join('・')}のうち、一番高いステータスでクラスが決まります。<br>
-  EXP がたまると Lv が上がり（最高 Lv.${LV_MAX}）、Lv.10・25・45・70 で「見習い → 一人前 → 上級 → 凄腕の → 伝説の」とクラスの格が上がります。EXP は、交換1回10・はじめて会った人20・スポット（道の駅10、峠15、サーキット20、日本一30 など）・都道府県30・図鑑5・バッジ（ブロンズ30〜レジェンド1200）でたまります。</div>
+  EXP がたまると Lv が上がり（最高 Lv.${LV_MAX}）、Lv.10・25・45・70 で「見習い → 一人前 → 上級 → 凄腕の → 伝説の」とクラスの格が上がります。EXP は、交換1回10・はじめて会った人20・今月のお題150・スポット（道の駅10、峠15、サーキット20、日本一30 など）・都道府県30・図鑑5・バッジ（ブロンズ30〜レジェンド1200）でたまります。</div>
   <div class="row" style="margin-top:12px"><button class="btn press" data-close>閉じる</button></div>`);bindClose()}
 // クラスアップの音：きらっと上がるアルペジオ＋やわらかい和音（ベル系の音色）
 let fanA=null;function fanfare(){if(settings.sound===false)return;try{const C=window.AudioContext||window.webkitAudioContext;const a=fanA||(fanA=new C());if(a.state==='suspended')a.resume();const t=a.currentTime+.05;
@@ -1143,6 +1160,7 @@ function checkLevelUp(){if(me.sample)return;const r=rpgOf(myStats()),pl=store.ge
    <p>${esc(me.name)}が Lv.${r.L} になって、クラスが</p><p class="cn">${esc(r.cls)}</p><p>になった！</p>
    <button class="btn press" id="lvok">とじる</button></div></div>`;
   const c=()=>{$('#lvup').innerHTML=''};$('#lvok').onclick=c;$('#lvo').onclick=e=>{if(e.target.id==='lvo')c()};return}
+  const qm=moStart(today());if(store.get('qok1',null)!==qm&&questOk(qm)){store.set('qok1',qm);try{sfx.chime()}catch(e){}buzz([30,60,30]);toast(`${moName(qm)}のお題を達成！ EXP +${QXP}`);return}
   if(pl!=null&&r.L>pl){buzz(30);toast(`レベルアップ！ Lv.${r.L} になりました`)}}
 /* views */
 const TITLES={me:['マイスタンプ',''],ex:['交換','近くにいる人とだけ交換できます'],col:['コレクション',''],sp:['スポット','道の駅・SA/PA・サーキット・峠に行くと印が押されます'],rw:['リワード','集めた記録でバッジがもらえます']};
@@ -1216,22 +1234,19 @@ const views={
   const st=myStats(),mp=myPins(),gl=gotList(st),gk=gl.map(b=>b.k);
   const near=BADGES.filter(b=>!gk.includes(b.k)&&b.f(st)>0).sort((a,b)=>b.f(st)/b.g-a.f(st)/a.g||(a.g-a.f(st))-(b.g-b.f(st))); // 達成に近い順（割合→残り数）
   const show=b=>rwFilter==='all'||(rwFilter==='got')===gk.includes(b.k);
-  const seg=`<div class="seg" role="group" aria-label="表示">${[['cls','クラス'],['bd','バッジ'],['all','バッジ一覧']].map(([k,t])=>`<button data-rv="${k}" aria-pressed="${rwView===k}">${t}</button>`).join('')}</div>`;
-  const priv=settings.pubRewards?'':`<div class="incoming" style="margin:0 0 12px"><div><b>リワードは非公開にしています</b><div class="note">ほかの人があなたのプロフィールを見ても、バッジとクラスは表示されません。マイスタンプの設定で変えられます。</div></div></div>`;
-  if(rwView==='cls')return seg+priv+rpgWindow(st);
-  if(rwView==='all')return seg+`
-  <div class="seg" style="margin-top:4px" role="group" aria-label="絞り込み">${[['all','すべて'],['got','獲得済み'],['not','未獲得']].map(([k,t])=>`<button data-rf="${k}" aria-pressed="${rwFilter===k}">${t}</button>`).join('')}</div>
-  ${Object.entries(TIERS).map(([t,x])=>{const L=BADGES.filter(b=>b.tier===t&&show(b));if(!L.length)return '';
-    return `<div class="sec">${x.n} <span class="chip">${BADGES.filter(b=>b.tier===t&&gk.includes(b.k)).length}/${BADGES.filter(b=>b.tier===t).length}</span></div>
-    <div class="mgrid">${L.map(b=>{const v=b.f(st),got=v>=b.g;return `<button class="mcell press ${got?'got':''}" data-b="${b.k}" aria-label="${b.t}${got?'（獲得済み）':''}">${newShown.includes(b.k)?'<span class="newb">NEW</span>':''}${mp.includes(b.k)?`<span class="pinned">${PINI}</span>`:''}${medal(b,56,got)}<b>${b.t}</b>${got?'':`<i class="mbar"><i style="width:${Math.min(100,v/b.g*100)}%"></i></i>`}</button>`}).join('')}</div>`}).join('')}
-  <p class="note" style="text-align:center;margin-top:14px">バッジをタップすると、条件と進み具合が見られます。</p>`;
+  const seg=`<div class="seg" role="group" aria-label="表示">${[['bd','バッジ'],['cls','クラス']].map(([k,t])=>`<button data-rv="${k}" aria-pressed="${rwView===k}">${t}</button>`).join('')}</div>`;
+  if(rwView==='cls')return seg+(settings.pubRewards?'':`<div class="incoming" style="margin:0 0 12px"><div><b>リワードは非公開にしています</b><div class="note">ほかの人があなたのプロフィールを見ても、バッジとクラスは表示されません。マイスタンプの設定で変えられます。</div></div></div>`)+rpgWindow(st);
   return `${seg}${settings.pubRewards?'':`<div class="incoming" style="margin:0 0 12px"><div><b>リワードは非公開にしています</b><div class="note">ほかの人があなたのプロフィールを見ても、バッジは表示されません。マイスタンプの設定で変えられます。</div></div></div>`}
   <div class="group zhead"><div class="big">${gl.length}<small>/${BADGES.length}</small></div><b>獲得したバッジ</b>
     <div class="tiercount">${Object.entries(TIERS).map(([t,x])=>`<span class="tier tier-${t}">${x.n} ${gl.filter(b=>b.tier===t).length}</span>`).join('')}</div></div>
   <div class="sec">飾っているバッジ <span class="chip">${mp.length}/${PIN_MAX}</span></div>
   <div class="group">${pinRow(mp,'バッジをタップして「プロフィールに飾る」を押すと、ここに並びます')}</div>
   ${near.length?`<div class="sec">もうすぐ獲得<span class="chip">${near.length}</span></div><div class="list">${near.slice(0,nearOpen?near.length:3).map(b=>{const v=b.f(st);return `<button class="badge press" data-b="${b.k}">${medal(b,46,false)}<div><b>${b.t}<span class="tier tier-${b.tier}">${TIERS[b.tier].n}</span></b><span>${b.s} · あと${b.g-v}</span><div class="bar"><i style="width:${v/b.g*100}%"></i></div></div><span class="v">${v}/${b.g}</span></button>`}).join('')}</div>${near.length>3?`<button class="btn sub press" id="nearMore" style="margin-top:10px">${nearOpen?'たたむ':`ほか${near.length-3}件を表示`}</button>`:''}`:''}
-  <button class="btn sub press" data-rv="all" style="margin-top:18px">すべてのバッジを見る（${gl.length}/${BADGES.length}）</button>`;
+  <div class="seg" style="margin-top:22px" role="group" aria-label="表示">${[['all','すべて'],['got','獲得済み'],['not','未獲得']].map(([k,t])=>`<button data-rf="${k}" aria-pressed="${rwFilter===k}">${t}</button>`).join('')}</div>
+  ${Object.entries(TIERS).map(([t,x])=>{const L=BADGES.filter(b=>b.tier===t&&show(b));if(!L.length)return '';
+    return `<div class="sec">${x.n} <span class="chip">${BADGES.filter(b=>b.tier===t&&gk.includes(b.k)).length}/${BADGES.filter(b=>b.tier===t).length}</span></div>
+    <div class="mgrid">${L.map(b=>{const v=b.f(st),got=v>=b.g;return `<button class="mcell press ${got?'got':''}" data-b="${b.k}" aria-label="${b.t}${got?'（獲得済み）':''}">${newShown.includes(b.k)?'<span class="newb">NEW</span>':''}${mp.includes(b.k)?`<span class="pinned">${PINI}</span>`:''}${medal(b,56,got)}<b>${b.t}</b>${got?'':`<i class="mbar"><i style="width:${Math.min(100,v/b.g*100)}%"></i></i>`}</button>`}).join('')}</div>`}).join('')}
+  <p class="note" style="text-align:center;margin-top:14px">バッジをタップすると、条件と進み具合が見られます。</p>`;
  }
 };
 
@@ -1688,7 +1703,7 @@ function render(){
     $('#spq').oninput=e=>{spotQ=e.target.value;spotLim=40;$('#spl').innerHTML=spList();bindSpList()};$('#sppref').onchange=e=>{spotPref=e.target.value;spotLim=40;$('#spl').innerHTML=spList();bindSpList()}}
   if(tab==='col'){$$('[data-sort]').forEach(b=>b.onclick=()=>{colSort=b.dataset.sort;store.set('sort2',colSort);render()});
     const cq=$('#colq');if(cq)cq.oninput=e=>{colQ=e.target.value;$('#cgrid').innerHTML=colGrid();$$('#cgrid [data-p]').forEach(b=>b.onclick=()=>detail(b.dataset.p))}}
-  if(tab==='rw'){$$('[data-b]').forEach(b=>b.onclick=()=>openBadge(b.dataset.b));if($('#nearMore'))$('#nearMore').onclick=()=>{nearOpen=!nearOpen;render()};$$('[data-rf]').forEach(b=>b.onclick=()=>{rwFilter=b.dataset.rf;render()});$$('[data-rv]').forEach(b=>b.onclick=()=>{rwView=b.dataset.rv;store.set('rwv1',rwView);render();window.scrollTo&&window.scrollTo(0,0)})}
+  if(tab==='rw'){$$('[data-b]').forEach(b=>b.onclick=()=>openBadge(b.dataset.b));if($('#nearMore'))$('#nearMore').onclick=()=>{nearOpen=!nearOpen;render()};$$('[data-rf]').forEach(b=>b.onclick=()=>{rwFilter=b.dataset.rf;render()});$$('[data-rv]').forEach(b=>b.onclick=()=>{rwView=b.dataset.rv;store.set('rwv2',rwView);render();window.scrollTo&&window.scrollTo(0,0)})}
   if(tab==='ex')bindExBeta();
 }
 $$('.tab').forEach(b=>b.onclick=()=>{if(tab===b.dataset.t){$('#scroll').scrollTo({top:0,behavior:'smooth'});return}tab=b.dataset.t;render()});
@@ -1850,8 +1865,8 @@ function openSettings(){
   openSheet(`<b style="font-size:20px;display:block;text-align:center;margin-bottom:6px">設定</b>
    <div class="sec">表示</div>
    <div class="set">${segRow('theme','画面の色',[['auto','スマホに合わせる'],['light','白'],['dark','黒']],'「スマホに合わせる」は、スマホのダークモードの設定に合わせて切り替わります')}
-     ${sw('sound','効果音','スポットの記録は「ポロン」、交換できたときは「ペタッ」。本番ではマナーモード中は鳴らしません')}
-     <div class="srow"><div class="t"><b>音を聞いてみる</b></div><button class="seclink" id="sndC" style="margin-left:0">ポロン</button><button class="seclink" id="sndP" style="margin-left:14px">ペタッ</button><button class="seclink" id="sndK" style="margin-left:14px">ペタッ（EX）</button></div></div>
+     ${sw('sound','効果音','オフにすると、スポットの記録・交換・クラスアップの音が鳴らなくなります。本番ではマナーモード中は鳴らしません')}
+     <div class="srow"><div class="t"><b>音を聞いてみる</b></div><button class="seclink" id="sndC" style="margin-left:0">ポロン</button><button class="seclink" id="sndP" style="margin-left:14px">ペタッ</button><button class="seclink" id="sndK" style="margin-left:14px">ペタッ（EX）</button><button class="seclink" id="sndF" style="margin-left:14px">クラスアップ</button></div></div>
    <div class="sec">プロフィールの公開</div>
    <div class="set">${sw('pubRewards','リワード（バッジ）を公開する','オフにすると、飾ったバッジも獲得したバッジも見えなくなります')}
      ${sw('pubStats','交換した数・会った人数を公開する')}
@@ -1884,7 +1899,7 @@ function openSettings(){
     if(k==='eventOnly'&&settings[k]&&!inEvent()&&nearOn()){nearUntil=0;incoming=null}});
   $$('[data-segset]').forEach(g=>g.querySelectorAll('button').forEach(b=>b.onclick=()=>{const k=g.dataset.segset,v=b.dataset.v;settings[k]=k==='modeMin'?+v:v;saveSet();if(k==='theme')applyTheme();
     g.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b))}));
-  $('#sndC').onclick=()=>settings.sound?sfx.chime():toast('効果音がオフです');$('#sndP').onclick=()=>settings.sound?sfx.peta(false,.02):toast('効果音がオフです');$('#sndK').onclick=()=>settings.sound?sfx.peta(true,.02):toast('効果音がオフです');
+  $('#sndC').onclick=()=>settings.sound?sfx.chime():toast('効果音がオフです');$('#sndP').onclick=()=>settings.sound?sfx.peta(false,.02):toast('効果音がオフです');$('#sndK').onclick=()=>settings.sound?sfx.peta(true,.02):toast('効果音がオフです');$('#sndF').onclick=()=>settings.sound?fanfare():toast('効果音がオフです');
   $('#preview').onclick=previewMe;$('#snsb').onclick=openSns;if($('#demoArr2'))$('#demoArr2').onclick=()=>{closeSheet();render();setTimeout(demoArrive,450)};
   $('#onbagain').onclick=()=>{closeSheet();showOnb()};
   $$('[data-doc]').forEach(b=>b.onclick=()=>openDoc(b.dataset.doc,openSettings));
@@ -1892,7 +1907,7 @@ function openSettings(){
   $('#logout').onclick=()=>C.signOut();
   let armed=false;
   if($('#reset'))$('#reset').onclick=()=>{if(!armed){armed=true;$('#reset .danger').textContent='もう一度押すと最初に戻します';return}
-    ['me2','log2','pins2','sort2','set2','spot2','colv2','fav2','seen2','news1','blk1','cls3','lv1','rwv1'].forEach(k=>{try{localStorage.removeItem(k)}catch(e){}});
+    ['me2','log2','pins2','sort2','set2','spot2','colv2','fav2','seen2','news1','blk1','cls3','lv1','rwv2','qok1'].forEach(k=>{try{localStorage.removeItem(k)}catch(e){}});
     me=SAMPLE_ME;log=SAMPLE_LOG.slice();pins=null;seenB=null;colSort='love';blocked=new Set();favs=new Set();newsRead=new Set();settings={theme:'auto',pubRewards:true,pubStats:true,pubEvents:true,showSns:true,sns:['',''],eventOnly:false,autoIn:false,sound:true,reqFrom:'all',modeMin:5};
     applyTheme();closeSheet();tab='me';render();toast('最初の状態に戻しました')};
 }
