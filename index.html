@@ -421,6 +421,9 @@ textarea{width:100%;box-sizing:border-box;margin-top:6px;padding:10px 12px;borde
 .lvup h3{font-family:var(--display);font-size:28px;color:var(--accent);margin:0 0 10px;font-weight:400;transform:rotate(-4deg)}
 .lvup p{margin:4px 0;font-size:14px;color:var(--muted)}.lvup .cn{font-weight:900;font-size:22px;color:var(--ink);margin:6px 0}.lvup .btn{margin-top:16px}
 @keyframes rpgpop{from{transform:scale(.5);opacity:0}}
+.partyb{margin-top:12px;border-radius:16px;background:var(--surface)}.partyb>svg{color:var(--accent);flex:none}
+.ptgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:12px 8px;margin:6px 0 14px;width:100%}
+.ptm{display:grid;justify-items:center;gap:3px;text-align:center;animation:enter .3s}.ptm b{font-size:12.5px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ptm span{font-size:11px;color:var(--muted)}
 .ttlpick .li b small{font-weight:400;color:var(--muted);margin-left:6px}
 [hidden]{display:none!important}
 body{margin:0}img{max-width:100%}
@@ -657,6 +660,9 @@ const BADGES=[
   {k:'eki500',m:'',ic:'pin',num:'500',t:'道の駅マスター',s:'別々の道の駅に500か所',f:s=>s.eki||0,g:500,tier:'lg'},
   {k:'zk300',m:'',ic:'book',num:'300',t:'図鑑300車種',s:'会ったオーナーの車種',f:s=>s.zk||0,g:300,tier:'lg'},
   {k:'r3x1',m:'',ic:'spark',num:'3',t:'ちょっと珍しいヤツ',s:'★3以上の車のオーナーと会う',f:s=>s.r3||0,g:1,tier:'br',add:1},
+  {k:'gp3',m:'',ic:'people',num:'3',t:'みんなでペタッ',s:'「みんなで交換」で一度に3人と交換',f:s=>s.gpMax||0,g:3,tier:'br',add:1},
+  {k:'gp6',m:'',ic:'people',num:'6',t:'大きな輪',s:'「みんなで交換」で一度に6人と交換',f:s=>s.gpMax||0,g:6,tier:'si',add:1},
+  {k:'gp10',m:'',ic:'people',num:'10',t:'オフ会の主役',s:'「みんなで交換」で一度に10人と交換',f:s=>s.gpMax||0,g:10,tier:'go',add:1},
   {k:'day5',m:'',ic:'people',num:'5',t:'賑やかな日',s:'1日に5人と交換',f:s=>s.dayMax||0,g:5,tier:'br',add:1},
   {k:'st3',m:'',ic:'train',num:'3',t:'寄り道は駅まで',s:'鉄道駅のスポットを3か所記録',f:s=>s.st||0,g:3,tier:'br',add:1},
   {k:'kira1',m:'',ic:'spark',num:'1',t:'キラッと来た',s:'はじめてのEX',f:s=>s.kira||0,g:1,tier:'br',add:1},
@@ -889,15 +895,16 @@ const pct=x=>Math.round(x*100)+'%';
 const myStats=()=>{const ppl=met();return hiMerge({ex:log.length,ppl:ppl.length,prefs:new Set(ppl.map(i=>person(i).pref).filter(x=>PREFS.includes(x))).size,same:ppl.filter(i=>person(i).maker===me.maker&&person(i).car===me.car).length,
   best:Math.max(0,...ppl.map(daysWith)),kira:log.filter(l=>l.kira).length,evs:new Set(log.filter(l=>l.ev).map(l=>l.ev)).size,days:new Set(log.map(l=>l.d)).size,mk:new Set(ppl.map(i=>person(i).maker).filter(m=>m&&m!=='その他')).size,...exStats(),...zukanStats(),...spotStats(),ttl:ttlIdx()})};
 /* 交換の記録から：dayMax 1日の最多人数 / sameMk 同じメーカー / rare 金色 / myCars 自分の車 / months 暦月 / gapMax 再会までの最長 */
+function gpMaxOf(ls){const m={};ls.forEach(l=>{if(l.gp)(m[l.gp]=m[l.gp]||new Set()).add(l.pid)});return Math.max(0,...Object.values(m).map(x=>x.size))}
 function exStats(){const byD={},byP={};log.forEach(l=>{(byD[l.d]=byD[l.d]||new Set()).add(l.pid);(byP[l.pid]=byP[l.pid]||new Set()).add(l.d)});
   const myOf=l=>l.my||me,carOf=l=>l.car||person(l.pid)||{};
   const gap=ds=>{const a=[...ds].sort().map(d=>Date.parse(d+'T12:00:00'));let m=0;for(let i=1;i<a.length;i++)m=Math.max(m,Math.round((a[i]-a[i-1])/864e5));return m};
-  return {dayMax:Math.max(0,...Object.values(byD).map(x=>x.size)),
+  return {dayMax:Math.max(0,...Object.values(byD).map(x=>x.size)),gpMax:gpMaxOf(log),
     sameMk:new Set(log.filter(l=>{const c=carOf(l),m=myOf(l);return c.maker&&c.maker!=='その他'&&c.maker===m.maker}).map(l=>l.pid)).size,
     rare:log.filter(l=>l.rare&&!l.kira).length,myCars:new Set(log.map(l=>{const m=myOf(l);return m.maker+'|'+m.car})).size,
     months:new Set(log.map(l=>l.d.slice(5,7))).size,gapMax:Math.max(0,...Object.values(byP).map(gap))}}
 /* 一度取ったバッジは取り消さない：条件が後から変わりうる集計は、これまでの最高値を保存して使う */
-const HI_KEYS=['r3','r4','r5','zkfull','mkMax','same','sameMk','myCars','ekiFull','gmEki','legD','mu','gunsai','dayMax','months','gapMax','rare'];
+const HI_KEYS=['r3','r4','r5','zkfull','mkMax','same','sameMk','myCars','ekiFull','gmEki','legD','mu','gunsai','dayMax','months','gapMax','rare','gpMax'];
 let hiS=store.get('hi2',{})||{};
 function hiMerge(s){let ch=false;const o={...s};HI_KEYS.forEach(k=>{const v=+s[k]||0,h=+hiS[k]||0;if(v>h){hiS[k]=v;ch=true}o[k]=Math.max(v,h)});if(ch)store.set('hi2',hiS);return o}
 function zukanStats(){const z=zukanMap(),keys=Object.keys(z).filter(k=>!k.startsWith('その他|'));
@@ -950,7 +957,7 @@ function moData(m){const e=moEnd(m),sp=spotlog.filter(v=>v.d>=m&&v.d<=e).map(v=>
   const us=[...new Map(sp.map(x=>[x.id,x])).values()].filter(x=>x.cat!=='st');
   const fm={};log.forEach(l=>{if(!fm[l.pid]||l.d<fm[l.pid])fm[l.pid]=l.d});const first=pid=>fm[pid];
   const byD={};ex.forEach(l=>(byD[l.d]=byD[l.d]||new Set()).add(l.pid));
-  return {us,ex,ppl:[...new Set(ex.map(l=>l.pid))],dayMax:Math.max(0,...Object.values(byD).map(x=>x.size)),
+  return {us,ex,ppl:[...new Set(ex.map(l=>l.pid))],dayMax:Math.max(0,...Object.values(byD).map(x=>x.size)),gpMax:gpMaxOf(ex),
     newp:new Set(ex.filter(l=>first(l.pid)===l.d).map(l=>l.pid)).size,
     again:new Set(ex.filter(l=>first(l.pid)<m).map(l=>l.pid)).size,
     same:new Set(ex.filter(l=>{const c=l.car||person(l.pid)||{};return c.maker&&c.maker!=='その他'&&c.maker===me.maker}).map(l=>l.pid)).size}}
@@ -967,7 +974,7 @@ const QPOOL=[
  {k:'again1',t:'再会',s:'前に会ったことがある人とまた交換',ic:'heart',g:1,f:d=>d.again},
  {k:'same1',t:'同じメーカー仲間',s:'自分と同じメーカーの車の人と交換',ic:'swap',g:1,f:d=>d.same},
  // ここから下は 2026年11月から（2026-10-06 追加）
- {k:'all3',t:'みんなで交換！',s:'1日のうちに3人とスタンプを交換（オフ会やミーティングで）',ic:'people',g:3,f:d=>d.dayMax},
+ {k:'all3',t:'みんなで交換！',s:'「みんなで交換」で、一度に3人以上と交換',ic:'people',g:3,f:d=>d.gpMax},
  {k:'jin3',t:'神社を3社めぐる',s:'今月のうちに、別々の神社で記録',ic:'torii',g:3,f:d=>d.us.filter(x=>x.cat==='jin').length},
  {k:'bri2',t:'名橋を2つ渡る',s:'今月のうちに、名橋を2か所記録（通るだけでOK）',ic:'bridge',g:2,f:d=>d.us.filter(x=>x.cat==='bri').length},
  {k:'mel1',t:'メロディロードを走る',s:'メロディを奏でる道路を1か所記録',ic:'note',g:1,f:d=>d.us.filter(x=>x.cat==='mel').length},
@@ -1171,7 +1178,7 @@ const views={
     <button class="bgb" id="bgb" aria-label="背景を変える"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/></svg></button>
     <button class="edit" id="mk" aria-label="スタンプを作る">${stamp(me,{size:150,ev:inEvent()?LIVE:null})}</button>
     <button class="nm nmb press" id="nmb" aria-label="表示名を変える">${me.official?OFFB:''}${esc(me.name)}<svg class="npen" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button>
-    <div style="margin-top:-6px">${clsChip(rpgOf(myStats()))}</div>
+    <div style="margin-top:-6px">${clsChip({...rpgOf(myStats()),title:''})}</div>
     <button class="hito press${me.msg?'':' add'}" id="hito">${me.msg?esc(me.msg):'＋ ひとことを書く'}</button>
     <div><button class="chip carchip press" id="carb" aria-label="ガレージ（今日の車を選ぶ）">${CARI}${esc(carLabel(me))}${me.garage.length>1?`<small>${me.garage.length}台</small>`:''}<i aria-hidden="true">▾</i></button> <span class="chip">${esc(me.pref)}</span></div>
     ${inEvent()?`<div class="note" style="color:rgba(255,255,255,.85)">今日はイベント限定のフチで交換されます</div>`:''}
@@ -1193,6 +1200,8 @@ const views={
     <button class="li press todaycar" id="todayCar">${CARI}<div class="t"><b>今日の車</b><span>${esc(carLabel(me))}${me.garage.length>1?` · ガレージ${me.garage.length}台`:''}</span></div><span class="val">変更 ›</span></button>
     <div class="note" style="text-align:center;margin-top:10px">はじめると、同じ場所で交換をはじめた人が並びます。<br>はじめるまでは、誰の一覧にも出ません。</div>`}
     ${incoming?`<div class="incoming"><div style="display:flex;gap:10px;align-items:center">${stamp(person(incoming),{size:44})}<div><b>${esc(person(incoming).name)}</b> さん（${esc(person(incoming).car)}）から交換の申し込み</div></div><div class="row"><button class="btn sub press" id="inNo">断る</button><button class="btn press" id="inYes">受ける</button></div></div>`:''}
+    ${on&&partyNear?`<div class="incoming"><div style="display:flex;gap:10px;align-items:center">${stamp(person(partyNear.host),{size:44})}<div><b>${esc(person(partyNear.host).name)}</b> さんが「みんなで交換」をはじめました</div></div><button class="btn press" id="ptJoin">参加する</button></div>`:''}
+    ${on?`<button class="li press partyb" id="ptHost">${PEOPLEI}<div class="t"><b>みんなで交換</b><span>3人以上で同時に振って、一度に交換</span></div><span class="d">›</span></button>`:''}
   </div>
   ${on?`<div class="sec">${inEvent()?'このイベントの参加者':'近くにいる人'} <span class="chip">${nearby.length}人</span></div>
     <div class="grid">${nearby.map(id=>{const p=person(id),n=daysWith(id);return `<button class="cell press" data-n="${id}">${favMark(id)}${stamp(p)}<span class="n">${esc(p.name)}</span><span class="s">${esc(p.car)}${n?` · ♥${n}`:''}</span></button>`}).join('')}</div>
@@ -1556,6 +1565,7 @@ function openGarage(back){
 const BELL='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg>';
 const NTAG={info:['お知らせ','var(--accent)'],event:['イベント','#2f6fd6'],update:['アップデート','#1d8a4b'],mainte:['メンテナンス','#6b7480']};
 const NEWS=[
+ {id:'b6',d:'2026-10-06',tag:'update',t:'「みんなで交換」ができるようになりました',b:'3人以上で、同時にスマホを振って一度に交換できます。\n\n交換をはじめたら「みんなで交換」を押して部屋を作ります。近くで交換をはじめている人には「参加する」が出ます。3人以上そろったら、ホストが合図を出して全員で「せーの」で振ってください。\n\nタイミングが2秒以内で、近くにいる人どうしで交換されます。合わなかった人とは、ホストの「もう一度振る」でやり直せます。'},
  {id:'b1',d:'2026-10-05',tag:'info',pin:true,t:'ベータ版へようこそ',b:'ペタカー! のテストに参加してくれてありがとうございます。\n\nまずはマイスタンプから、自分の車の写真でスタンプを作ってください。そのあと、会った人と「交換をはじめる」→相手をタップ→2人で同時にスマホを振る、で交換できます。\n\n気づいたことは、鈴木までLINEなどで気軽に送ってください。'},
  {id:'b2',d:'2026-10-05',tag:'update',t:'ベータ版でできること・まだできないこと',b:'できること：スタンプ作り、ガレージ、近くの人との交換（振る・GPSで確認）、仲良し度、車種図鑑、スポットの記録（その場で「ここにいる」）、バッジ。\n\nまだできないこと：イベントのチェックイン、QRでの交換、アプリを閉じたままの自動記録、通知。\n\nテスト中はデータを消すことがあります。'},
  {id:'b5',d:'2026-10-05',tag:'update',t:'スポットに「いま◯人」が出るようになりました',b:'2時間以内にそのスポットで記録した人の数が、スポット一覧と詳細に出ます。スポットタブの上には「いま人がいるスポット」も出ます。\n\n出るのは人数だけで、名前や車は出ません。誰が記録したかも保存していません。仲間が集まっている場所を見つけて、会いに行くきっかけにしてください。'},
@@ -1712,12 +1722,12 @@ $$('.tab').forEach(b=>b.onclick=()=>{if(tab===b.dataset.t){$('#scroll').scrollTo
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('#sh'))dismissSheet()});
 
 /* grant + result */
-function grant(p){
+function grant(p,o={}){
   const already=log.some(l=>l.pid===p.id&&l.d===today());
   const ev=inEvent()?LIVE:null,sz=seasonOn(today());
   if(already)return `<div class="result">${stamp(p,{size:140,ev:best(p.id).ev,sz:best(p.id).sz,kira:best(p.id).kira,rare:best(p.id).rare,v:best(p.id).v,im:best(p.id).im,rg:best(p.id).rg})}<b style="font-size:18px">${esc(p.name)} さんとは今日もう交換しています</b><div class="note">仲良し度とEXの抽選は、同じ人とは1日1回です。</div></div><button class="btn sub press" style="margin-top:14px" data-close>閉じる</button>`;
   const before=daysWith(p.id),rate=kiraRate(before,ev),rrate=rareRate(before,ev),roll=Math.random(),kira=roll<rate,rare=!kira&&roll<rate+rrate;
-  const gb=gotKeys();log.push({pid:p.id,d:today(),ev,...(sz?{sz}:{}),place:ev?null:placeHere(),kira,rare,v:curV(p),im:refOf(p),rg:p.ring,vr:p.ver||1,...(p.official?{off:true}:{}),car:{maker:p.maker,car:p.car},my:{maker:me.maker,car:me.car}});save();const nb=gotList(myStats()).filter(b=>!gb.includes(b.k));buzz(kira?[40,60,40,60,140]:[30,50,90]);sfx.peta(kira);
+  const gb=gotKeys();log.push({pid:p.id,d:today(),ev,...(sz?{sz}:{}),place:ev?null:placeHere(),kira,rare,v:curV(p),im:refOf(p),rg:p.ring,vr:p.ver||1,...(o.gp?{gp:o.gp}:{}),...(p.official?{off:true}:{}),car:{maker:p.maker,car:p.car},my:{maker:me.maker,car:me.car}});save();const nb=gotList(myStats()).filter(b=>!gb.includes(b.k));if(!o.quiet){buzz(kira?[40,60,40,60,140]:[30,50,90]);sfx.peta(kira)}
   return `<div class="result"><div class="peta" aria-hidden="true">ペタッ!</div>${kira?'<div class="kirahit">EXが出た！</div>':rare?'<div class="rarehit">レアが出た！</div>':''}${stamp(p,{size:150,ev,sz,kira,rare})}
    <b style="font-size:20px">${esc(p.name)} さんと交換</b>${rarity(p.maker,p.car)>=4?`<span class="raretag">${'★'.repeat(rarity(p.maker,p.car))} レア車に会えた！</span>`:''}
    <div><span class="chip">${esc(carLabel(p))}</span>${ev?` <span class="chip">${esc(EVENTS[ev].name)}</span>`:sz?` <span class="chip">${esc(seasonOf(sz).n)}のフチ</span>`:''}</div>
@@ -1747,6 +1757,48 @@ function request_demo(id,accepted){
     const h=e=>{const a=e.accelerationIncludingGravity||{};if(Math.hypot(a.x||0,a.y||0,a.z||0)>28)shaken()};
     try{window.addEventListener('devicemotion',h);off=()=>window.removeEventListener('devicemotion',h)}catch(e){}};
   if(accepted)ask();else setTimeout(()=>{if(!$('#c1'))return;setCheck('c1',true,'承認されました');ask()},1400);
+}
+
+/* ===== みんなで交換（2026-10-06 鈴木さん）=====
+   ホストが部屋を作る → 近くで交換をはじめている人に「参加する」が出る → 3人以上そろったらホストの合図で全員同時にシェイク
+   自分と相手のタイミングが2秒以内・位置が近い、の2つがそろった相手全員と交換（判定は1対1の交換と同じ） */
+let partyNear=null; // 近くで開いている部屋 {id,host}
+const PARTY_MIN=3,PARTY_MAX=12;
+const PEOPLEI='<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3.5 19c.8-3 3-4.6 5.5-4.6S13.7 16 14.5 19"/><circle cx="17" cy="9" r="2.4"/><path d="M15.5 14.6c2.3-.4 4.2.9 5 3.6"/></svg>';
+function partyGrid(ids,host,self){return ids.map(id=>{const p=id===self?me:person(id);if(!p)return '';
+  return `<div class="ptm">${stamp(p,{size:64})}<b>${esc(id===self?'あなた':p.name)}</b><span>${id===host?'ホスト':esc(p.car||'')}</span></div>`}).join('')}
+function grantMany(ps,gp){const gb=gotKeys(),res=[];let anyK=false;
+  ps.forEach(p=>{const n=log.length;grant(p,{quiet:1,gp});const l=log.length>n?log[log.length-1]:null;if(l&&l.kira)anyK=true;res.push([p,l])});
+  const nb=gotList(myStats()).filter(b=>!gb.includes(b.k)),got=res.filter(x=>x[1]).length;
+  if(got){buzz(anyK?[40,60,40,60,140]:[30,50,90]);sfx.peta(anyK)}
+  return `<div class="result">${got?'<div class="peta" aria-hidden="true">ペタッ!</div>':''}<b style="font-size:20px">${got?`${got}人と交換しました`:'今日はもう交換済みでした'}</b>
+   <div class="ptgrid">${res.map(([p,l])=>`<div class="ptm">${stamp(p,l?{size:64,ev:l.ev,sz:l.sz,kira:l.kira,rare:l.rare}:{size:64})}<b>${esc(p.name)}</b><span>${!l?'今日は交換済み':l.kira?'EXが出た！':l.rare?'レアが出た！':'♥'+daysWith(p.id)}</span></div>`).join('')}</div>
+   ${got?'<div class="note">仲良し度とEXの抽選は、1人ずつの交換と同じです。</div>':''}${nb.length?`<div class="newbad">${medal(nb[0],30)}<span>バッジ獲得：${nb.map(b=>b.t).join('・')}</span></div>`:''}</div>`}
+function partyNg(ng){return ng.length?`<div class="group" style="margin-top:12px"><b>交換できなかった人</b>${ng.map(([id,why])=>`<div class="note">${esc((person(id)||{}).name||'')}さん：${why}</div>`).join('')}</div>`:''}
+// 全員で振る画面。振る or タップで fire が呼ばれる。戻り値は後片付け
+function partyShake(n,fire){$('#res').innerHTML=`<div style="text-align:center;margin-bottom:12px"><span class="shake" aria-hidden="true">📱</span><div><b>「せーの」で${n}人同時に振る！</b></div><div class="note">2秒以内に振った人どうしで、スタンプがペタッと貼られます</div></div>
+   <div class="row"><button class="btn sub press" data-close>やめる</button><button class="btn press" id="shk">振れないときはタップ</button></div>`;
+  let last=0,done=false;const go=how=>{if(done)return;done=true;fire(how)};$('#shk').onclick=()=>go('タップ');
+  const h=e=>{const a=e.acceleration,g=e.accelerationIncludingGravity;const m=a&&a.x!=null?Math.hypot(a.x,a.y,a.z):g&&g.x!=null?Math.abs(Math.hypot(g.x,g.y,g.z)-9.8):0;if(m>12&&Date.now()-last>1500){last=Date.now();go('振る')}};
+  try{addEventListener('devicemotion',h)}catch(e){}return ()=>removeEventListener('devicemotion',h)}
+function partySheet(asHost,hostName){openSheet(`<b style="font-size:20px;display:block;text-align:center">みんなで交換</b>
+   <p class="note" style="text-align:center;margin:4px 0 12px">${asHost?'近くで交換をはじめている人に「参加する」が出ます。3人以上そろったら、合図を出してください。':`${esc(hostName)}さんの合図で、全員同時に振ります。`}</p>
+   <div id="ptm" class="ptgrid"></div><div id="res"></div>`)}
+// 試作：近くの人が集まってくる流れを見せる（ベータでは beta_block.js の本物に置き換え）
+function openParty_demo(asHost,info){
+  const gp='pd'+Date.now(),T=[];let mem=asHost?[]:[info.host],off=()=>{};
+  const others=nearby.filter(id=>!mem.includes(id)).slice(0,asHost?4:3);
+  partySheet(asHost,asHost?'':person(info.host).name);
+  const stop=()=>{T.forEach(clearTimeout);off()};
+  const wait=()=>{$('#res').innerHTML=asHost?`<button class="btn press" id="ptgo" disabled></button><button class="btn sub press" style="margin-top:10px" data-close>やめる</button>`
+      :`<p class="note" style="text-align:center">ホストの合図を待っています…</p><button class="btn sub press" style="margin-top:10px" data-close>抜ける</button>`;bindClose(stop);
+    if(asHost)$('#ptgo').onclick=shake;draw()};
+  const draw=()=>{if(!$('#ptm'))return;$('#ptm').innerHTML=partyGrid(['me',...mem],asHost?'me':info.host,'me');const g=$('#ptgo');
+    if(g){const n=mem.length+1;g.disabled=n<PARTY_MIN;g.textContent=n<PARTY_MIN?`あと${PARTY_MIN-n}人で始められます`:`${n}人で同時に振る！`}};
+  const shake=()=>{T.forEach(clearTimeout);off=partyShake(mem.length+1,()=>{off();
+    $('#res').innerHTML=grantMany(mem.map(person),gp)+`<button class="btn press" style="margin-top:14px" data-close data-go="col">コレクションに入れる</button>`;bindClose();render()});bindClose(stop)};
+  others.forEach((id,i)=>T.push(setTimeout(()=>{mem.push(id);draw()},1200+i*1300)));
+  wait();if(!asHost)T.push(setTimeout(shake,1200+others.length*1300+1500));
 }
 
 /* QR backup */
@@ -2039,8 +2091,10 @@ const DEMO_P={...POOL_DEMO[0],id:'demo',name:'デモの相手',msg:'審査・お
 const addDemo=()=>{if(C.demo&&!POOL.some(p=>p.id==='demo'))POOL.push(DEMO_P)};addDemo();
 function fillNearby(){const mine=liveMap[C.uid];addDemo();
   nearby=Object.entries(liveMap).filter(([id,x])=>id!==C.uid&&x.until>Date.now()&&!blocked.has(id)&&POOL.some(p=>p.id===id)&&nearCell(mine&&mine.cell,x.cell)).map(([id])=>id);
-  if(C.demo)nearby.unshift('demo')}
-C.live.sub(m=>{liveMap=m;if(nearOn()){const b=nearby.join();fillNearby();if(b!==nearby.join()&&tab==='ex'&&!$('#sh'))render()}});
+  if(C.demo)nearby.unshift('demo');
+  const pt=Object.entries(liveMap).find(([id,x])=>id!==C.uid&&x.pt&&x.until>Date.now()&&!blocked.has(id)&&POOL.some(p=>p.id===id)&&nearCell(mine&&mine.cell,x.cell));
+  partyNear=pt&&!curParty?{id:pt[1].pt,host:pt[0]}:null}
+C.live.sub(m=>{liveMap=m;if(nearOn()){const b=nearby.join()+JSON.stringify(partyNear);fillNearby();if(b!==nearby.join()+JSON.stringify(partyNear)&&tab==='ex'&&!$('#sh'))render()}});
 let incT=null;
 const fresh=x=>Math.abs(Date.now()-x.at)<ASK_MS; // 相手の時計が進んでいても期限切れにする
 function onExMap(m){const prev=exMine;exMine=m;
@@ -2121,19 +2175,81 @@ function request(id,accepted,exArg){
 function bindExBeta(){
   if($('#todayCar'))$('#todayCar').onclick=()=>openGarage(render);
   $('#tog').onclick=async()=>{if(Date.now()-lastTog<600)return;lastTog=Date.now();
-    if(nearOn()){nearUntil=0;nearby=[];C.live.clear();render();return}
+    if(nearOn()){nearUntil=0;nearby=[];partyNear=null;liveBody=null;C.live.clear();render();return}
     if(settings.eventOnly&&!inEvent()){toast('設定で「イベント中だけ表示」になっています');return}
     askMotion();nearUntil=Date.now()+settings.modeMin*60000;render();
     const p=await getPos();
-    try{await C.live.set({until:nearUntil,cell:cellOf(p),upd:Date.now()})}catch(e){toast('接続できませんでした。電波のよい場所でもう一度お試しください');nearUntil=0;render();return}
+    try{liveBody={until:nearUntil,cell:cellOf(p),upd:Date.now()};await C.live.set(liveBody)}catch(e){toast('接続できませんでした。電波のよい場所でもう一度お試しください');nearUntil=0;render();return}
     fillNearby();render();if(!p)toast('位置情報が使えないため、近くかどうかの確認なしで一覧に出ます')};
   if(incoming){$('#inNo').onclick=()=>{const x=incomingEx;incoming=null;incomingEx=null;render();if(x)C.ex.update(x,{state:'declined'}).catch(()=>toast('お断りを送れませんでした。電波のよい場所でもう一度お試しください'))};
     $('#inYes').onclick=()=>{const id=incoming,x=incomingEx;render();request(id,true,x)}}
   if(nearOn()){
-    const tick=()=>{const s=Math.max(0,Math.ceil((nearUntil-Date.now())/1000)),el=$('#left');if(el)el.textContent=`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;if(!s){nearUntil=0;nearby=[];C.live.clear();render()}};
+    const tick=()=>{const s=Math.max(0,Math.ceil((nearUntil-Date.now())/1000)),el=$('#left');if(el)el.textContent=`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;if(!s){nearUntil=0;nearby=[];partyNear=null;liveBody=null;C.live.clear();render()}};
     tick();modeTimer=setInterval(tick,1000);
     $$('[data-n]').forEach(b=>b.onclick=()=>request(b.dataset.n,false));
+    $('#ptHost').onclick=()=>openParty(true);
+    if(partyNear&&$('#ptJoin'))$('#ptJoin').onclick=()=>{const x=partyNear;partyNear=null;render();openParty(false,x)};
   }
+}
+
+/* ===== みんなで交換（Firebase）=====
+   部屋 party/{id}：host・members・state（open→go→done/cancel）・r（何回目の合図か）。ホストの live に pt＝部屋ID を出して近くの人に知らせる
+   各自が party/{id}/side/{uid} に振った時刻と位置を書き、自分と相手の組ごとに 1対1と同じ規則で判定（相手の側でも同じ結果になる） */
+let liveBody=null,curParty=null;
+function openParty(asHost,info){
+  if(info&&info.id==='demo')return openParty_demo(asHost,info);
+  if(!nearOn()){toast('先に「交換をはじめる」を押してください');return}
+  if(curParty)return;
+  let pid=asHost?null:info.id,doc=null,myR=0,judged=0,sides={},gone=false,unDoc=()=>{},unSide=()=>{},off=()=>{},jT=null;const doneWith=new Set();
+  partySheet(asHost,asHost?'':(person(info.host)||{}).name||'ホスト');
+  const self={};curParty=self;
+  const stop=()=>{if(gone)return;gone=true;unDoc();unSide();off();clearTimeout(jT);curParty=null;
+    const m=sides[C.uid];if(pid&&m&&m.la!=null)C.party.setSide(pid,{t:m.t,r:m.r,how:m.how}).catch(()=>{}); // 位置は判定にだけ使い、すぐ消す
+    if(asHost&&liveBody&&nearOn()){liveBody={...liveBody};delete liveBody.pt;C.live.set(liveBody).catch(()=>{})}};
+  const quit=()=>{const st=doc&&doc.state;stop();if(!pid)return;
+    if(asHost){if(st!=='done')C.party.update(pid,{state:st==='go'?'done':'cancel'}).catch(()=>{})}else if(st==='open')C.party.leave(pid).catch(()=>{})};
+  const others=()=>doc?doc.members.filter(x=>x!==C.uid):[];
+  const draw=()=>{if(gone||!$('#ptm')||!doc)return;$('#ptm').innerHTML=partyGrid(doc.members,doc.host,C.uid);const g=$('#ptgo');
+    if(g){const n=doc.members.length;g.disabled=n<PARTY_MIN;g.textContent=n<PARTY_MIN?`あと${PARTY_MIN-n}人で始められます`:`${n}人で同時に振る！`}};
+  const waitUI=()=>{$('#res').innerHTML=asHost?`<button class="btn press" id="ptgo" disabled>あと${PARTY_MIN-1}人で始められます</button><button class="btn sub press" style="margin-top:10px" data-close>やめる</button>`
+      :`<p class="note" style="text-align:center">ホストの合図を待っています…</p><button class="btn sub press" style="margin-top:10px" data-close>抜ける</button>`;bindClose(quit);
+    if(asHost)$('#ptgo').onclick=()=>{if(!doc||doc.members.length<PARTY_MIN)return;$('#ptgo').disabled=true;C.party.update(pid,{state:'go',r:(doc.r||0)+1,go:Date.now()}).catch(()=>{toast('始められませんでした。もう一度押してください');draw()})};draw()};
+  const judge=()=>{if(gone||!doc)return;const a=sides[C.uid];if(!a||a.r!==myR||judged===myR)return;
+    const mem=others(),got=mem.filter(x=>sides[x]&&sides[x].r===myR),w=Date.now()-a.t;
+    if(got.length<mem.length&&w<6000){clearTimeout(jT);jT=setTimeout(judge,6000-w+100);return} // 全員そろうか、自分が振ってから6秒まで待つ
+    judged=myR;clearTimeout(jT);const ok=[],ng=[];
+    mem.forEach(x=>{const b=sides[x];if(!b||b.r!==myR){ng.push([x,'振るのが間に合いませんでした']);return}
+      const dt=Math.abs(a.t-b.t);if(dt>WINDOW_MS){ng.push([x,`タイミングが${(dt/1000).toFixed(1)}秒ずれていました`]);return}
+      const dm=a.la!=null&&b.la!=null?dist(a,b)*1000:null,lim=Math.max(150,(a.acc||0)+(b.acc||0));
+      if(dm!=null&&dm>lim){ng.push([x,`約${Math.round(dm)}m離れていました`]);return}ok.push(x)});
+    const fr=ok.filter(x=>!doneWith.has(x));fr.forEach(x=>doneWith.add(x));
+    setTimeout(()=>{if(pid&&a.la!=null)C.party.setSide(pid,{t:a.t,r:a.r,how:a.how}).catch(()=>{})},10000);
+    const left=ng.filter(([x])=>!doneWith.has(x));
+    $('#res').innerHTML=(fr.length?grantMany(fr.map(person),pid):`<div class="group"><b>${doneWith.size?'新しく交換できた人はいませんでした':'交換できませんでした'}</b></div>`)+partyNg(left)
+      +(asHost&&left.length?`<div class="row" style="margin-top:14px"><button class="btn sub press" data-close>終える</button><button class="btn press" id="ptre">もう一度振る</button></div>`
+        :`<button class="btn press" style="margin-top:14px" data-close data-go="col">${left.length?'閉じる':'コレクションに入れる'}</button>`);
+    bindClose(quit);render();
+    const re=$('#ptre');if(re)re.onclick=()=>{re.disabled=true;C.party.update(pid,{state:'go',r:(doc.r||0)+1,go:Date.now()}).catch(()=>{re.disabled=false;toast('合図を送れませんでした')})}};
+  const round=r=>{myR=r;off();
+    off=partyShake(doc.members.length,how=>{off();const g=v=>Math.round(v*2000)/2000,body={t:Date.now(),r,how};
+      if(myPos&&Date.now()-myPos.at<180000)Object.assign(body,{la:g(myPos.la),lo:g(myPos.lo),acc:Math.round(myPos.acc)+35});
+      sides[C.uid]=body;buzz(30);$('#res').innerHTML=`<p class="note" style="text-align:center">${how==='振る'?'振りました':'押しました'}。みんなを待っています…</p>`;
+      C.party.setSide(pid,body).then(judge,()=>{toast('送れませんでした。電波のよい場所でもう一度お試しください')})});bindClose(quit);getPos()};
+  const onDoc=d=>{if(gone)return;
+    if(!d||d.state==='cancel'){stop();closeSheet();if(!asHost)toast('ホストが「みんなで交換」を終えました');return}
+    if(!asHost&&!d.members.includes(C.uid)){stop();closeSheet();return}
+    const fresh=!doc;doc=d;C.need(d.members.filter(x=>x!==C.uid),true);
+    if(d.state==='go'&&(d.r||0)>myR){if(d.members.includes(C.uid))round(d.r);return}
+    if(d.state==='done'&&!judged){stop();closeSheet();toast('ホストが「みんなで交換」を終えました');return}
+    if(fresh&&d.state==='open')waitUI();else draw()};
+  const go=()=>{unDoc=C.party.sub(pid,onDoc);unSide=C.party.subSides(pid,m=>{sides={...sides,...m,[C.uid]:sides[C.uid]||m[C.uid]};judge()})};
+  askMotion();getPos();bindClose(quit);
+  $('#res').innerHTML='<p class="note" style="text-align:center">準備しています…</p>';
+  if(asHost)C.party.create().then(async id=>{if(gone){C.party.update(id,{state:'cancel'}).catch(()=>{});return}pid=id;go();
+      try{liveBody={...(liveBody||{until:nearUntil,cell:cellOf(myPos),upd:Date.now()}),pt:id};await C.live.set(liveBody)}catch(e){}})
+    .catch(()=>{if(gone)return;stop();closeSheet();toast('部屋を作れませんでした。もう一度お試しください')});
+  else C.party.join(pid).then(go).catch(()=>{if(gone)return;stop();closeSheet();toast('参加できませんでした。もう始まっているか、終わったようです')});
+  C.onPeople(()=>{if(!gone)draw()});
 }
 /* 交換した場所：近くのスポット名（1.5km以内）。細かい座標は記録しない */
 function placeHere(){if(!myPos||Date.now()-myPos.at>600000)return '場所の記録なし';let best=null,bd=1e9;

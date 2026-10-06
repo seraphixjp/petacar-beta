@@ -357,6 +357,16 @@ async function firebaseBackend() {
       subSides: (id, cb) => F.onSnapshot(Col('ex', id, 'side'), qs => cb(snapMap(qs)), e => console.warn('side', e)),
       setSide: (id, d) => F.setDoc(D('ex', id, 'side', uid), d),
     },
+    // みんなで交換の部屋
+    party: {
+      create: async () => { const r = F.doc(Col('party')); await F.setDoc(r, { host: uid, members: [uid], state: 'open', r: 0, at: Date.now() }); return r.id },
+      join: id => F.updateDoc(D('party', id), { members: F.arrayUnion(uid) }),
+      leave: id => F.updateDoc(D('party', id), { members: F.arrayRemove(uid) }),
+      update: (id, d) => F.updateDoc(D('party', id), d),
+      sub: (id, cb) => F.onSnapshot(D('party', id), s => cb(s.exists() ? s.data() : null), e => { console.warn('party', e); cb(null) }),
+      subSides: (id, cb) => F.onSnapshot(Col('party', id, 'side'), qs => cb(snapMap(qs)), e => console.warn('pside', e)),
+      setSide: (id, d) => F.setDoc(D('party', id, 'side', uid), d),
+    },
     // スポットの「いま◯人」：誰が記録したかは書かない（spot と期限だけ）
     // スポットごとに1枚：期限の数字だけを並べる（誰かは書かない）。今にぎわっているスポットだけを読む
     here: {
@@ -420,6 +430,15 @@ function mockBackend(uid) {
       sub: cb => sub(() => { const m = coll('ex', v => v.a === uid || v.b === uid); for (const k in m) m[k].id = k; cb(m) }),
       subSides: (id, cb) => sub(() => cb(coll('ex/' + id + '/side'))),
       setSide: (id, d) => put('ex/' + id + '/side/' + uid, d),
+    },
+    party: {
+      create: async () => { const id = 'pt' + Date.now() + (n++); await put('party/' + id, { host: uid, members: [uid], state: 'open', r: 0, at: Date.now() }); return id },
+      join: id => { const o = M.docs.get('party/' + id); if (!o || o.state !== 'open' || o.members.length >= 12) return Promise.reject(new Error('closed')); return put('party/' + id, { ...o, members: [...new Set([...o.members, uid])] }) },
+      leave: id => { const o = M.docs.get('party/' + id); return o ? put('party/' + id, { ...o, members: o.members.filter(x => x !== uid) }) : Promise.resolve() },
+      update: (id, d) => put('party/' + id, { ...M.docs.get('party/' + id), ...d }),
+      sub: (id, cb) => sub(() => cb(JSON.parse(JSON.stringify(M.docs.get('party/' + id) || null)))),
+      subSides: (id, cb) => sub(() => cb(coll('party/' + id + '/side'))),
+      setSide: (id, d) => put('party/' + id + '/side/' + uid, d),
     },
     here: {
       add: spot => { const k = 'here/' + encodeURIComponent(spot), o = M.docs.get(k) || { t: [] }, now = Date.now(); const t = [...o.t.filter(x => x > now), now + 7200000 + Math.floor(Math.random() * 1000)]; return put(k, { t, last: Math.max(...t) }) },
@@ -498,7 +517,7 @@ else if (be) {
     uid: be.uid, demo: !!be.demo, store, people,
     onPeople: f => peopleCbs.push(f), isOfficial: id => !!OFF[id],
     img: imgOf, need,
-    live, ex: { ...be.ex, sub: cb => be.ex.sub(m => { need(Object.values(m).flatMap(x => [x.a, x.b])); cb(m) }) }, here: be.here, shops: be.shops, report: be.report, signOut: be.signOut,
+    live, ex: { ...be.ex, sub: cb => be.ex.sub(m => { need(Object.values(m).flatMap(x => [x.a, x.b])); cb(m) }) }, party: be.party, here: be.here, shops: be.shops, report: be.report, signOut: be.signOut,
     deleteAccount: async () => { store.cancelAll(); const was = frozen; frozen = 'deleting'; try { await be.deleteAccount() } catch (e) { frozen = was; throw e } },
   };
   let started = false, gotPeople = false, gotCfg = false, cfg = {}, maintShown = false;
