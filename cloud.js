@@ -276,6 +276,7 @@ async function firebaseBackend() {
     import(SDK + 'firebase-app.js'), import(SDK + 'firebase-auth.js'), import(SDK + 'firebase-firestore.js')]);
   const app = initializeApp(firebaseConfig), auth = NATIVE ? A.initializeAuth(app, { persistence: A.indexedDBLocalPersistence }) : A.getAuth(app), db = F.getFirestore(app);
   const provider = new A.GoogleAuthProvider();
+  const appleProvider = new A.OAuthProvider('apple.com'); appleProvider.addScope('email'); appleProvider.addScope('name'); appleProvider.setCustomParameters({ locale: 'ja_JP' });
   window.__stage = 'ログイン状態を確認中';
   const user = await new Promise(res => {
     let done = false, shown = false;
@@ -301,9 +302,9 @@ async function firebaseBackend() {
       const ua = navigator.userAgent, inApp = /\bLine\/|FBAN|FBAV|Instagram|; wv\)/i.test(ua);
       if (/\bLine\//i.test(ua) && !/openExternalBrowser=1/.test(location.search)) {
         location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'openExternalBrowser=1'); return }
-      showGate(`<h1>ペタカー! ベータ</h1><p>Googleアカウントでログインしてください。記録はアカウントごとに保存されるので、次からも同じアカウントでログインしてください。</p>
+      showGate(`<h1>ペタカー! ベータ</h1><p>AppleアカウントかGoogleアカウントでログインしてください。記録はアカウントごとに保存されるので、次からも同じアカウントでログインしてください。</p>
         ${inApp ? '<p class="gerr">アプリの中のブラウザではログインできません。下のボタンでURLをコピーして、ChromeやSafariに貼り付けて開いてください。</p>' : ''}
-        <button class="gbtn" id="glogin">Googleでログイン</button><p class="gerr" id="gerr" hidden></p>${AGREE}
+        <button class="gbtn apple" id="alogin">Appleでサインイン</button><button class="gbtn sub" id="glogin">Googleでログイン</button><p class="gerr" id="gerr" hidden></p>${AGREE}
         <p class="ghelp">ログインのあと白い画面で止まるときは、メールやLINEのリンクから開いている可能性があります。URLをコピーして、Chrome（iPhoneはSafari）で直接開いてください。</p>
         <button class="gbtn sub" id="gcopy">URLをコピー</button>`);
       document.getElementById('gcopy').onclick = e => {
@@ -311,10 +312,12 @@ async function firebaseBackend() {
         (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject()).then(() => e.target.textContent = 'コピーしました', () => prompt('このURLをコピーしてください', url));
       };
       bindReviewLogin(A, auth);
-      document.getElementById('glogin').onclick = () => A.signInWithPopup(auth, provider).catch(e => {
+      const webLogin = pv => A.signInWithPopup(auth, pv).catch(e => {
         const el = document.getElementById('gerr'); el.hidden = false;
-        el.textContent = e.code === 'auth/popup-blocked' ? 'ログイン画面が開けませんでした。ブラウザのポップアップを許可してください。' : e.code === 'auth/popup-closed-by-user' ? 'ログインがキャンセルされました。' : 'ログインできませんでした（' + e.code + '）';
+        el.textContent = e.code === 'auth/popup-blocked' ? 'ログイン画面が開けませんでした。ブラウザのポップアップを許可してください。' : e.code === 'auth/popup-closed-by-user' || e.code === 'auth/cancelled-popup-request' ? 'ログインがキャンセルされました。' : e.code === 'auth/account-exists-with-different-credential' ? 'このメールアドレスは別の方法（Google）で登録済みです。前回と同じボタンでログインしてください。' : 'ログインできませんでした（' + e.code + '）';
       });
+      document.getElementById('glogin').onclick = () => webLogin(provider);
+      document.getElementById('alogin').onclick = () => webLogin(appleProvider);
     });
   });
   window.__stage = '招待リストを確認中';
@@ -413,7 +416,7 @@ async function firebaseBackend() {
       await Promise.all([F.deleteDoc(D('live', uid)).catch(() => { }), ...baks, ...imgs, ...exDel]);
       await Promise.all([F.deleteDoc(D('users', uid, 'priv', 'imgs')), F.deleteDoc(D('users', uid, 'priv', 'state')), F.deleteDoc(D('users', uid))]);
       try { await A.deleteUser(auth.currentUser) }
-      catch (e) { if (e.code === 'auth/requires-recent-login') { if (NATIVE) { const apple = auth.currentUser.providerData.some(p => p.providerId === 'apple.com'); await A.reauthenticateWithCredential(auth.currentUser, await nativeCred(A, apple ? 'apple' : 'google')) } else await A.reauthenticateWithPopup(auth.currentUser, provider); await A.deleteUser(auth.currentUser) } else throw e }
+      catch (e) { if (e.code === 'auth/requires-recent-login') { if (NATIVE) { const apple = auth.currentUser.providerData.some(p => p.providerId === 'apple.com'); await A.reauthenticateWithCredential(auth.currentUser, await nativeCred(A, apple ? 'apple' : 'google')) } else await A.reauthenticateWithPopup(auth.currentUser, auth.currentUser.providerData.some(p => p.providerId === 'apple.com') ? appleProvider : provider); await A.deleteUser(auth.currentUser) } else throw e }
     },
   };
 }
