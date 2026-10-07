@@ -453,7 +453,7 @@ setTimeout(function () {
   var C = window.Capacitor, esc = function (x) { return String(x).replace(/[<>&]/g, '') };
   var lines = ['段階: ' + __stage, 'cloud.js: ' + (window.__cloudLoaded ? '読み込み済み' : '未実行'),
     'Capacitor: ' + (C ? (C.getPlatform && C.getPlatform()) : 'なし'), 'URL: ' + location.href].concat(__errs.slice(0, 6));
-  g.innerHTML = '<div class="gbox"><h1>起動の途中で止まっています</h1><p>この画面のスクリーンショットを鈴木さんに送ってください。</p>'
+  g.innerHTML = '<div class="gbox"><h1>起動の途中で止まっています</h1><p>お手数ですが、この画面のスクリーンショットをサポート（<a href="mailto:info@seraphix-jp.com" style="color:var(--accent)">info@seraphix-jp.com</a>）へお送りください。</p>'
     + '<p class="gerr" style="text-align:left;word-break:break-all">' + lines.map(esc).join('<br>') + '</p>'
     + '<button class="gbtn" onclick="location.reload()">開き直す</button></div>';
 }, 12000);

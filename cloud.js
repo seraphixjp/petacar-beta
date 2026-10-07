@@ -42,7 +42,7 @@ function bindReviewLogin(A, auth, onUser) {
     };
   };
 }
-function showError(where, e) { console.error(where, e); showGate(`<h1>うまく開けませんでした</h1><p>${esc(where)}</p><p class="gerr">${esc((e && (e.code || e.message)) || e)}</p><p>この画面のスクリーンショットを鈴木さんに送ってください。</p><button class="gbtn" onclick="location.reload()">開き直す</button>`) }
+function showError(where, e) { console.error(where, e); showGate(`<h1>うまく開けませんでした</h1><p>${esc(where)}</p><p class="gerr">${esc((e && (e.code || e.message)) || e)}</p><p>お手数ですが、この画面のスクリーンショットをサポート（<a href="mailto:info@seraphix-jp.com" style="color:var(--accent)">info@seraphix-jp.com</a>）へお送りください。</p><button class="gbtn" onclick="location.reload()">開き直す</button>`) }
 addEventListener('error', e => { if (gate.hidden) { const b = document.createElement('div'); b.className = 'errbar'; b.textContent = 'エラー: ' + (e.message || '') + ' @' + (e.lineno || ''); document.body.appendChild(b) } });
 addEventListener('unhandledrejection', e => { if (gate.hidden) { const b = document.createElement('div'); b.className = 'errbar'; b.textContent = 'エラー: ' + ((e.reason && (e.reason.code || e.reason.message)) || e.reason); document.body.appendChild(b) } });
 // .now() は書き込み待ちがあるときだけ走る（何も変えていない古い画面が、閉じるときに上書きしないように）
@@ -143,7 +143,7 @@ function makeStore(backend, profDoc, privDoc, mine) {
     bar('savebar', kind === 'priv' ? '記録が減る保存を止めました。アプリを開き直してください（データは守られています）' : 'プロフィールの保存を止めました。アプリを開き直してください（スタンプは守られています）');
   };
   const retry = (f, e, what) => {
-    if (e && (e.code === 'invalid-argument' || e.code === 'permission-denied')) { bar('savebar', '保存できませんでした（' + (what || '') + '・' + e.code + '：' + String(e.message || '').replace(/^.*?:\s*/, '').slice(0, 90) + '）。この画面のスクリーンショットを鈴木さんに送ってください'); return }
+    if (e && (e.code === 'invalid-argument' || e.code === 'permission-denied')) { bar('savebar', '保存できませんでした（' + (what || '') + '・' + e.code + '：' + String(e.message || '').replace(/^.*?:\s*/, '').slice(0, 90) + '）。お手数ですが、この画面のスクリーンショットをサポート（info@seraphix-jp.com）へお送りください'); return }
     bar('savebar', '保存できませんでした。通信状態を確認してください（自動でやり直します）'); setTimeout(f, 5000) };
   const flushPriv = debounce(() => {
     if (frozen || blocked.priv) return;
@@ -330,7 +330,7 @@ async function firebaseBackend() {
   if (allowErr && allowErr.code !== 'permission-denied' && !open) throw allowErr;
   const allowed = listed || open;
   if (!allowed) {
-    showGate(`<h1>まだ招待されていません</h1><p><b>${esc(email)}</b> はテストの参加者リストに入っていません。鈴木さんに、このアドレスを伝えてください。</p><button class="gbtn sub" id="gout">別のアカウントでログイン</button>`);
+    showGate(`<h1>まだ招待されていません</h1><p><b>${esc(email)}</b> はテストの参加者リストに入っていません。参加をご希望の場合は、このアドレスをサポート（<a href="mailto:info@seraphix-jp.com" style="color:var(--accent)">info@seraphix-jp.com</a>）へお送りください。</p><button class="gbtn sub" id="gout">別のアカウントでログイン</button>`);
     document.getElementById('gout').onclick = () => A.signOut(auth).then(() => location.reload());
     return null;
   }
@@ -535,7 +535,7 @@ else if (be) {
     live, ex: { ...be.ex, sub: cb => be.ex.sub(m => { need(Object.values(m).flatMap(x => [x.a, x.b])); cb(m) }) }, party: be.party, here: be.here, shops: be.shops, report: be.report, signOut: be.signOut,
     deleteAccount: async () => { store.cancelAll(); const was = frozen; frozen = 'deleting'; try { await be.deleteAccount() } catch (e) { frozen = was; throw e } },
   };
-  let started = false, gotPeople = false, gotCfg = false, cfg = {}, maintShown = false;
+  let started = false, gotPeople = false, gotCfg = false, wait = '', cfg = {}, maintShown = false;
   step('参加者を読み込んでいます…');
   // 手元に残しておいた人と画像ですぐ開き、交換した相手だけを（古いものだけ）読み直す
   pkey = 'ppl3:' + be.uid; pmeId = be.uid; pfetch = be.getProfiles;
@@ -545,15 +545,19 @@ else if (be) {
   const myRefs = [pf.img, pf.bg && pf.bg.src, ...(Array.isArray(pf.garage) ? pf.garage.map(c => c && c.img) : [])];
   const logIds = (Array.isArray((be.privDoc || {}).log2) ? be.privDoc.log2 : []).map(l => l && l.pid);
   (async () => {
-    await idbLoadAll();
-    await needImgs(myRefs);
+    wait = '端末の保存場所'; await idbLoadAll();
+    // 自分の画像は待ちすぎない（電波が弱いと止まるので、5秒で先に開いて、届いたら描き直す）
+    wait = '自分の画像'; await Promise.race([needImgs(myRefs), new Promise(r => setTimeout(r, 5000))]);
+    wait = '交換した相手';
     const firstTime = !Object.keys(pcache).length;
     const p = need(logIds);
     if (firstTime) await Promise.race([p, new Promise(r => setTimeout(r, 6000))]);
     setPeople(pMap(), be.uid);
-    gotPeople = true; start();
+    gotPeople = true; wait = gotCfg ? '' : '運営の設定'; start();
   })().catch(e => { clearTimeout(slow); showError('参加者の一覧を読み込めませんでした。', e) });
-  const slow = setTimeout(() => { if (!started && !frozen) showError('参加者の一覧を読み込めません（15秒たっても応答がありません）。', 'timeout') }, 15000);
+  const slow = setTimeout(() => { if (!started && !frozen) showError('参加者の一覧を読み込めません（15秒たっても応答がありません）。電波の良い場所で開き直してみてください。', 'timeout（' + (wait || '?') + '）') }, 15000);
+  // 運営の設定（メンテナンス）が8秒たっても届かないときは、届いていないまま開く（届いたらその時点で止める）
+  setTimeout(() => { if (!gotCfg) { gotCfg = true; start() } }, 8000);
   function start() {
     if (started || !gotPeople || !gotCfg || frozen) return;
     started = true; clearTimeout(slow);
