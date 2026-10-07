@@ -441,6 +441,21 @@ html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
 </style>
 </head><body>
 <div id="gate"><div class="gbox"><p>読み込んでいます…</p></div></div>
+<script>/* 起動で止まったときに、どこで止まったかを画面に出す（実機の調査用。12秒たってもログイン画面が出ないとき） */
+window.__stage = 'ページを読み込み中'; window.__errs = [];
+addEventListener('error', function (e) { __errs.push((e.message || 'error') + ' @' + String(e.filename || '').split('/').pop() + ':' + (e.lineno || '')) });
+addEventListener('unhandledrejection', function (e) { var r = e.reason; __errs.push('promise: ' + ((r && (r.code || r.message)) || r)) });
+setTimeout(function () {
+  var g = document.getElementById('gate');
+  if (!g || g.hidden || g.querySelector('.glogo') || !/読み込んでいます/.test(g.textContent)) return;
+  var C = window.Capacitor, esc = function (x) { return String(x).replace(/[<>&]/g, '') };
+  var lines = ['段階: ' + __stage, 'cloud.js: ' + (window.__cloudLoaded ? '読み込み済み' : '未実行'),
+    'Capacitor: ' + (C ? (C.getPlatform && C.getPlatform()) : 'なし'), 'URL: ' + location.href].concat(__errs.slice(0, 6));
+  g.innerHTML = '<div class="gbox"><h1>起動の途中で止まっています</h1><p>この画面のスクリーンショットを鈴木さんに送ってください。</p>'
+    + '<p class="gerr" style="text-align:left;word-break:break-all">' + lines.map(esc).join('<br>') + '</p>'
+    + '<button class="gbtn" onclick="location.reload()">開き直す</button></div>';
+}, 12000);
+</script>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
   <linearGradient id="gBr" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f3bd8a"/><stop offset=".55" stop-color="#bd6e32"/><stop offset="1" stop-color="#7a3e17"/></linearGradient>

@@ -1,6 +1,7 @@
 // PetaCar beta: login gate + Firestore-backed storage for the app in index.html.
 // The app itself stays a plain script; it starts once window.__cloud is ready (window.__startApp()).
 import { firebaseConfig } from './firebase-config.js';
+window.__cloudLoaded = true;
 
 const SDK = 'https://www.gstatic.com/firebasejs/10.12.2/';
 // アプリ版（Capacitor）ではブラウザのポップアップが使えないので、OS標準のログイン画面を使う
@@ -24,7 +25,7 @@ function showGate(html) { gate.hidden = false; gate.innerHTML = `<div class="gbo
 const AGREE = '<p class="ghelp">ログインすると、<a href="https://seraphixjp.github.io/petacar-beta/terms.html" target="_blank" rel="noopener">利用規約</a>と<a href="https://seraphixjp.github.io/petacar-beta/privacy.html" target="_blank" rel="noopener">プライバシーポリシー</a>に同意したものとします。不快な写真や名前は禁止で、見つけしだい削除します。</p>';
 const step = t => showGate(`<p>${esc(t)}</p><div class="gspin"></div>`);
 // ロゴを5回続けてタップすると、審査用のメール／パスワードのログイン欄が出る
-function bindReviewLogin(A, auth) {
+function bindReviewLogin(A, auth, onUser) {
   const logo = gate.querySelector('.glogo'); if (!logo) return;
   let n = 0, t = null;
   logo.onclick = () => {
@@ -35,7 +36,7 @@ function bindReviewLogin(A, auth) {
     gate.querySelector('.gbox').appendChild(f);
     f.onsubmit = e => {
       e.preventDefault();
-      A.signInWithEmailAndPassword(auth, document.getElementById('rvm').value.trim(), document.getElementById('rvp').value).catch(er => {
+      A.signInWithEmailAndPassword(auth, document.getElementById('rvm').value.trim(), document.getElementById('rvp').value).then(r => { if (onUser && r && r.user) onUser(r.user) }).catch(er => {
         const el = document.getElementById('rve'); el.hidden = false; el.textContent = 'ログインできませんでした（' + (er.code || er.message) + '）';
       });
     };
@@ -269,30 +270,37 @@ imgsChanged = () => peopleCbs.forEach(f => { try { f() } catch (e) { console.war
 
 /* ---------- Firebase backend ---------- */
 async function firebaseBackend() {
+  window.__stage = 'Firebaseの部品を読み込み中';
   const [{ initializeApp }, A, F] = await Promise.all([
     import(SDK + 'firebase-app.js'), import(SDK + 'firebase-auth.js'), import(SDK + 'firebase-firestore.js')]);
   const app = initializeApp(firebaseConfig), auth = NATIVE ? A.initializeAuth(app, { persistence: A.indexedDBLocalPersistence }) : A.getAuth(app), db = F.getFirestore(app);
   const provider = new A.GoogleAuthProvider();
+  window.__stage = 'ログイン状態を確認中';
   const user = await new Promise(res => {
-    const un = A.onAuthStateChanged(auth, u => {
-      if (u) { un(); res(u); return }
-      if (NATIVE) {
+    let done = false, shown = false;
+    const finish = u => { if (done) return; done = true; res(u) };
+    const showNativeLogin = () => {
+        if (shown) return; shown = true;
         showGate(`<h1>ペタカー!</h1><p>実際に会った人とだけ、車のスタンプを交換できます。</p>
           ${IOS ? '<button class="gbtn apple" id="napple">Appleでサインイン</button>' : ''}<button class="gbtn${IOS ? ' sub' : ''}" id="ngoogle">Googleでログイン</button><p class="gerr" id="gerr" hidden></p>${AGREE}`);
-        const go = kind => nativeCred(A, kind).then(c => A.signInWithCredential(auth, c)).catch(e => {
+        const go = kind => { window.__stage = 'Googleログイン中'; nativeCred(A, kind).then(c => { window.__stage = 'Firebaseにログイン中'; return A.signInWithCredential(auth, c) }).then(r => { if (r && r.user) finish(r.user) }).catch(e => {
           const el = document.getElementById('gerr'); el.hidden = false;
           el.textContent = /cancel/i.test((e && (e.code || e.message)) || '') ? 'ログインがキャンセルされました。' : 'ログインできませんでした（' + ((e && (e.code || e.message)) || e) + '）';
-        });
+        }) };
         document.getElementById('ngoogle').onclick = () => go('google');
         if (IOS) document.getElementById('napple').onclick = () => go('apple');
-        bindReviewLogin(A, auth);
-        return;
-      }
+        bindReviewLogin(A, auth, finish);
+    };
+    // アプリ版：ログイン状態の確認が返ってこない端末があるので、6秒待っても来なければログイン画面を出す
+    if (NATIVE) setTimeout(() => { if (!done && !shown) { window.__stage = 'ログイン状態の確認が返らない→ログイン画面'; showNativeLogin() } }, 6000);
+    const un = A.onAuthStateChanged(auth, u => {
+      if (u) { un(); finish(u); return }
+      if (NATIVE) { showNativeLogin(); return }
       // LINEなどアプリ内のブラウザではGoogleログインが戻ってこない。LINEは外部ブラウザで開き直せる
       const ua = navigator.userAgent, inApp = /\bLine\/|FBAN|FBAV|Instagram|; wv\)/i.test(ua);
       if (/\bLine\//i.test(ua) && !/openExternalBrowser=1/.test(location.search)) {
         location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'openExternalBrowser=1'); return }
-      showGate(`<h1>ペタカー! ベータ</h1><p>招待された人だけが使えるテスト版です。招待に使ったGoogleアカウントでログインしてください。</p>
+      showGate(`<h1>ペタカー! ベータ</h1><p>Googleアカウントでログインしてください。記録はアカウントごとに保存されるので、次からも同じアカウントでログインしてください。</p>
         ${inApp ? '<p class="gerr">アプリの中のブラウザではログインできません。下のボタンでURLをコピーして、ChromeやSafariに貼り付けて開いてください。</p>' : ''}
         <button class="gbtn" id="glogin">Googleでログイン</button><p class="gerr" id="gerr" hidden></p>${AGREE}
         <p class="ghelp">ログインのあと白い画面で止まるときは、メールやLINEのリンクから開いている可能性があります。URLをコピーして、Chrome（iPhoneはSafari）で直接開いてください。</p>
@@ -308,12 +316,18 @@ async function firebaseBackend() {
       });
     });
   });
+  window.__stage = '招待リストを確認中';
   step('招待リストを確認しています…');
   const email = (user.email || '').toLowerCase();
   let allowErr = null;
   let demo = false;
-  const allowed = await F.getDoc(F.doc(db, 'allow', email)).then(s => { demo = !!(s.exists() && s.data().demo); return s.exists() }).catch(e => { allowErr = e; return false });
-  if (allowErr && allowErr.code !== 'permission-denied') throw allowErr;
+  // 招待制のスイッチ：config/app の open が true なら、Google・Appleでログインした人は招待リストなしで使える
+  // （メール／パスワードは審査用だけなので、招待リストに入っている人に限る）
+  const social = (user.providerData || []).some(p => p.providerId === 'google.com' || p.providerId === 'apple.com');
+  const open = social && await F.getDoc(F.doc(db, 'config', 'app')).then(s => s.exists() && s.data().open === true).catch(() => false);
+  const listed = email ? await F.getDoc(F.doc(db, 'allow', email)).then(s => { demo = !!(s.exists() && s.data().demo); return s.exists() }).catch(e => { allowErr = e; return false }) : false;
+  if (allowErr && allowErr.code !== 'permission-denied' && !open) throw allowErr;
+  const allowed = listed || open;
   if (!allowed) {
     showGate(`<h1>まだ招待されていません</h1><p><b>${esc(email)}</b> はテストの参加者リストに入っていません。鈴木さんに、このアドレスを伝えてください。</p><button class="gbtn sub" id="gout">別のアカウントでログイン</button>`);
     document.getElementById('gout').onclick = () => A.signOut(auth).then(() => location.reload());
