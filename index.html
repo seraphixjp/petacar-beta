@@ -152,6 +152,8 @@ button{font-family:inherit;color:inherit}
 .maplegend{display:flex;gap:4px;align-items:center;justify-content:center;font-size:11px;color:var(--muted);flex-wrap:wrap}.maplegend i{width:12px;height:12px;border-radius:3px;display:inline-block;margin-left:8px}
 .mapstat{display:flex;gap:8px;justify-content:center;text-align:center}.mapstat>div{flex:1;background:var(--fill);border-radius:14px;padding:10px 6px}.mapstat b{font:700 22px var(--mono)}.mapstat small{color:var(--muted);font:500 12px var(--mono)}.mapstat span{display:block;font-size:11.5px;color:var(--muted);margin-top:2px}
 .rgrow{display:flex;align-items:center;gap:10px;padding:10px 14px}.rgrow .t{flex:1}.rgrow .bar{flex:1;margin:0}
+.frpick{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-height:54vh;overflow:auto;padding:2px}.frop{border:2px solid transparent;border-radius:14px;background:var(--surface);color:var(--ink);padding:8px 4px;display:grid;justify-items:center;gap:4px;font:600 11px/1.3 var(--sans);cursor:pointer}.frop[aria-pressed=true]{border-color:var(--accent)}.frop small{display:block;font-weight:400;color:var(--muted)}
+@keyframes frholo{to{transform:rotate(360deg)}}.frholo{transform-origin:50px 50px;animation:frholo 6s linear infinite}@media (prefers-reduced-motion:reduce){.frholo{animation:none}}
 .qcard{display:block;width:100%;text-align:left;border:0;cursor:pointer;background:var(--surface);color:var(--ink);border-radius:20px;padding:14px 16px;margin-top:12px;font:inherit}.qcard .qh{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}.qcard .qh b{font-size:15px}.qcard .qh span{font-size:12px;color:var(--muted)}
 .qrow{display:flex;align-items:center;gap:10px;padding:6px 0}.qrow .t{flex:1;min-width:0}.qrow .t b{font-size:13.5px;font-weight:600;display:block}.qrow .bar{margin-top:5px}.qrow .v{font:500 12px var(--mono);color:var(--muted)}.qi{width:20px;height:20px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-size:12px;color:#fff;flex:none}.qrow.ok .qi{background:#16a34a;border-color:#16a34a}.qrow.ok .t b{color:var(--muted);text-decoration:line-through}
 .snsrow{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:6px}.snsl{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:999px;background:var(--fill);color:var(--ink);font:600 12.5px var(--sans);text-decoration:none}
@@ -1094,13 +1096,58 @@ function seasonFrame(x){const id='rp'+(++uid),c1=okColor(x.c1),c2=okColor(x.c2);
     <text font-size="5.3" font-family="JetBrains Mono,monospace" font-weight="800" fill="${c2}" dy="1.9" text-anchor="middle"><textPath href="#${id}" startOffset="50%">${esc(x.t)} ${esc(x.y)}</textPath></text>${mk}${extra}</svg>`}
 function seasonNote(){const k=seasonOn(today()),x=seasonOf(k);if(!x)return '';
   return `<div class="szcard" style="--c1:${okColor(x.c1)};--c2:${okColor(x.c2)}">${stamp(me,{size:46,sz:k})}<div class="t"><b>${esc(x.n)}のフチ 配布中</b><span>${fmtD(today().slice(0,5)+x.from)}〜${fmtD(today().slice(0,5)+x.to)}に交換したスタンプに付きます${inEvent()?'（いまはイベントのフチが優先です）':''}</span></div></div>`}
+/* ===== クラスの縁（2026-10-07 鈴木さん）：格で素材（一人前＝自分の色・上級＝銀・凄腕の＝金・伝説の＝虹色）、クラスで縁の形
+   縁のid＝'t2:run'（t1〜t4＝格、うしろ＝クラス）。''＝見習いのふつうのリング。季節・イベントの縁があるときはそちらが優先
+   交換した時点の縁を記録（log.fr）に残すので、あとで相手が縁を変えてもコレクションの絵は変わらない */
+const FR_EN={run:'STREET RACER',trip:'TRAVELER',faith:'PILGRIM',expl:'EXPLORER',charm:'SOCIALITE',luck:'GAMBLER'};
+const FR_TIER=['見習い','一人前','上級','凄腕の','伝説の'];
+const frOk=f=>typeof f==='string'&&/^t[1-4]:(run|trip|faith|expl|charm|luck)$/.test(f)?f:'';
+const frc=x=>((x%1)+1)%1;
+function frEdge(ck,th){const P2=2*Math.PI; // 縁の外周の半径（th＝上を0とした角度）。帯の内側は38.5、文字は半径43
+  if(ck==='run'){const k=frc(th*40/P2),e=.14,sm=x=>x*x*(3-2*x),u=k<e?sm(k/e):k<.55?1:k<.55+e?1-sm((k-.55)/e):0;return 48.1+1.3*u} // タイヤ
+  if(ck==='trip'){const d=Math.abs(frc(th*20/P2)-.5)/.5;return 49.4-2.6*(d<.62?Math.sqrt(1-Math.pow(d/.62,2)):0)}            // 切手のミシン目
+  if(ck==='faith')return 46.6+3.1*Math.pow(1-Math.abs(2*frc(th*16/P2)-1),.55);                                             // 蓮の花びら
+  if(ck==='expl'){const f=x=>Math.pow(Math.max(0,1-Math.abs(x)),2.2),a4=frc(th/(Math.PI/2)),a8=frc((th-Math.PI/4)/(Math.PI/2));
+    return 46.6+3.3*f((a4<.5?a4:a4-1)*7)+1.9*f((a8<.5?a8:a8-1)*7)}                                                         // 方位磁針の星
+  if(ck==='charm')return 47.2+2.3*Math.pow(Math.sin(Math.PI*frc(th*12/P2)),.45);                                           // 雲
+  const seg=P2/16,t=frc(th/seg)*seg-seg/2;return 48.6/Math.cos(t)*Math.cos(seg/2)}                                         // 宝石のカット
+const FR_PATH={};function frPath(ck){if(FR_PATH[ck])return FR_PATH[ck];let d='';
+  for(let i=0;i<=480;i++){const th=i/480*2*Math.PI,r=frEdge(ck,th);d+=(i?'L':'M')+(50+r*Math.sin(th)).toFixed(2)+','+(50-r*Math.cos(th)).toFixed(2)}return FR_PATH[ck]=d+'Z'}
+function frameSvg(f,ring){const t=+f[1],ck=f.slice(3),id='rp'+(++uid),d=frPath(ck);
+  const mask=`<mask id="${id}m"><rect x="-5" y="-5" width="110" height="110" fill="#fff"/><circle cx="50" cy="50" r="38.5" fill="#000"/></mask>`,tp=`<path id="${id}" d="M7,50 a43,43 0 1,1 86,0"/>`;
+  const txt=(fill,pre)=>`<text font-size="5.4" font-family="JetBrains Mono,monospace" font-weight="800" fill="${fill}" dy="1.9" text-anchor="middle"><textPath href="#${id}" startOffset="50%">${pre}${FR_EN[ck]}</textPath></text>`;
+  if(t===1)return `<svg viewBox="0 0 100 100" aria-hidden="true"><defs>${tp}${mask}</defs><path d="${d}" fill="${ring}" mask="url(#${id}m)"/><circle cx="50" cy="50" r="39.1" fill="none" stroke="#fff" stroke-width=".7" opacity=".8"/>${txt('#fff','')}</svg>`;
+  if(t<4){const G=t===2?['#f4f6f8','#a9b0b8','#5d646d']:['#fff1a8','#e2a91c','#8a5c04'];
+    return `<svg viewBox="0 0 100 100" aria-hidden="true"><defs>${tp}${mask}<linearGradient id="${id}g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${G[0]}"/><stop offset=".5" stop-color="${G[1]}"/><stop offset="1" stop-color="${G[2]}"/></linearGradient></defs>
+    <path d="${d}" fill="url(#${id}g)" mask="url(#${id}m)"/><path d="${d}" fill="none" stroke="#000" stroke-width=".5" opacity=".35"/><circle cx="50" cy="50" r="39.1" fill="none" stroke="#000" stroke-width=".6" opacity=".4"/>${txt('#1a1407',t===3?'ACE ':'')}
+    ${t===3?`<path transform="translate(50 2.6)" d="M-6 2 L-4-2 L-2 1 L0-3 L2 1 L4-2 L6 2z" fill="url(#${id}g)" stroke="#1a1407" stroke-width=".6"/>`:''}</svg>`}
+  return `<svg viewBox="0 0 100 100" aria-hidden="true"><defs>${tp}<linearGradient id="${id}h" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff6ad5"/><stop offset=".2" stop-color="#c774e8"/><stop offset=".4" stop-color="#94d0ff"/><stop offset=".6" stop-color="#8ef6c6"/><stop offset=".8" stop-color="#fff59a"/><stop offset="1" stop-color="#ff9a6a"/></linearGradient><clipPath id="${id}c"><path d="${d}"/></clipPath>${mask}</defs>
+    <g clip-path="url(#${id}c)" mask="url(#${id}m)"><circle class="frholo" cx="50" cy="50" r="54" fill="url(#${id}h)"/></g><path d="${d}" fill="none" stroke="#fff" stroke-width=".8"/><circle cx="50" cy="50" r="39.1" fill="none" stroke="#fff" stroke-width=".8"/>${txt('#2a1240','LEGEND ')}
+    <path transform="translate(50 1)" d="M-8 3 L-5.5-3 L-2.6 1.2 L0-4.5 L2.6 1.2 L5.5-3 L8 3z" fill="#ffe27a" stroke="#7a4b00" stroke-width=".7"/></svg>`}
+// 自分が使える縁：格は今の格まで、形はこれまでに一度でもなったクラス（settings.frCls に貯める）
+const RI_FORCE=(()=>{try{return window.__cloud?null:+new URLSearchParams(location.search).get('ri')||null}catch(e){return null}})(); // 試作だけ：?ri=4 で格の縁を確かめる
+const rpgF=()=>{const r=rpgOf(myStats());return RI_FORCE?{...r,ri:RI_FORCE}:r};
+function myFrameList(){const r=rpgF(),cl=[...new Set([...(settings.frCls||[]),...(r.top?[r.top]:[])])].filter(k=>FR_EN[k]);
+  const out=[''];for(let t=1;t<=r.ri;t++)cl.forEach(k=>out.push(`t${t}:${k}`));return {r,list:out}}
+// 使う縁：settings.frame が 'auto'（既定）なら今の格・クラス。選んだ縁が使えなくなっていたら auto に戻す
+const autoFrame=()=>{const r=rpgF();return r.ri>0&&r.top?`t${r.ri}:${r.top}`:''};
+function myFrame(){const {list}=myFrameList(),f=settings.frame;return f==null||f==='auto'||!list.includes(f)?autoFrame():f}
+function syncFrame(){const r=rpgOf(myStats());if(r.top&&!(settings.frCls||[]).includes(r.top)){settings.frCls=[...(settings.frCls||[]),r.top];if(!me.sample)store.set('set2',settings)}
+  const f=myFrame();if((me.frame||'')!==f){me={...me,frame:f};if(!me.sample)store.set('me2',me);return true}return false}
+function frName(f){return f?`${FR_TIER[+f[1]]}${RSTATS.find(x=>x.k===f.slice(3)).cls}の縁`:'ふつうのリング'}
+function openFrames(){const {list}=myFrameList(),cur=settings.frame&&settings.frame!=='auto'&&list.includes(settings.frame)?settings.frame:'auto';
+  openSheet(`<b style="font-size:20px;display:block;text-align:center">縁をえらぶ</b><p class="note" style="text-align:center">クラスの格と種類で、スタンプの縁が変わります。獲得した縁はいつでも選び直せます。季節・イベントの期間中に交換したスタンプは、その期間の縁になります。</p>
+   <div class="frpick"><button class="frop press" data-fr="auto" aria-pressed="${cur==='auto'}">${stamp(me,{size:64,fr:autoFrame()})}<span>おまかせ<small>今のクラス</small></span></button>${list.map(f=>`<button class="frop press" data-fr="${f}" aria-pressed="${cur===f}">${stamp(me,{size:64,fr:f})}<span>${esc(frName(f))}</span></button>`).join('')}</div>
+   <div class="note" style="margin-top:8px;text-align:center">${FR_TIER.slice(1).map((n,i)=>`${n} Lv.${CLS_STEP[i+1][0]}`).join('・')} で縁の格が上がります</div>
+   <button class="btn sub press" style="margin-top:12px" data-close>閉じる</button>`);
+  bindClose();$$('[data-fr]').forEach(b=>b.onclick=()=>{settings.frame=b.dataset.fr;store.set('set2',settings);syncFrame();closeSheet();render();toast('縁を変えました')})}
 /* stamp renderer */
 let uid=0;
 function stamp(p,o={}){
   if(o.v&&p.vers&&p.vers[o.v-1])p={...p,...p.vers[o.v-1]};
   if(o.im)p={...p,img:o.im,ring:o.rg||p.ring}; // その日に交換したスタンプ（車ごと・作り直しごと）
   p={...p,img:esc(IMG(p.img)||avatar(okColor(p.ring))),ring:okColor(p.ring)}; // 他の人の値はそのまま埋め込まない
-  const size=o.size||84, off=o.off??!!p.official, ev=!off&&o.ev&&EVENTS[o.ev], szx=!off&&!ev&&seasonOf(o.sz);
+  const size=o.size||84, off=o.off??!!p.official, ev=!off&&o.ev&&EVENTS[o.ev], szx=!off&&!ev&&seasonOf(o.sz), fr=!off&&!ev&&!szx&&frOk('fr' in o?o.fr:p.frame);
   let svg;
   if(off){const id='rp'+(++uid),txt='OFFICIAL ★ PETACAR ★ OFFICIAL ★ PETACAR ★ ';
     svg=`<svg viewBox="0 0 100 100" aria-hidden="true"><defs><path id="${id}" d="M50,50 m-44.5,0 a44.5,44.5 0 1,1 89,0 a44.5,44.5 0 1,1 -89,0"/><linearGradient id="${id}g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff1a8"/><stop offset=".5" stop-color="#e2a91c"/><stop offset="1" stop-color="#9a6a06"/></linearGradient></defs>
@@ -1114,8 +1161,9 @@ function stamp(p,o={}){
       <circle cx="50" cy="50" r="49.6" fill="none" stroke="${ev.c2}" stroke-width=".9"/><circle cx="50" cy="50" r="39.4" fill="none" stroke="${ev.c2}" stroke-width=".9"/>
       <text font-size="5.6" font-family="JetBrains Mono,monospace" font-weight="700" fill="${ev.c2}" dy="2" textLength="276" lengthAdjust="spacing"><textPath href="#${id}">${esc(txt)}</textPath></text></svg>`;
   }else if(szx)svg=seasonFrame(szx);
+  else if(fr)svg=frameSvg(fr,p.ring);
   else svg=`<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48" fill="none" stroke="${p.ring}" stroke-width="3.6"/></svg>`;
-  return `<div class="stamp ${ev||off||szx?'ev':''}" style="width:${size}px;font-size:${size/7}px"><img src="${p.img}" alt="${esc(p.name)}のスタンプ">${o.kira?'<div class="k"></div>':o.rare?'<div class="k g"></div>':''}${svg}${o.kira?'<div class="kb">EX</div>':o.rare?'<div class="kb g">RARE</div>':''}</div>`;
+  return `<div class="stamp ${ev||off||szx||fr?'ev':''}" style="width:${size}px;font-size:${size/7}px"><img src="${p.img}" alt="${esc(p.name)}のスタンプ">${o.kira?'<div class="k"></div>':o.rare?'<div class="k g"></div>':''}${svg}${o.kira?'<div class="kb">EX</div>':o.rare?'<div class="kb g">RARE</div>':''}</div>`;
 }
 const OFFB='<span class="offb" title="運営が本人確認した公式アカウント"><svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"><path d="M3.5 8.3l3 3 6-6.4" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>公式</span>';
 const curV=p=>p.vers?p.vers.length:(p.ver||1);
@@ -1190,7 +1238,7 @@ function rpgWindow(st){const r=rpgOf(st),mx=Math.max(100,...r.vals.map(v=>v[1]))
   return `<div class="rpg" role="group" aria-label="ステータス"><div class="hd"><div class="lvn"><small>Lv.</small>${r.L}</div><div><span class="lv">クラス</span><span class="job">${esc(r.cls)}</span>${r.title?`<span class="ttl">称号【${esc(r.title)}】</span>`:''}</div></div>
    <div class="xp"><i style="width:${pct}%"></i></div><div class="xpn"><span>EXP ${r.e.toLocaleString()}</span><span>${r.next?`つぎのLvまで ${(r.next-r.e).toLocaleString()}`:'最高レベル'}</span></div>${r.nextCls?`<div class="xpn" style="margin-top:2px"><span></span><span>Lv.${r.nextCls} でクラスの格が上がります</span></div>`:''}
    <div class="sts">${r.vals.map(([x,v])=>`<span class="${x.k===r.top?'top':''}">${x.n}</span><span class="bar2"><i style="width:${v/mx*100}%"></i></span><span class="v">${v}</span>`).join('')}</div>
-   <div class="row"><button class="btn sub press" id="ttlb">称号をえらぶ</button><button class="btn sub press" id="rpghelp">クラスのしくみ</button></div></div>`}
+   <div class="row"><button class="btn sub press" id="ttlb">称号をえらぶ</button><button class="btn sub press" id="frb">縁をえらぶ</button></div><div class="row" style="margin-top:8px"><button class="btn sub press" id="rpghelp">クラスのしくみ</button></div></div>`}
 function openTitles(){const st=myStats(),gl=gotList(st).sort((a,b)=>TIERS[b.tier].o-TIERS[a.tier].o);
   openSheet(`<b style="font-size:20px;display:block;text-align:center">称号をえらぶ</b><p class="note" style="text-align:center">獲得したバッジの名前を、称号としてクラスの横に付けられます。</p>
    <div class="list ttlpick" style="max-height:52vh;overflow:auto">${gl.map(b=>`<button class="li press" data-tt="${b.k}">${medal(b,34)}<div class="t"><b>${esc(b.t)}<small>${TIERS[b.tier].n}</small></b></div><span class="d">${settings.title===b.k?'使用中':''}</span></button>`).join('')||'<p class="note" style="text-align:center">まだバッジがありません。</p>'}</div>
@@ -1215,7 +1263,7 @@ let fanA=null;function fanfare(){if(settings.sound===false)return;try{const C=wi
   [[523.3,.42],[659.3,.42],[784,.42],[1046.5,.42],[1318.5,.47]].forEach(([f,d])=>bell(f,d,1.6,.11)); // 和音
   [[2093,.55],[2637,.63],[3136,.71]].forEach(([f,d])=>bell(f,d,.5,.035));                         // きらきら
 }catch(e){}}
-function checkLevelUp(){if(me.sample)return;const r=rpgOf(myStats()),pl=store.get('lv1',null),prev=store.get('cls3',null);
+function checkLevelUp(){if(syncFrame()&&!$('#sh')){render();return}if(me.sample)return;const r=rpgOf(myStats()),pl=store.get('lv1',null),prev=store.get('cls3',null);
   store.set('lv1',r.L);if(prev==null||r.ri<prev)store.set('cls3',r.ri);
   if(prev!=null&&r.ri>prev){store.set('cls3',r.ri);fanfare();buzz([40,40,40,40,120]);
   $('#lvup').innerHTML=`<div class="lvup" id="lvo" role="dialog" aria-modal="true" aria-label="クラスアップ"><div class="rpg"><h3>CLASS UP!</h3>
@@ -1244,7 +1292,7 @@ const views={
   ${questCard()}
   <button class="yrcard press" id="wrapb"><span class="yk">PETACAR ${new Date().getFullYear()}</span><b>${new Date().getFullYear()}年のまとめ</b><span class="ys">この1年の出会いとスポットを振り返る</span><span class="ya" aria-hidden="true">›</span></button>
   <div class="sec">最近の交換<button class="seclink" id="allrec">すべて見る ›</button></div>
-  <div class="list">${log.slice().sort((a,b)=>b.d.localeCompare(a.d)).slice(0,4).map(l=>{const p=person(l.pid);return `<button class="li press" data-p="${p.id}">${stamp(p,{size:44,ev:l.ev,sz:l.sz,kira:l.kira,rare:l.rare,v:l.v,im:l.im,rg:l.rg})}<div class="t"><b>${esc(p.name)} ${l.kira?'<span class="tag kira">EX</span>':l.rare?'<span class="tag rare">レア</span>':''}</b><span>${esc(placeOf(l))}</span></div><span class="d">${fmtD(l.d)}</span></button>`}).join('')}</div>`;
+  <div class="list">${log.slice().sort((a,b)=>b.d.localeCompare(a.d)).slice(0,4).map(l=>{const p=person(l.pid);return `<button class="li press" data-p="${p.id}">${stamp(p,{size:44,ev:l.ev,sz:l.sz,fr:l.fr,kira:l.kira,rare:l.rare,v:l.v,im:l.im,rg:l.rg})}<div class="t"><b>${esc(p.name)} ${l.kira?'<span class="tag kira">EX</span>':l.rare?'<span class="tag rare">レア</span>':''}</b><span>${esc(placeOf(l))}</span></div><span class="d">${fmtD(l.d)}</span></button>`}).join('')}</div>`;
  },
  ex(){
   const on=nearOn();
@@ -1327,7 +1375,7 @@ function colGrid(){
   if(!ids.length)return `<p class="note" style="text-align:center;margin-top:18px">${q?'見つかりません。':colSort==='fav'?'まだお気に入りがいません。相手のプロフィールの「☆ お気に入りに追加」で登録できます。':'まだ交換した人がいません。'}</p>`;
   return `${q?`<p class="note" style="margin:0 4px 8px">${ids.length}人</p>`:''}<div class="grid">${ids.map(id=>{const p=person(id),n=daysWith(id),b=best(id),kc=log.filter(l=>l.pid===id&&l.kira).length;
     const sub=colSort==='recent'?`<span class="s">${fmtD(lastMet(id))}</span>`:colSort==='car'?`<span class="s">${esc(carLabel(p))}</span>`:colSort==='rare'?`<span class="s">${kc?`EX×${kc} · `:''}${new Set(log.filter(l=>l.pid===id).map(l=>(l.im||l.v||1)+(l.ev||l.sz||'-')+(l.kira?'k':l.rare?'r':''))).size}種類</span>`:`<span class="hearts">♥${n} ${rank(n)}</span>`;
-    return `<button class="cell press" data-p="${id}">${favMark(id)}${stamp(p,{ev:b.ev,sz:b.sz,kira:b.kira,rare:b.rare,v:b.v,im:b.im,rg:b.rg})}<span class="n">${esc(p.name)}</span>${sub}</button>`}).join('')}</div>`;
+    return `<button class="cell press" data-p="${id}">${favMark(id)}${stamp(p,{ev:b.ev,sz:b.sz,fr:b.fr,kira:b.kira,rare:b.rare,v:b.v,im:b.im,rg:b.rg})}<span class="n">${esc(p.name)}</span>${sub}</button>`}).join('')}</div>`;
 }
 const PINI='<svg viewBox="0 0 24 24" width="11" height="11" fill="#fff"><path d="M12 2.5l2.8 6 6.6.7-5 4.5 1.4 6.5L12 17l-5.8 3.2 1.4-6.5-5-4.5 6.6-.7z"/></svg>';
 // 場所が決まっているバッジは、対象のスポットと「済／まだ」を詳細に出す（2026-10-06 鈴木さん「あとどこなのか分かりづらい」）
@@ -1761,7 +1809,7 @@ function render(){
   const v=$('#view');v.innerHTML=views[tab]();
   if(lastTab!==tab){v.classList.remove('enter');void v.offsetWidth;v.classList.add('enter');$('#scroll').scrollTop=0;$('#navbar').classList.remove('on');lastTab=tab}
   bindEv();
-  if($('#ttlb'))$('#ttlb').onclick=openTitles;if($('#rpghelp'))$('#rpghelp').onclick=openRpgHelp;checkLevelUp();
+  if($('#ttlb'))$('#ttlb').onclick=openTitles;if($('#frb'))$('#frb').onclick=openFrames;if($('#rpghelp'))$('#rpghelp').onclick=openRpgHelp;checkLevelUp();
   $('.tab[data-t=rw]').classList.toggle('dot',tab!=='rw'&&unseen().length>0);
   $$('[data-p]').forEach(b=>b.onclick=()=>detail(b.dataset.p));
   if(tab==='me'){$('#mk').onclick=openCrop;if($('#mkFirst'))$('#mkFirst').onclick=openCrop;if($('#qcard'))$('#qcard').onclick=openQuests;$('#hito').onclick=openHito;if($('#nmb'))$('#nmb').onclick=openName;$('#carb').onclick=()=>openGarage(render);if($('#newsTop'))$('#newsTop').onclick=()=>openNewsItem($('#newsTop').dataset.n);if($('#openRow'))$('#openRow').onclick=()=>{tab='ex';render()};$('#bgb').onclick=openBg;$('#wrapb').onclick=openWrap;$('#allrec').onclick=()=>{colView='stamp';store.set('colv2',colView);colSort='recent';store.set('sort2',colSort);tab='col';render()}}
@@ -1783,9 +1831,9 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('#sh'))dismissShe
 function grant(p,o={}){
   const already=log.some(l=>l.pid===p.id&&l.d===today());
   const ev=inEvent()?LIVE:null,sz=seasonOn(today());
-  if(already)return `<div class="result">${stamp(p,{size:140,ev:best(p.id).ev,sz:best(p.id).sz,kira:best(p.id).kira,rare:best(p.id).rare,v:best(p.id).v,im:best(p.id).im,rg:best(p.id).rg})}<b style="font-size:18px">${esc(p.name)} さんとは今日もう交換しています</b><div class="note">仲良し度とEXの抽選は、同じ人とは1日1回です。</div></div><button class="btn sub press" style="margin-top:14px" data-close>閉じる</button>`;
+  if(already)return `<div class="result">${stamp(p,{size:140,ev:best(p.id).ev,sz:best(p.id).sz,fr:best(p.id).fr,kira:best(p.id).kira,rare:best(p.id).rare,v:best(p.id).v,im:best(p.id).im,rg:best(p.id).rg})}<b style="font-size:18px">${esc(p.name)} さんとは今日もう交換しています</b><div class="note">仲良し度とEXの抽選は、同じ人とは1日1回です。</div></div><button class="btn sub press" style="margin-top:14px" data-close>閉じる</button>`;
   const before=daysWith(p.id),rate=kiraRate(before,ev),rrate=rareRate(before,ev),roll=Math.random(),kira=roll<rate,rare=!kira&&roll<rate+rrate;
-  const gb=gotKeys();log.push({pid:p.id,d:today(),ev,...(sz?{sz}:{}),place:ev?null:placeHere(),kira,rare,v:curV(p),im:refOf(p),rg:p.ring,vr:p.ver||1,...(o.gp?{gp:o.gp}:{}),...(p.official?{off:true}:{}),car:{maker:p.maker,car:p.car},my:{maker:me.maker,car:me.car}});save();const nb=gotList(myStats()).filter(b=>!gb.includes(b.k));if(!o.quiet){buzz(kira?[40,60,40,60,140]:[30,50,90]);sfx.peta(kira)}
+  const gb=gotKeys();log.push({pid:p.id,d:today(),ev,...(sz?{sz}:{}),place:ev?null:placeHere(),kira,rare,v:curV(p),im:refOf(p),rg:p.ring,...(frOk(p.frame)?{fr:frOk(p.frame)}:{}),vr:p.ver||1,...(o.gp?{gp:o.gp}:{}),...(p.official?{off:true}:{}),car:{maker:p.maker,car:p.car},my:{maker:me.maker,car:me.car}});save();const nb=gotList(myStats()).filter(b=>!gb.includes(b.k));if(!o.quiet){buzz(kira?[40,60,40,60,140]:[30,50,90]);sfx.peta(kira)}
   return `<div class="result"><div class="peta" aria-hidden="true">ペタッ!</div>${kira?'<div class="kirahit">EXが出た！</div>':rare?'<div class="rarehit">レアが出た！</div>':''}${stamp(p,{size:150,ev,sz,kira,rare})}
    <b style="font-size:20px">${esc(p.name)} さんと交換</b>${rarity(p.maker,p.car)>=4?`<span class="raretag">${'★'.repeat(rarity(p.maker,p.car))} レア車に会えた！</span>`:''}
    <div><span class="chip">${esc(carLabel(p))}</span>${ev?` <span class="chip">${esc(EVENTS[ev].name)}</span>`:sz?` <span class="chip">${esc(seasonOf(sz).n)}のフチ</span>`:''}</div>
@@ -1830,7 +1878,7 @@ function grantMany(ps,gp){const gb=gotKeys(),res=[];let anyK=false;
   const nb=gotList(myStats()).filter(b=>!gb.includes(b.k)),got=res.filter(x=>x[1]).length;
   if(got){buzz(anyK?[40,60,40,60,140]:[30,50,90]);sfx.peta(anyK)}
   return `<div class="result">${got?'<div class="peta" aria-hidden="true">ペタッ!</div>':''}<b style="font-size:20px">${got?`${got}人と交換しました`:'今日はもう交換済みでした'}</b>
-   <div class="ptgrid">${res.map(([p,l])=>`<div class="ptm">${stamp(p,l?{size:64,ev:l.ev,sz:l.sz,kira:l.kira,rare:l.rare}:{size:64})}<b>${esc(p.name)}</b><span>${!l?'今日は交換済み':l.kira?'EXが出た！':l.rare?'レアが出た！':'♥'+daysWith(p.id)}</span></div>`).join('')}</div>
+   <div class="ptgrid">${res.map(([p,l])=>`<div class="ptm">${stamp(p,l?{size:64,ev:l.ev,sz:l.sz,fr:l.fr,kira:l.kira,rare:l.rare}:{size:64})}<b>${esc(p.name)}</b><span>${!l?'今日は交換済み':l.kira?'EXが出た！':l.rare?'レアが出た！':'♥'+daysWith(p.id)}</span></div>`).join('')}</div>
    ${got?'<div class="note">仲良し度とEXの抽選は、1人ずつの交換と同じです。</div>':''}${nb.length?`<div class="newbad">${medal(nb[0],30)}<span>バッジ獲得：${nb.map(b=>b.t).join('・')}</span></div>`:''}</div>`}
 function partyNg(ng){return ng.length?`<div class="group" style="margin-top:12px"><b>交換できなかった人</b>${ng.map(([id,why])=>`<div class="note">${esc((person(id)||{}).name||'')}さん：${why}</div>`).join('')}</div>`:''}
 // 全員で振る画面。振る or タップで fire が呼ばれる。戻り値は後片付け
@@ -1935,7 +1983,7 @@ function openHito(){
 function detail(id){
   const p=person(id),n=daysWith(id),h=log.filter(l=>l.pid===id).slice().reverse(),b=best(id),ps=PST[id];
   const seen=new Set(),variants=h.filter(l=>{const k=(l.im||l.v||1)+(l.ev||l.sz||'-')+(l.kira?'k':l.rare?'r':'');if(seen.has(k))return false;seen.add(k);return true});
-  openSheet(`<div class="result pcard" style="background:${bgCSS(p)}">${stamp(p,{size:120,ev:b.ev,sz:b.sz,kira:b.kira,rare:b.rare,v:b.v,im:b.im,rg:b.rg})}<b style="font-size:20px">${p.official?OFFB:''}${esc(p.name)}</b>${p.msg?`<div class="hitop">${esc(p.msg)}</div>`:''}${snsRow(p.sns)}
+  openSheet(`<div class="result pcard" style="background:${bgCSS(p)}">${stamp(p,{size:120,ev:b.ev,sz:b.sz,fr:b.fr,kira:b.kira,rare:b.rare,v:b.v,im:b.im,rg:b.rg})}<b style="font-size:20px">${p.official?OFFB:''}${esc(p.name)}</b>${p.msg?`<div class="hitop">${esc(p.msg)}</div>`:''}${snsRow(p.sns)}
    <div><span class="chip">${esc(carLabel(p))}</span> <span class="chip">${esc(p.pref)}</span></div>
    <button class="favbtn press" id="favb" aria-pressed="${favs.has(id)}">${favs.has(id)?'★ お気に入り':'☆ お気に入りに追加'}</button>
    <div class="lv" style="margin-top:4px">${Array.from({length:10},(_,i)=>`<i class="${i<n?'on':''}"></i>`).join('')}</div>
@@ -1943,7 +1991,7 @@ function detail(id){
    <div class="note">次に会ったとき EX ${pct(kiraRate(n,false))} · レア ${pct(rareRate(n,false))}（イベント中は EX ${pct(kiraRate(n,true))}）</div></div>
    ${rewardsBlock(p.name,ps,ps.pins,ps.showStats!==false,ps.showRewards!==false)}
    <div class="sec">もらったスタンプ <span class="chip">${variants.length}種類</span></div>
-   <div class="album">${variants.map(l=>`<div class="alb">${stamp(p,{size:64,ev:l.ev,sz:l.sz,kira:l.kira,rare:l.rare,v:l.v,im:l.im,rg:l.rg})}${variants.length>1?`<span>${esc(albName(p,l))}</span>`:''}</div>`).join('')}</div>
+   <div class="album">${variants.map(l=>`<div class="alb">${stamp(p,{size:64,ev:l.ev,sz:l.sz,fr:l.fr,kira:l.kira,rare:l.rare,v:l.v,im:l.im,rg:l.rg})}${variants.length>1?`<span>${esc(albName(p,l))}</span>`:''}</div>`).join('')}</div>
    ${variants.length>1?`<p class="note" style="margin:6px 4px 0">${esc(p.name)}さんのスタンプは、車ごと・作り直すごとに変わります。前のスタンプは、その日に会えた人だけの記録です。</p>`:''}
    ${(()=>{const cc={};h.forEach(l=>{const k=carLabel(l.car||p);cc[k]=(cc[k]||0)+1});const e=Object.entries(cc);return e.length>1?`<div class="sec">乗ってきた車</div><div class="group" style="display:flex;flex-wrap:wrap;gap:6px">${e.map(([k,n])=>`<span class="chip">${esc(k)} ×${n}</span>`).join('')}</div>`:''})()}
    <div class="sec">会った記録</div>

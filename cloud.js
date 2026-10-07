@@ -234,6 +234,7 @@ function toPerson(id, d) {
     .map(v => v && typeof v === 'object' ? { ring: okCol(v.ring), img: okImg(v.img) || img } : { ring, img });
   return { id, official: !!OFF[id], sns, msg: str(d.msg, 30), name: str(d.name, 24, '名無し'), maker: BAD_KEY(maker) ? 'その他' : maker, car: str(d.car, 40, '—'), pref: str(d.pref, 4), ring,
     img, bg: cleanBg(d.bg), ver: num(d.ver, 1, 99, 1) | 0, vers,
+    frame: typeof d.frame === 'string' && /^t[1-4]:(run|trip|faith|expl|charm|luck)$/.test(d.frame) ? d.frame : '', // クラスの縁
     stats: cleanStats(d.stats), showStats: d.showStats !== false, showRewards: d.showRewards !== false };
 }
 // 公式アカウント：運営がコンソールで official/{uid} を作ったときだけ付く。本人のプロフィールの値は信用しない
