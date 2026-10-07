@@ -1146,13 +1146,16 @@ function expOf(s){if(!s)return 0;let e=(+s.ex||0)*10+(+s.ppl||0)*20+(+s.prefs47|
 const LV_MAX=99,needXP=L=>Math.round(40*Math.pow(L-1,1.8)); // Lv L になるのに必要な累計EXP
 function lvOf(e){let L=1;while(L<LV_MAX&&e>=needXP(L+1))L++;return L}
 const CLS_STEP=[[1,'見習い'],[10,''],[25,'上級'],[45,'凄腕の'],[70,'伝説の']]; // 格が上がるLv
+// ステータスの点数（2026-10-07 調整：数が多くて回りやすい道の駅・PAを上げ、神社を少し下げ、数が少ない名橋・ミュージアム・日本一を上げた。メロディロードは走力だけ）
+// src＝[stats のキー, 表示名, 1つあたりの点]。「クラスのしくみ」の表もここから作る
 const RSTATS=[
-  {k:'run',n:'走力',cls:'走り屋',f:s=>(s.tg||0)*15+(s.cir||0)*25+(s.rd||0)*6+(s.mel||0)*8},
-  {k:'trip',n:'旅力',cls:'旅人',f:s=>(s.eki||0)*4+(s.pa||0)*2+(s.prefs47||0)*15},
-  {k:'faith',n:'信心',cls:'巡礼者',f:s=>(s.jin||0)*12},
-  {k:'expl',n:'探究',cls:'探検家',f:s=>(s.bri||0)*8+(s.top||0)*25+(s.mu||0)*20+(s.mel||0)*6},
-  {k:'charm',n:'人望',cls:'社交家',f:s=>(s.ppl||0)*6+(s.best||0)*10},
-  {k:'luck',n:'運',cls:'勝負師',f:s=>(s.kira||0)*15+(s.rare||0)*10+(s.r4||0)*20}];
+  {k:'run',n:'走力',cls:'走り屋',src:[['tg','峠',12],['cir','サーキット',20],['rd','日本の道100選',8],['mel','メロディロード',8]]},
+  {k:'trip',n:'旅力',cls:'旅人',src:[['eki','道の駅',8],['pa','PA・SA',4],['prefs47','行った都道府県',15]]},
+  {k:'faith',n:'信心',cls:'巡礼者',src:[['jin','神社',10]]},
+  {k:'expl',n:'探究',cls:'探検家',src:[['bri','名橋',12],['mu','ミュージアム',25],['top','日本一',30]]},
+  {k:'charm',n:'人望',cls:'社交家',src:[['ppl','会った人',6],['best','一番仲良しの人と会った日数',10]]},
+  {k:'luck',n:'運',cls:'勝負師',src:[['kira','EXが出た回数',15],['rare','レアが出た回数',10],['r4','★4以上の車種',20]]}];
+RSTATS.forEach(x=>x.f=s=>x.src.reduce((a,[k,,p])=>a+(+s[k]||0)*p,0));
 function rpgOf(s){s=s||{};const e=expOf(s),L=lvOf(e),vals=RSTATS.map(x=>[x,Math.min(999,Math.round(+x.f(s)||0))]);
   const best=vals.reduce((a,b)=>b[1]>a[1]?b:a,vals[0]);let ri=0;CLS_STEP.forEach(([x],i)=>{if(L>=x)ri=i});
   const cls=best[1]>0?CLS_STEP[ri][1]+best[0].cls:'ビギナー';
@@ -1176,6 +1179,9 @@ function openTitles(){const st=myStats(),gl=gotList(st).sort((a,b)=>TIERS[b.tier
 function openRpgHelp(){openSheet(`<b style="font-size:20px;display:block;text-align:center">クラスのしくみ</b>
   <div class="note" style="line-height:1.8;margin-top:8px">${RSTATS.map(x=>`<b>${x.n}</b>（${x.cls}）`).join('・')}のうち、一番高いステータスでクラスが決まります。<br>
   EXP がたまると Lv が上がり（最高 Lv.${LV_MAX}）、Lv.10・25・45・70 で「見習い → 一人前 → 上級 → 凄腕の → 伝説の」とクラスの格が上がります。EXP は、交換1回10・はじめて会った人20・今月のお題150・スポット（道の駅10、峠15、サーキット20、日本一30 など）・都道府県30・図鑑5・バッジ（ブロンズ30〜レジェンド1200）でたまります。</div>
+  <b style="display:block;margin-top:14px">ステータスの上げ方</b>
+  <div class="note" style="margin-top:4px">スポットは、はじめて行った場所だけ数えます（同じ場所に何回行っても1回）。各ステータスは最大999です。</div>
+  <div class="list" style="margin-top:8px">${RSTATS.map(x=>`<div class="li" style="display:block"><b>${x.n}</b> <span class="note">→ ${x.cls}</span><div class="note" style="margin-top:2px">${x.src.map(([,t,p])=>`${t} +${p}`).join('・')}</div></div>`).join('')}</div>
   <div class="row" style="margin-top:12px"><button class="btn press" data-close>閉じる</button></div>`);bindClose()}
 // クラスアップの音：きらっと上がるアルペジオ＋やわらかい和音（ベル系の音色）
 let fanA=null;function fanfare(){if(settings.sound===false)return;try{const C=window.AudioContext||window.webkitAudioContext;const a=fanA||(fanA=new C());if(a.state==='suspended')a.resume();const t=a.currentTime+.05;
