@@ -1022,10 +1022,10 @@ function quests(m){const q0=quest(m);if(m<'2026-10-01')return [q0];
 const qDone=m=>{const d=moData(m);return quests(m).filter(q=>q.f(d)>=q.g)};
 const questOk=m=>qDone(m).length>0; // 1つでも達成した月（連続記録はこれで数える）
 const qMonths=()=>[...new Set([...log.map(l=>moStart(l.d)),...spotlog.map(v=>moStart(v.d))])];
-// qd＝達成したお題の数、qs＝1つ以上達成した月が続いた最長月数、qc＝3つ全部達成した月の数
-function questTotals(){let qd=0,qc=0;const okm=[];qMonths().forEach(m=>{const n=qDone(m).length,all=quests(m).length;if(!n)return;qd+=n;if(all>1&&n===all)qc++;okm.push(+m.slice(0,4)*12+ +m.slice(5,7))});
-  okm.sort((a,b)=>a-b);let qs=0,run=0;okm.forEach((x,i)=>{run=i&&x===okm[i-1]+1?run+1:1;qs=Math.max(qs,run)});return {qd,qs,qc}}
-const QXP=100,QXP_ALL=100; // お題1つのEXP、3つ全部達成したときのおまけ
+// qo＝2026年9月までに達成したお題の数（当時は1つ150なので、そのままの点で数える）、qd＝達成したお題の数、qs＝1つ以上達成した月が続いた最長月数、qc＝3つ全部達成した月の数
+function questTotals(){let qd=0,qc=0,qo=0;const okm=[];qMonths().forEach(m=>{const n=qDone(m).length,all=quests(m).length;if(!n)return;qd+=n;if(m<'2026-10-01')qo+=n;if(all>1&&n===all)qc++;okm.push(+m.slice(0,4)*12+ +m.slice(5,7))});
+  okm.sort((a,b)=>a-b);let qs=0,run=0;okm.forEach((x,i)=>{run=i&&x===okm[i-1]+1?run+1:1;qs=Math.max(qs,run)});return {qd,qs,qc,qo}}
+const QXP=100,QXP_ALL=100,QXP_OLD=150; // お題1つのEXP、3つ全部達成したときのおまけ
 function questCard(){const m=moStart(today()),d=moData(m),qs=quests(m),left=Math.round((Date.parse(moEnd(m))-Date.parse(today()))/864e5),n=qs.filter(q=>q.f(d)>=q.g).length;
   return `<button class="qcard press" id="qcard"><div class="qh"><b>${moName(m)}のお題</b><span>${n===qs.length?'全部達成！':(n?`${n}/${qs.length} 達成 · `:'')+(left?`あと${left}日`:'今日まで')}</span></div>
    ${qs.map(q=>{const v=Math.min(q.g,q.f(d)),ok=v>=q.g;return `<div class="qrow${ok?' ok':''}"><span class="qi">${ok?'✓':''}</span><div class="t"><b>${q.t}</b><div class="bar"><i style="width:${v/q.g*100}%"></i></div></div><span class="v">${v}/${q.g}</span></div>`}).join('')}</button>`}
@@ -1041,7 +1041,7 @@ function openQuests(){const m=moStart(today()),d=moData(m),qs=quests(m),t=questT
 /* 聖地めぐり：決まったスポットの組を回るとバッジ */
 const LEG={A:['haruna','akagi','myogi','usui','irohazaka','shomaru','sadamine','tsukuba','tsubaki'],B:['turnpike','ashinoko','manazuru','atami'],C1:['daikan','pa:12:芝浦PA','pa:12:箱崎PA','pa:12:辰巳第一PA','pa:13:大黒PA'],D:['cir:21:富士スピードウェイ','cir:23:鈴鹿サーキット','cir:8:モビリティリゾートもてぎ','cir:3:スポーツランドSUGO','cir:32:岡山国際サーキット','cir:43:オートポリス','cir:7:筑波サーキット']};
 const legCount=(v,k)=>LEG[k].filter(id=>v.has(id)).length;
-function spotStats(){const qt=questTotals(),vs=spotSet(),all=[...vs].map(SP).filter(Boolean),v=all.filter(x=>x.cat!=='st');return {qd:qt.qd,qs:qt.qs,qc:qt.qc,prefs47:new Set(all.filter(x=>x.cat!=='st').flatMap(x=>x.pref.split('・'))).size,legA:legCount(vs,'A'),legB:legCount(vs,'B'),legC1:legCount(vs,'C1'),legD:legCount(vs,'D'),mu:v.filter(x=>x.cat==='mus').length,gunsai:new Set(spotlog.filter(x=>x.id==='gunsai').map(x=>x.d)).size,...ekiFullStats(vs),st:all.length-v.length,sp:v.length,tg:v.filter(x=>x.cat==='tg').length,cir:v.filter(x=>x.cat==='cir').length,eki:v.filter(x=>x.cat==='eki').length,pa:v.filter(x=>x.cat==='pa').length,jin:v.filter(x=>x.cat==='jin').length,bri:v.filter(x=>x.cat==='bri').length,mel:v.filter(x=>x.cat==='mel').length,rd:v.filter(x=>x.cat==='rd').length,top:v.filter(x=>x.cat==='top').length,tera:v.filter(x=>x.cat==='tera').length,dam:v.filter(x=>x.cat==='dam').length,cas:v.filter(x=>x.cat==='cas').length,wh:v.filter(x=>x.cat==='wh').length,allcat:new Set(v.map(x=>x.cat)).size}}
+function spotStats(){const qt=questTotals(),vs=spotSet(),all=[...vs].map(SP).filter(Boolean),v=all.filter(x=>x.cat!=='st');return {qd:qt.qd,qs:qt.qs,qc:qt.qc,qo:qt.qo,prefs47:new Set(all.filter(x=>x.cat!=='st').flatMap(x=>x.pref.split('・'))).size,legA:legCount(vs,'A'),legB:legCount(vs,'B'),legC1:legCount(vs,'C1'),legD:legCount(vs,'D'),mu:v.filter(x=>x.cat==='mus').length,gunsai:new Set(spotlog.filter(x=>x.id==='gunsai').map(x=>x.d)).size,...ekiFullStats(vs),st:all.length-v.length,sp:v.length,tg:v.filter(x=>x.cat==='tg').length,cir:v.filter(x=>x.cat==='cir').length,eki:v.filter(x=>x.cat==='eki').length,pa:v.filter(x=>x.cat==='pa').length,jin:v.filter(x=>x.cat==='jin').length,bri:v.filter(x=>x.cat==='bri').length,mel:v.filter(x=>x.cat==='mel').length,rd:v.filter(x=>x.cat==='rd').length,top:v.filter(x=>x.cat==='top').length,tera:v.filter(x=>x.cat==='tera').length,dam:v.filter(x=>x.cat==='dam').length,cas:v.filter(x=>x.cat==='cas').length,wh:v.filter(x=>x.cat==='wh').length,allcat:new Set(v.map(x=>x.cat)).size}}
 function ekiFullStats(vs){const full=PREFS.filter(pf=>{const L=SPOTS.filter(x=>x.cat==='eki'&&inPref(x,pf));return L.length&&L.every(x=>vs.has(x.id))});return {ekiFull:full.length,gmEki:full.includes('群馬')?1:0}}
 const gotList=s=>BADGES.filter(b=>b.f(s)>=b.g);
 let pins=store.get('pins2',null);
@@ -1162,7 +1162,7 @@ function fillNearby_demo(){nearby=POOL_DEMO.filter(p=>!blocked.has(p.id)).sort((
    称号＝獲得したバッジ名を1つ、クラスの横に付けられる */
 const XP_SP={eki:10,pa:5,tg:15,cir:20,mu:15,jin:10,bri:10,mel:15,rd:10,top:30,tera:10,dam:15,cas:15,wh:25};
 const XP_TIER={br:30,si:80,go:200,pt:500,lg:1200};
-function expOf(s){if(!s)return 0;let e=(+s.ex||0)*10+(+s.ppl||0)*20+(+s.prefs47||0)*30+(+s.st||0)*2+(+s.zk||0)*5+(+s.qd||0)*QXP+(+s.qc||0)*QXP_ALL;
+function expOf(s){if(!s)return 0;let e=(+s.ex||0)*10+(+s.ppl||0)*20+(+s.prefs47||0)*30+(+s.st||0)*2+(+s.zk||0)*5+((+s.qd||0)-(+s.qo||0))*QXP+(+s.qo||0)*QXP_OLD+(+s.qc||0)*QXP_ALL;
   for(const k in XP_SP)e+=(+s[k]||0)*XP_SP[k];gotList(s).forEach(b=>e+=XP_TIER[b.tier]||0);return Math.round(e)}
 const LV_MAX=99,needXP=L=>Math.round(40*Math.pow(L-1,1.8)); // Lv L になるのに必要な累計EXP
 function lvOf(e){let L=1;while(L<LV_MAX&&e>=needXP(L+1))L++;return L}
