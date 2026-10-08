@@ -1526,6 +1526,15 @@ function svgToImg(svg){const defs=(document.getElementById('gBr')||{}).parentNod
   return new Promise(ok=>{const im=new Image();im.onload=()=>ok(im);im.onerror=()=>ok(null);im.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg)})}
 function loadImg(src){return new Promise(ok=>{if(!src)return ok(null);const im=new Image();if(/^https?:/.test(src))im.crossOrigin='anonymous';im.onload=()=>ok(im);im.onerror=()=>ok(null);im.src=src})}
 const topBadges=(s,n)=>gotList(s).map((b,i)=>[b,i]).sort((a,b)=>TIERS[b[0].tier].o-TIERS[a[0].tier].o||a[1]-b[1]).slice(0,n).map(x=>x[0]);
+const drawLogo=(g,x,y,z)=>{const k=z/100; // アプリアイコンと同じロゴをcanvasに直接描く（SVG画像だとWebフォントが効かないため）
+  g.save();g.translate(x,y);g.scale(k,k);g.fillStyle='#e8551c';g.beginPath();g.roundRect?g.roundRect(0,0,100,100,22):g.rect(0,0,100,100);g.fill();
+  g.translate(50,50);g.rotate(-8*Math.PI/180);g.translate(-50,-50);g.font='400 22px "Dela Gothic One",sans-serif';g.textAlign='center';g.fillStyle='#fff';
+  const w=g.measureText('ペタカー').width;g.save();g.translate(44,60);g.scale(64/w,1);g.fillText('ペタカー',0,0);g.restore();
+  g.textAlign='left';g.fillStyle='#121820';g.fillText('!',77,60);g.restore();
+  g.save();g.translate(x,y);g.scale(k,k);g.strokeStyle='#121820';g.lineWidth=4;g.lineCap='round';g.setLineDash([2,8]);g.beginPath();g.moveTo(18,74);g.lineTo(82,74);g.stroke();g.restore()};
+const qrCanvas=t=>new Promise(ok=>{if(!window.QRCode)return ok(null);const d=document.createElement('div');
+  try{new QRCode(d,{text:t,width:280,height:280,colorDark:'#121820',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M})}catch(e){return ok(null)}
+  setTimeout(()=>ok(d.querySelector('canvas')),30)});
 async function shareImage(){
   const s=myStats(),got=gotList(s),top=topBadges(s,6),r=rpgOf(s),ppl=met();
   const W=1080,H=1350,cv=document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d');
@@ -1534,22 +1543,26 @@ async function shareImage(){
   const T=(t,x,y,sz,wt='700',al='center',col='#fff',ff='"Zen Kaku Gothic New",sans-serif')=>{g.font=`${wt} ${sz}px ${ff}`;g.textAlign=al;g.fillStyle=col;g.fillText(t,x,y)};
   const fit=(t,max,sz,wt,ff)=>{g.font=`${wt} ${sz}px ${ff}`;while(sz>14&&g.measureText(t).width>max){sz-=2;g.font=`${wt} ${sz}px ${ff}`}return sz};
   const box=(x,y,w,h,rr,c)=>{g.fillStyle=c;g.beginPath();g.roundRect?g.roundRect(x,y,w,h,rr):g.rect(x,y,w,h);g.fill()};
-  T('PETACAR',W/2,92,34,'700','center','rgba(255,255,255,.8)','"JetBrains Mono",monospace');
-  const cx=W/2,cy=300,R=165;g.save();g.beginPath();g.arc(cx,cy,R+16,0,Math.PI*2);g.fillStyle=me.official?'#d4a017':(me.ring||'#e8551c');g.fill();g.beginPath();g.arc(cx,cy,R+4,0,Math.PI*2);g.fillStyle='#fff';g.fill();
+  const cx=W/2,cy=230,R=150;g.save();g.beginPath();g.arc(cx,cy,R+16,0,Math.PI*2);g.fillStyle=me.official?'#d4a017':(me.ring||'#e8551c');g.fill();g.beginPath();g.arc(cx,cy,R+4,0,Math.PI*2);g.fillStyle='#fff';g.fill();
   const im=await loadImg(me.img);g.beginPath();g.arc(cx,cy,R,0,Math.PI*2);g.clip();
   if(im){const k=Math.max(2*R/im.width,2*R/im.height);g.drawImage(im,cx-im.width*k/2,cy-im.height*k/2,im.width*k,im.height*k)}else{g.fillStyle='#2a3440';g.fillRect(cx-R,cy-R,2*R,2*R)}
   g.restore();
-  const nm=me.name||'ゲスト',nsz=fit(nm,900,66,'400','"Dela Gothic One",sans-serif');T(nm,W/2,560,nsz,'400','center','#fff','"Dela Gothic One",sans-serif');
-  T(`Lv.${r.L} ${r.cls}${me.official?' ・ 公式':''}`,W/2,618,34,'700');
-  const car=[carLabel(me),me.pref].filter(x=>x&&x!=='未設定'&&x!=='—').join(' ・ ');if(car)T(car,W/2,668,30,'500','center','rgba(255,255,255,.8)');
-  [[got.length,'リワード'],[log.length,'交換した数'],[ppl.length,'会った人']].forEach(([v,l],i)=>{const x=90+i*310;box(x,712,280,190,30,'rgba(255,255,255,.13)');
-    T(String(v),x+140,830,96,'700','center','#fff','"JetBrains Mono",monospace');T(l,x+140,878,30)});
-  T(top.length?'レアなリワード':'まだリワードはありません',W/2,968,34,'700','center','rgba(255,255,255,.9)');
-  const imgs=await Promise.all(top.map(b=>svgToImg(medal(b,200,true))));
-  top.forEach((b,i)=>{const col=i%3,row=Math.floor(i/3),x=90+col*310,y=995+row*150;box(x,y,280,136,26,'rgba(0,0,0,.24)');
-    const m=imgs[i];if(m)g.drawImage(m,x+12,y+14,108,108);
-    const tsz=fit(b.t,140,26,'700','"Zen Kaku Gothic New",sans-serif');T(b.t,x+128,y+66,tsz,'700','left');T(TIERS[b.tier].n,x+128,y+102,22,'500','left','rgba(255,255,255,.7)')});
-  T('ペタカー! — 会ったときだけ交換できるスタンプ',W/2,1318,28,'500','center','rgba(255,255,255,.7)');
+  const nm=me.name||'ゲスト',nsz=fit(nm,900,62,'400','"Dela Gothic One",sans-serif');T(nm,W/2,470,nsz,'400','center','#fff','"Dela Gothic One",sans-serif');
+  T(`Lv.${r.L} ${r.cls}${me.official?' ・ 公式':''}`,W/2,524,32,'700');
+  const car=[carLabel(me),me.pref].filter(x=>x&&x!=='未設定'&&x!=='—').join(' ・ ');if(car)T(car,W/2,570,28,'500','center','rgba(255,255,255,.8)');
+  [[got.length,'リワード'],[log.length,'交換した数'],[ppl.length,'会った人']].forEach(([v,l],i)=>{const x=90+i*310;box(x,610,280,170,30,'rgba(255,255,255,.13)');
+    T(String(v),x+140,716,88,'700','center','#fff','"JetBrains Mono",monospace');T(l,x+140,758,28)});
+  T(top.length?'レアなリワード':'まだリワードはありません',W/2,836,32,'700','center','rgba(255,255,255,.9)');
+  const [imgs,qr]=await Promise.all([Promise.all(top.map(b=>svgToImg(medal(b,200,true)))),qrCanvas(SHARE_URL)]);
+  top.forEach((b,i)=>{const col=i%3,row=Math.floor(i/3),x=90+col*310,y=860+row*142;box(x,y,280,128,26,'rgba(0,0,0,.24)');
+    const m=imgs[i];if(m)g.drawImage(m,x+12,y+12,104,104);
+    const tsz=fit(b.t,140,26,'700','"Zen Kaku Gothic New",sans-serif');T(b.t,x+126,y+62,tsz,'700','left');T(TIERS[b.tier].n,x+126,y+98,22,'500','left','rgba(255,255,255,.7)')});
+  // 下の帯：ロゴ・アプリ名・QRコード（ベータ版のページへ）
+  box(60,1160,960,160,32,'rgba(255,255,255,.94)');
+  drawLogo(g,84,1180,120);
+  T('ペタカー!',228,1236,46,'400','left','#121820','"Dela Gothic One",sans-serif');
+  T('会ったときだけ交換できるスタンプ',228,1284,26,'700','left','#3a4552');
+  if(qr){g.imageSmoothingEnabled=false;g.drawImage(qr,860,1176,128,128);g.imageSmoothingEnabled=true}
   return cv}
 function openShare(){
   openSheet(`<b style="font-size:18px;display:block;text-align:center">SNSでシェア</b><p class="note" style="text-align:center;margin:4px 0 10px">プロフィールと集めたリワードを1枚の画像にします</p>
@@ -2462,14 +2475,14 @@ function startWatch(){if(watchId!=null||!navigator.geolocation||document.hidden)
 function stopWatch(){if(watchId!=null)navigator.geolocation.clearWatch(watchId);watchId=null}
 document.addEventListener('visibilitychange',()=>document.hidden?stopWatch():startWatch());
 try{navigator.permissions.query({name:'geolocation'}).then(s=>{if(s.state==='granted')startWatch()}).catch(()=>{})}catch(e){}
-function arrive(x){arrived.add(x.id);buzz([30,60,30]);sfx.chime();
+function arrive(x){arrived.add(x.id);buzz([250,120,250]);sfx.chime(); // 運転中でも気づけるよう、長めに2回震わせる（2026-10-08 鈴木さん）
   if(PASSCAT[x.cat]||settings.autoIn){ // 自動記録オン（開いている間）も、ここでそのまま押す // 峠・橋・道は停まる場所がないので、通過で印を押す（運転中に画面を触らせない）
     if(spotlog.some(v=>v.id===x.id&&v.d===today()))return;
     const before=gotList(myStats()).map(q=>q.k);spotlog.push({id:x.id,d:today()});saveSpots();onSpotRecorded(x.id);
     const nb=gotList(myStats()).filter(q=>!before.includes(q.k));if(tab==='sp'&&!$('#sh'))render();
     $('#pnote').innerHTML=`<div class="pnote" id="pnb"><span class="pic" aria-hidden="true">P</span><div class="t"><div class="h"><b>ペタカー!</b><span>いま</span></div>
     <b>${esc(x.n)}${PASSCAT[x.cat]?'を通過しました':'に着きました'}！</b><span>${nb.length?`バッジ獲得：${esc(nb.map(q=>q.t).join('・'))}`:`印を押しました（${spotDays(x.id)}回目）`}</span></div></div>`;
-    clearTimeout(pnT);pnT=setTimeout(()=>{const e=$('#pnb');if(e){e.classList.add('out');setTimeout(()=>$('#pnote').innerHTML='',300)}},8000);return}
+    clearTimeout(pnT);pnT=setTimeout(()=>{const e=$('#pnb');if(e){e.classList.add('out');setTimeout(()=>$('#pnote').innerHTML='',300)}},15000);return} // 運転中は見るのが遅れるので長めに出しておく
   $('#pnote').innerHTML=`<button class="pnote press" id="pnb"><span class="pic" aria-hidden="true">P</span><div class="t"><div class="h"><b>ペタカー!</b><span>いま</span></div>
     <b>${esc(x.n)}に着きました！</b><span>タップすると印をペタッと押します</span></div></button>`;
   clearTimeout(pnT);pnT=setTimeout(()=>{const e=$('#pnb');if(e){e.classList.add('out');setTimeout(()=>$('#pnote').innerHTML='',300)}},20000);
