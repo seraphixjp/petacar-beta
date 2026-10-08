@@ -719,6 +719,10 @@ const BADGES=[
   {k:'rd10',m:'',ic:'route',num:'10',t:'名道を行く',s:'日本の道100選を10本',f:s=>s.rd||0,g:10,tier:'si',add:1},
   {k:'rd50',m:'',ic:'route',num:'50',t:'百選の半分',s:'日本の道100選を50本',f:s=>s.rd||0,g:50,tier:'pt',add:1},
   {k:'top3',m:'',ic:'crown',num:'3',t:'日本一を見に行く',s:'日本一・世界一のスポットを3か所',f:s=>s.top||0,g:3,tier:'si',add:1},
+  // 公式アカウントとの交換（2026-10-08 鈴木さん）。いちばん上はゴールドまで。数えるのは公式の人と交換した日の数
+  {k:'off1',m:'',ic:'crown',num:'1',t:'公式とペタッ',s:'公式アカウントの人とスタンプを交換',f:s=>s.offd||0,g:1,tier:'br',add:1},
+  {k:'off3',m:'',ic:'crown',num:'3',t:'公式の顔なじみ',s:'公式アカウントの人と交換した日が3日',f:s=>s.offd||0,g:3,tier:'si',add:1},
+  {k:'off10',m:'',ic:'crown',num:'10',t:'公式のお墨付き',s:'公式アカウントの人と交換した日が10日',f:s=>s.offd||0,g:10,tier:'go',add:1},
   {k:'legD',m:'',ic:'flag',num:'7',t:'聖地の制覇者',s:'聖地サーキット7か所をすべて走破（富士・鈴鹿・もてぎ・SUGO・岡山国際・オートポリス・筑波）',f:s=>s.legD||0,g:7,tier:'lg',add:1}
 ];
 const B=k=>BADGES.find(b=>b.k===k);
@@ -916,7 +920,7 @@ const kiraRate=(before,ev)=>boost?.5:Math.min(.15,.03+.01*before)*(ev?2:1);
 const rareRate=(before,ev)=>boost?.3:Math.min(.3,.1+.02*before)*(ev?1.5:1);
 const pct=x=>Math.round(x*100)+'%';
 const myStats=()=>{const ppl=met();return hiMerge({ex:log.length,ppl:ppl.length,prefs:new Set(ppl.map(i=>person(i).pref).filter(x=>PREFS.includes(x))).size,same:ppl.filter(i=>person(i).maker===me.maker&&person(i).car===me.car).length,
-  best:Math.max(0,...ppl.map(daysWith)),kira:log.filter(l=>l.kira).length,evs:new Set(log.filter(l=>l.ev).map(l=>l.ev)).size,days:new Set(log.map(l=>l.d)).size,mk:new Set(ppl.map(i=>person(i).maker).filter(m=>m&&m!=='その他')).size,...exStats(),...zukanStats(),...spotStats(),ttl:ttlIdx()})};
+  best:Math.max(0,...ppl.map(daysWith)),kira:log.filter(l=>l.kira).length,evs:new Set(log.filter(l=>l.ev).map(l=>l.ev)).size,days:new Set(log.map(l=>l.d)).size,offd:new Set(log.filter(l=>l.off||(person(l.pid)||{}).official).map(l=>l.d)).size,mk:new Set(ppl.map(i=>person(i).maker).filter(m=>m&&m!=='その他')).size,...exStats(),...zukanStats(),...spotStats(),ttl:ttlIdx()})};
 /* 交換の記録から：dayMax 1日の最多人数 / sameMk 同じメーカー / rare 金色 / myCars 自分の車 / months 暦月 / gapMax 再会までの最長 */
 function gpMaxOf(ls){const m={};ls.forEach(l=>{if(l.gp)(m[l.gp]=m[l.gp]||new Set()).add(l.pid)});return Math.max(0,...Object.values(m).map(x=>x.size))}
 function exStats(){const byD={},byP={};log.forEach(l=>{(byD[l.d]=byD[l.d]||new Set()).add(l.pid);(byP[l.pid]=byP[l.pid]||new Set()).add(l.d)});
