@@ -1535,34 +1535,60 @@ const drawLogo=(g,x,y,z)=>{const k=z/100; // アプリアイコンと同じロ�
 const qrCanvas=t=>new Promise(ok=>{if(!window.QRCode)return ok(null);const d=document.createElement('div');
   try{new QRCode(d,{text:t,width:280,height:280,colorDark:'#121820',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M})}catch(e){return ok(null)}
   setTimeout(()=>ok(d.querySelector('canvas')),30)});
+const SHARE_QR=false; // 本番公開まではQRコードを出さず「間もなく配信開始！」にする
+// マイスタンプの背景（bgCSS と同じ選び方）を canvas に描く
+async function drawBg(g,W,H,o){const bg=o.bg||{kind:'preset',id:'night'},ring=okColor(o.ring);
+  const cover=(im,yp)=>{const k=Math.max(W/im.width,H/im.height),w=im.width*k,h=im.height*k;g.drawImage(im,(W-w)/2,(H-h)*yp/100,w,h)};
+  const photo=bg.kind==='photo'&&typeof bg.src==='string'?IMG(bg.src):null;
+  if(photo&&/^data:image\//.test(photo)){const im=await loadImg(photo);if(im){cover(im,okNum(bg.y,0,100,50));return okNum(bg.dim,0,1,.35)}}
+  const pre=Object.hasOwn(BGS,bg.id)?bg.id:'ring',url=(BGS[pre].css(ring).match(/url\(([^)]+)\)/)||[])[1];
+  if(url){const im=await loadImg(url);if(im){cover(im,50);return .35}}
+  if(pre==='carbon'){g.fillStyle='#1b1e22';g.fillRect(0,0,W,H);g.save();g.strokeStyle='#25292e';g.lineWidth=17;for(let x=-H;x<W;x+=34){g.beginPath();g.moveTo(x,H);g.lineTo(x+H,0);g.stroke()}g.restore();return .2}
+  const gr=g.createLinearGradient(0,0,W*.5,H*1.1);gr.addColorStop(0,ring);gr.addColorStop(1,'#11161c');g.fillStyle=gr;g.fillRect(0,0,W,H);return .15}
+// 交換したスタンプ：お気に入り → 交換した回数 → 最近交換した順
+function shareFriends(n){const c={},last={};log.forEach(l=>{if(!l.pid)return;c[l.pid]=(c[l.pid]||0)+1;if(!last[l.pid]||l.d>last[l.pid])last[l.pid]=l.d});
+  const ids=Object.keys(c).filter(id=>person(id)).sort((x,y)=>(favs.has(y)-favs.has(x))||(c[y]-c[x])||String(last[y]).localeCompare(String(last[x])));
+  return {list:ids.slice(0,n).map(id=>({p:person(id),fav:favs.has(id)})),total:ids.length}}
 async function shareImage(){
-  const s=myStats(),got=gotList(s),top=topBadges(s,6),r=rpgOf(s),ppl=met();
+  const s=myStats(),got=gotList(s),top=topBadges(s,6),r=rpgOf(s),fr=shareFriends(10);
   const W=1080,H=1350,cv=document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d');
   try{await document.fonts.ready}catch(e){}
-  const gr=g.createLinearGradient(0,0,W*.6,H);gr.addColorStop(0,'#e8551c');gr.addColorStop(.55,'#7a2a10');gr.addColorStop(1,'#18212b');g.fillStyle=gr;g.fillRect(0,0,W,H);
+  const dim=await drawBg(g,W,H,me);
+  const sh=g.createLinearGradient(0,0,0,H);sh.addColorStop(0,`rgba(0,0,0,${.15+dim*.3})`);sh.addColorStop(1,`rgba(0,0,0,${.45+dim*.4})`);g.fillStyle=sh;g.fillRect(0,0,W,H); // 文字が読めるように暗く
   const T=(t,x,y,sz,wt='700',al='center',col='#fff',ff='"Zen Kaku Gothic New",sans-serif')=>{g.font=`${wt} ${sz}px ${ff}`;g.textAlign=al;g.fillStyle=col;g.fillText(t,x,y)};
   const fit=(t,max,sz,wt,ff)=>{g.font=`${wt} ${sz}px ${ff}`;while(sz>14&&g.measureText(t).width>max){sz-=2;g.font=`${wt} ${sz}px ${ff}`}return sz};
-  const box=(x,y,w,h,rr,c)=>{g.fillStyle=c;g.beginPath();g.roundRect?g.roundRect(x,y,w,h,rr):g.rect(x,y,w,h);g.fill()};
-  const cx=W/2,cy=230,R=150;g.save();g.beginPath();g.arc(cx,cy,R+16,0,Math.PI*2);g.fillStyle=me.official?'#d4a017':(me.ring||'#e8551c');g.fill();g.beginPath();g.arc(cx,cy,R+4,0,Math.PI*2);g.fillStyle='#fff';g.fill();
-  const im=await loadImg(me.img);g.beginPath();g.arc(cx,cy,R,0,Math.PI*2);g.clip();
-  if(im){const k=Math.max(2*R/im.width,2*R/im.height);g.drawImage(im,cx-im.width*k/2,cy-im.height*k/2,im.width*k,im.height*k)}else{g.fillStyle='#2a3440';g.fillRect(cx-R,cy-R,2*R,2*R)}
-  g.restore();
-  const nm=me.name||'ゲスト',nsz=fit(nm,900,62,'400','"Dela Gothic One",sans-serif');T(nm,W/2,470,nsz,'400','center','#fff','"Dela Gothic One",sans-serif');
-  T(`Lv.${r.L} ${r.cls}${me.official?' ・ 公式':''}`,W/2,524,32,'700');
-  const car=[carLabel(me),me.pref].filter(x=>x&&x!=='未設定'&&x!=='—').join(' ・ ');if(car)T(car,W/2,570,28,'500','center','rgba(255,255,255,.8)');
-  [[got.length,'リワード'],[log.length,'交換した数'],[spotSet().size,'訪れたスポット']].forEach(([v,l],i)=>{const x=90+i*310;box(x,610,280,170,30,'rgba(255,255,255,.13)');
-    T(String(v),x+140,716,88,'700','center','#fff','"JetBrains Mono",monospace');T(l,x+140,758,28)});
-  T(top.length?'レアなリワード':'まだリワードはありません',W/2,836,32,'700','center','rgba(255,255,255,.9)');
-  const [imgs,qr]=await Promise.all([Promise.all(top.map(b=>svgToImg(medal(b,200,true)))),qrCanvas(SHARE_URL)]);
-  top.forEach((b,i)=>{const col=i%3,row=Math.floor(i/3),x=90+col*310,y=860+row*142;box(x,y,280,128,26,'rgba(0,0,0,.24)');
-    const m=imgs[i];if(m)g.drawImage(m,x+12,y+12,104,104);
-    const tsz=fit(b.t,140,26,'700','"Zen Kaku Gothic New",sans-serif');T(b.t,x+126,y+62,tsz,'700','left');T(TIERS[b.tier].n,x+126,y+98,22,'500','left','rgba(255,255,255,.7)')});
-  // 下の帯：ロゴ・アプリ名・QRコード（ベータ版のページへ）
-  box(60,1160,960,160,32,'rgba(255,255,255,.94)');
-  drawLogo(g,84,1180,120);
-  T('ペタカー!',228,1236,46,'400','left','#121820','"Dela Gothic One",sans-serif');
-  T('クルマで繋がるスタンプアプリ',228,1284,26,'700','left','#3a4552');
-  if(qr){g.imageSmoothingEnabled=false;g.drawImage(qr,860,1176,128,128);g.imageSmoothingEnabled=true}
+  const box=(x,y,w,h,rr,c,ln)=>{g.fillStyle=c;g.beginPath();g.roundRect?g.roundRect(x,y,w,h,rr):g.rect(x,y,w,h);g.fill();if(ln){g.lineWidth=2;g.strokeStyle=ln;g.stroke()}};
+  const disc=async(p,cx,cy,R)=>{g.save();g.shadowColor='rgba(0,0,0,.45)';g.shadowBlur=R*.25;g.shadowOffsetY=R*.06;g.beginPath();g.arc(cx,cy,R+R*.1,0,Math.PI*2);g.fillStyle=p.official?'#d4a017':okColor(p.ring);g.fill();g.restore();
+    g.save();g.beginPath();g.arc(cx,cy,R+R*.025,0,Math.PI*2);g.fillStyle='#fff';g.fill();
+    const im=await loadImg(IMG(p.img)||avatar(okColor(p.ring)));g.beginPath();g.arc(cx,cy,R*.97,0,Math.PI*2);g.clip();
+    if(im){const k=Math.max(2*R/im.width,2*R/im.height);g.drawImage(im,cx-im.width*k/2,cy-im.height*k/2,im.width*k,im.height*k)}else{g.fillStyle='#2a3440';g.fillRect(cx-R,cy-R,2*R,2*R)}g.restore()};
+  // プロフィール
+  await disc(me,W/2,190,120);
+  const nm=me.name||'ゲスト',nsz=fit(nm,900,60,'400','"Dela Gothic One",sans-serif');T(nm,W/2,402,nsz,'400','center','#fff','"Dela Gothic One",sans-serif');
+  T(`Lv.${r.L} ${r.cls}${me.official?' ・ 公式':''}`,W/2,452,32,'700');
+  const car=[carLabel(me),me.pref].filter(x=>x&&x!=='未設定'&&x!=='—').join(' ・ ');if(car)T(car,W/2,494,28,'500','center','rgba(255,255,255,.85)');
+  [[got.length,'リワード'],[log.length,'交換した数'],[spotSet().size,'訪れたスポット']].forEach(([v,l],i)=>{const x=90+i*310;box(x,526,280,150,28,'rgba(255,255,255,.14)','rgba(255,255,255,.28)');
+    T(String(v),x+140,620,80,'700','center','#fff','"JetBrains Mono",monospace');T(l,x+140,658,27)});
+  // 交換したスタンプ（重ねて並べる。いちばん仲良しが一番上）
+  T(fr.total?'交換したスタンプ':'まだ交換したスタンプはありません',W/2,730,30,'700','center','rgba(255,255,255,.92)');
+  if(fr.list.length){const R=50,step=78,n=fr.list.length,more=fr.total-n,wAll=(n-1)*step+2*R+(more>0?96:0),x0=(W-wAll)/2+R;
+    for(let i=n-1;i>=0;i--)await disc(fr.list[i].p,x0+i*step,800,R);
+    fr.list.forEach((f,i)=>{if(!f.fav)return;const x=x0+i*step+R*.62,y=800-R*.7;g.beginPath();g.arc(x,y,15,0,Math.PI*2);g.fillStyle='#ffd23f';g.fill();g.lineWidth=3;g.strokeStyle='#121820';g.stroke();T('★',x,y+8,20,'700','center','#121820')});
+    if(more>0){const x=x0+(n-1)*step+R+52;box(x-40,800-30,80,60,30,'rgba(255,255,255,.2)');T(`+${more}`,x,811,30,'700','center','#fff','"JetBrains Mono",monospace')}}
+  // レアなリワード
+  T(top.length?'レアなリワード':'まだリワードはありません',W/2,906,30,'700','center','rgba(255,255,255,.92)');
+  const imgs=await Promise.all(top.map(b=>svgToImg(medal(b,200,true))));
+  top.forEach((b,i)=>{const col=i%3,row=Math.floor(i/3),x=90+col*310,y=926+row*132;box(x,y,280,120,24,'rgba(255,255,255,.1)','rgba(255,255,255,.22)');
+    const m=imgs[i];if(m)g.drawImage(m,x+12,y+12,96,96);
+    const tsz=fit(b.t,148,25,'700','"Zen Kaku Gothic New",sans-serif');T(b.t,x+118,y+58,tsz,'700','left');T(TIERS[b.tier].n,x+118,y+92,21,'500','left','rgba(255,255,255,.75)')});
+  // 下の帯：ロゴ・アプリ名・（本番は）QRコード
+  box(60,1200,960,124,30,'rgba(255,255,255,.95)');
+  drawLogo(g,82,1214,96);
+  T('ペタカー!',196,1260,42,'400','left','#121820','"Dela Gothic One",sans-serif');
+  T('クルマで繋がるスタンプアプリ',196,1302,24,'700','left','#3a4552');
+  const qr=SHARE_QR?await qrCanvas(SHARE_URL):null;
+  if(qr){g.imageSmoothingEnabled=false;g.drawImage(qr,880,1206,112,112);g.imageSmoothingEnabled=true}
+  else{box(690,1226,306,72,36,'#e8551c');T('間もなく配信開始！',843,1273,30,'700','center','#fff')}
   return cv}
 function openShare(){
   openSheet(`<b style="font-size:18px;display:block;text-align:center">SNSでシェア</b><p class="note" style="text-align:center;margin:4px 0 10px">プロフィールと集めたリワードを1枚の画像にします</p>
