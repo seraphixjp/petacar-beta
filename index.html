@@ -1863,7 +1863,7 @@ function request_demo(id,accepted){
     setCheck('c2',true,'ずれ 0.'+(1+Math.floor(Math.random()*6))+'秒');
     setTimeout(()=>{setCheck('c3',true,inEvent()?'同じ会場':'近く');setTimeout(()=>showResult(p),450)},500)};
   const ask=()=>{if(!$('#c2'))return;$('#c2 small').textContent='30秒以内';
-    $('#res').innerHTML=`<div style="text-align:center;margin-bottom:12px"><span class="shake" aria-hidden="true">📱</span><div><b>2人で同時にシェイク！</b></div><div class="note">スマホを振るタイミングが2秒以内でそろえば、スタンプがペタッと貼られます</div></div>
+    $('#res').innerHTML=`<div style="text-align:center;margin-bottom:12px"><span class="shake" aria-hidden="true">📱</span><div><b>2人で同時にシェイク！</b></div><div class="note">スマホを振るタイミングが5秒以内でそろえば、スタンプがペタッと貼られます</div></div>
      <div class="row"><button class="btn sub press" data-close>やめる</button><button class="btn press" id="shk">振れないときはタップ</button></div>`;
     bindClose(()=>off());$('#shk').onclick=shaken;
     const h=e=>{const a=e.accelerationIncludingGravity||{};if(Math.hypot(a.x||0,a.y||0,a.z||0)>28)shaken()};
@@ -1873,7 +1873,7 @@ function request_demo(id,accepted){
 
 /* ===== みんなで交換（2026-10-06 鈴木さん）=====
    ホストが部屋を作る → 近くで交換をはじめている人に「参加する」が出る → 3人以上そろったらホストの合図で全員同時にシェイク
-   自分と相手のタイミングが2秒以内・位置が近い、の2つがそろった相手全員と交換（判定は1対1の交換と同じ） */
+   自分と相手のタイミングが5秒以内・位置が近い、の2つがそろった相手全員と交換（判定は1対1の交換と同じ） */
 let partyNear=null; // 近くで開いている部屋 {id,host}
 const PARTY_MIN=3,PARTY_MAX=12;
 const PEOPLEI='<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3.5 19c.8-3 3-4.6 5.5-4.6S13.7 16 14.5 19"/><circle cx="17" cy="9" r="2.4"/><path d="M15.5 14.6c2.3-.4 4.2.9 5 3.6"/></svg>';
@@ -1888,7 +1888,7 @@ function grantMany(ps,gp){const gb=gotKeys(),res=[];let anyK=false;
    ${got?'<div class="note">仲良し度とEXの抽選は、1人ずつの交換と同じです。</div>':''}${nb.length?`<div class="newbad">${medal(nb[0],30)}<span>バッジ獲得：${nb.map(b=>b.t).join('・')}</span></div>`:''}</div>`}
 function partyNg(ng){return ng.length?`<div class="group" style="margin-top:12px"><b>交換できなかった人</b>${ng.map(([id,why])=>`<div class="note">${esc((person(id)||{}).name||'')}さん：${why}</div>`).join('')}</div>`:''}
 // 全員で振る画面。振る or タップで fire が呼ばれる。戻り値は後片付け
-function partyShake(n,fire){$('#res').innerHTML=`<div style="text-align:center;margin-bottom:12px"><span class="shake" aria-hidden="true">📱</span><div><b>「せーの」で${n}人同時に振る！</b></div><div class="note">2秒以内に振った人どうしで、スタンプがペタッと貼られます</div></div>
+function partyShake(n,fire){$('#res').innerHTML=`<div style="text-align:center;margin-bottom:12px"><span class="shake" aria-hidden="true">📱</span><div><b>「せーの」で${n}人同時に振る！</b></div><div class="note">5秒以内に振った人どうしで、スタンプがペタッと貼られます</div></div>
    <div class="row"><button class="btn sub press" data-close>やめる</button><button class="btn press" id="shk">振れないときはタップ</button></div>`;
   let last=0,done=false;const go=how=>{if(done)return;done=true;fire(how)};$('#shk').onclick=()=>go('タップ');
   const h=e=>{const a=e.acceleration,g=e.accelerationIncludingGravity;const m=a&&a.x!=null?Math.hypot(a.x,a.y,a.z):g&&g.x!=null?Math.abs(Math.hypot(g.x,g.y,g.z)-9.8):0;if(m>12&&Date.now()-last>1500){last=Date.now();go('振る')}};
@@ -2194,7 +2194,7 @@ let tt=null;function toast(m){$('#toast').innerHTML=`<div class="toast">${esc(m)
 /* ===== ベータ版：本物の交換（Firebase） ===== */
 const C=window.__cloud;
 let liveMap={},exMine={},cur=null,incomingEx=null,myPos=null,motionOK=null;
-const ASK_MS=120000,WINDOW_MS=2000;
+const ASK_MS=120000,WINDOW_MS=5000; // 振るタイミングのずれは5秒まで（2026-10-08 鈴木さん。位置の確認が必須になったので緩めても遠くとは交換できない）
 const cellOf=p=>p?[Math.round(p.la*20)/20,Math.round(p.lo*20)/20]:null; // 約5kmのマス目。細かい位置は共有しない
 const nearCell=(a,b)=>!!a&&!!b&&Math.abs(a[0]-b[0])<=0.1&&Math.abs(a[1]-b[1])<=0.1; // どちらかの位置がわからないときは「近く」にしない（2026-10-08 遠くの人から申し込めた不具合）
 const getPos=()=>new Promise(ok=>{if(!navigator.geolocation)return ok(null);
@@ -2209,7 +2209,7 @@ function fillNearby(){const mine=liveMap[C.uid];addDemo();
   if(C.demo)nearby.unshift('demo');
   const pt=Object.entries(liveMap).find(([id,x])=>id!==C.uid&&x.pt&&x.until>Date.now()&&!blocked.has(id)&&POOL.some(p=>p.id===id)&&nearCell(mine&&mine.cell,x.cell));
   partyNear=pt&&!curParty?{id:pt[1].pt,host:pt[0]}:null}
-C.live.sub(m=>{liveMap=m;if(typeof onExMap==='function')onExMap(exMine);const b=nearby.join()+JSON.stringify(partyNear)+openNear.join();if(nearOn())fillNearby();fillOpen();if(b!==nearby.join()+JSON.stringify(partyNear)+openNear.join()&&(tab==='ex'||tab==='me')&&!$('#sh'))render()});
+C.live.sub(m=>{liveMap=m;if(typeof onExMap==='function')onExMap(exMine);if(curParty&&curParty.merge)curParty.merge();const b=nearby.join()+JSON.stringify(partyNear)+openNear.join();if(nearOn())fillNearby();fillOpen();if(b!==nearby.join()+JSON.stringify(partyNear)+openNear.join()&&(tab==='ex'||tab==='me')&&!$('#sh'))render()});
 let incT=null;
 const fresh=x=>Math.abs(Date.now()-x.at)<ASK_MS; // 相手の時計が進んでいても期限切れにする
 function onExMap(m){const prev=exMine;exMine=m;
@@ -2251,7 +2251,7 @@ function request(id,accepted,exArg){
     bindClose(quit);$('#again').onclick=()=>{round++;ask()}};
   const judge=()=>{if(finished||gone)return;const a=sides[C.uid],b=sides[id];if(!a||!b||a.r!==round||b.r!==round||sent!==round)return;
     const dt=Math.abs(a.t-b.t),dm=a.la!=null&&b.la!=null?dist(a,b)*1000:null,lim=dm==null?0:Math.max(150,(a.acc||0)+(b.acc||0));
-    if(dt>WINDOW_MS){fail('c2',`ずれ ${(dt/1000).toFixed(1)}秒`,`2人のタイミングが${(dt/1000).toFixed(1)}秒ずれていました（2秒以内で成立）。「せーの」で同時に振ってください。`);return}
+    if(dt>WINDOW_MS){fail('c2',`ずれ ${(dt/1000).toFixed(1)}秒`,`2人のタイミングが${(dt/1000).toFixed(1)}秒ずれていました（5秒以内で成立）。「せーの」で同時に振ってください。`);return}
     setCheck('c2',true,`ずれ ${(dt/1000).toFixed(1)}秒`);
     if(dm==null){getPos();fail('c3','確認できず',`${a.la==null?'あなた':p.name+'さん'}の位置情報が確認できなかったため、交換できませんでした。位置情報をオンにして、もう一度振ってください。`);return} // 位置なしでは成立させない
     if(dm>lim){fail('c3',`約${Math.round(dm)}m`,`2人の位置が約${Math.round(dm)}m離れていました。その場で会っている人とだけ交換できます。`);return}
@@ -2264,7 +2264,7 @@ function request(id,accepted,exArg){
     sides[C.uid]=body;buzz(30);const sm=$('#c2 small');if(sm)sm.textContent=how==='振る'?'振りました · 相手待ち':'押しました · 相手待ち';
     const r0=round;C.ex.setSide(exId,body).then(()=>{if(round===r0){sent=r0;judge()}},()=>{if(sides[C.uid]===body)delete sides[C.uid];toast('送れませんでした。もう一度振ってください')})};
   const ask=()=>{if(gone||!$('#c2'))return;resetChecks();if(round>1)$('#c2 small').textContent=`${round}回目`;
-    $('#res').innerHTML=`<div style="text-align:center;margin-bottom:12px"><span class="shake" aria-hidden="true">📱</span><div><b>「せーの」で2人同時に振る！</b></div><div class="note">振るタイミングが2秒以内でそろえば、スタンプがペタッと貼られます</div></div>
+    $('#res').innerHTML=`<div style="text-align:center;margin-bottom:12px"><span class="shake" aria-hidden="true">📱</span><div><b>「せーの」で2人同時に振る！</b></div><div class="note">振るタイミングが5秒以内でそろえば、スタンプがペタッと貼られます</div></div>
      <div class="row"><button class="btn sub press" data-close>やめる</button><button class="btn press" id="shk">${motionOK===false?'振る代わりにタップ':'振れないときはタップ'}</button></div>`;
     bindClose(quit);$('#shk').onclick=()=>fire('タップ');
     motionOff();let last=0;const h=e=>{const a=e.acceleration,g=e.accelerationIncludingGravity;
@@ -2306,7 +2306,7 @@ function bindExBeta(){
     const tick=()=>{const s=Math.max(0,Math.ceil((nearUntil-Date.now())/1000)),el=$('#left');if(el)el.textContent=`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;if(!s){nearUntil=0;nearby=[];partyNear=null;liveBody=null;C.live.clear();render();setTimeout(presence,300)}};
     tick();modeTimer=setInterval(tick,1000);
     $$('[data-n]').forEach(b=>b.onclick=()=>request(b.dataset.n,false));
-    $('#ptHost').onclick=()=>openParty(true);
+    $('#ptHost').onclick=()=>{const x=partyNear;if(x){partyNear=null;render();openParty(false,x)}else openParty(true)}; // 近くに部屋があれば、新しく作らずに参加する
     if(partyNear&&$('#ptJoin'))$('#ptJoin').onclick=()=>{const x=partyNear;partyNear=null;render();openParty(false,x)};
   }
 }
@@ -2361,8 +2361,12 @@ function openParty(asHost,info){
     const fresh=!doc;doc=d;C.need(d.members.filter(x=>x!==C.uid),true);
     if(d.state==='go'&&(d.r||0)>myR){if(d.members.includes(C.uid))round(d.r);return}
     if(d.state==='done'&&!judged){stop();closeSheet();toast('ホストが「みんなで交換」を終えました');return}
-    if(fresh&&d.state==='open')waitUI();else draw()};
+    if(fresh&&d.state==='open')waitUI();else draw();if(self.merge)self.merge()};
   const go=()=>{unDoc=C.party.sub(pid,onDoc);unSide=C.party.subSides(pid,m=>{sides={...sides,...m,[C.uid]:sides[C.uid]||m[C.uid]};judge()})};
+  // 近くの人がほぼ同時に「みんなで交換」を押して部屋が2つできたとき：まだ誰も入っていない部屋のホストは、idの小さいホストの部屋に合流する（両方が同じ規則で決めるので食い違わない）
+  self.merge=()=>{if(!asHost||gone||!pid||!doc||doc.state!=='open'||doc.members.length>1)return;const mine=liveMap[C.uid];
+    const o=Object.entries(liveMap).find(([h,x])=>h!==C.uid&&h<C.uid&&x.pt&&x.pt!==pid&&x.until>Date.now()&&!blocked.has(h)&&POOL.some(q=>q.id===h)&&nearCell(mine&&mine.cell,x.cell));
+    if(!o)return;quit();closeSheet();toast(`${(person(o[0])||{}).name||'近くの人'}さんの「みんなで交換」に合流しました`);setTimeout(()=>openParty(false,{id:o[1].pt,host:o[0]}),400)};
   askMotion();getPos();bindClose(quit);
   $('#res').innerHTML='<p class="note" style="text-align:center">準備しています…</p>';
   if(asHost)C.party.create().then(async id=>{if(gone){C.party.update(id,{state:'cancel'}).catch(()=>{});return}pid=id;go();
