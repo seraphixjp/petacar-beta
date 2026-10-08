@@ -1550,7 +1550,7 @@ async function shareImage(){
   const nm=me.name||'ゲスト',nsz=fit(nm,900,62,'400','"Dela Gothic One",sans-serif');T(nm,W/2,470,nsz,'400','center','#fff','"Dela Gothic One",sans-serif');
   T(`Lv.${r.L} ${r.cls}${me.official?' ・ 公式':''}`,W/2,524,32,'700');
   const car=[carLabel(me),me.pref].filter(x=>x&&x!=='未設定'&&x!=='—').join(' ・ ');if(car)T(car,W/2,570,28,'500','center','rgba(255,255,255,.8)');
-  [[got.length,'リワード'],[log.length,'交換した数'],[ppl.length,'会った人']].forEach(([v,l],i)=>{const x=90+i*310;box(x,610,280,170,30,'rgba(255,255,255,.13)');
+  [[got.length,'リワード'],[log.length,'交換した数'],[spotSet().size,'訪れたスポット']].forEach(([v,l],i)=>{const x=90+i*310;box(x,610,280,170,30,'rgba(255,255,255,.13)');
     T(String(v),x+140,716,88,'700','center','#fff','"JetBrains Mono",monospace');T(l,x+140,758,28)});
   T(top.length?'レアなリワード':'まだリワードはありません',W/2,836,32,'700','center','rgba(255,255,255,.9)');
   const [imgs,qr]=await Promise.all([Promise.all(top.map(b=>svgToImg(medal(b,200,true)))),qrCanvas(SHARE_URL)]);
@@ -1561,7 +1561,7 @@ async function shareImage(){
   box(60,1160,960,160,32,'rgba(255,255,255,.94)');
   drawLogo(g,84,1180,120);
   T('ペタカー!',228,1236,46,'400','left','#121820','"Dela Gothic One",sans-serif');
-  T('会ったときだけ交換できるスタンプ',228,1284,26,'700','left','#3a4552');
+  T('クルマで繋がるスタンプアプリ',228,1284,26,'700','left','#3a4552');
   if(qr){g.imageSmoothingEnabled=false;g.drawImage(qr,860,1176,128,128);g.imageSmoothingEnabled=true}
   return cv}
 function openShare(){
