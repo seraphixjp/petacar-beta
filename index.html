@@ -1295,6 +1295,7 @@ const views={
   ${me.def?`<button class="newsrow press" id="mkFirst"><span class="ntag" style="--nc:var(--accent)">はじめに</span><b>自分の車の写真でスタンプを作る</b><span class="val" aria-hidden="true">›</span></button>`:''}
   ${newsTop()}${openRow()}
   <div class="stats"><div class="stat"><b>${log.length}</b><span>交換した数</span></div><div class="stat"><b>${ppl.length}</b><span>会った人</span></div><div class="stat"><b>${kc}</b><span>EX</span></div></div>
+  <button class="btn sub press shareb" id="shareb" style="margin-top:10px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px;margin-right:6px"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>プロフィールをSNSでシェア</button>
   ${questCard()}
   <button class="yrcard press" id="wrapb"><span class="yk">PETACAR ${new Date().getFullYear()}</span><b>${new Date().getFullYear()}年のまとめ</b><span class="ys">この1年の出会いとスポットを振り返る</span><span class="ya" aria-hidden="true">›</span></button>
   <div class="sec">最近の交換<button class="seclink" id="allrec">すべて見る ›</button></div>
@@ -1517,6 +1518,57 @@ function wrapImage(w){
   if(w.rare)T('今年いちばんのレア車：'+carLabel(w.rare)+' '+'★'.repeat(rarity(w.rare.maker,w.rare.car)),W/2,1190,34,'500');
   T('ペタカー! — 会ったときだけ交換できるスタンプ',W/2,1290,28,'500','center','rgba(255,255,255,.7)');
   return cv.toDataURL('image/png');
+}
+/* SNSシェア用のプロフィール画像（2026-10-08 鈴木さん）：プロフィール・リワードの合計・交換した数・レア度の高いリワード6個 */
+const SHARE_URL='https://seraphixjp.github.io/petacar-beta/';
+function svgToImg(svg){const defs=(document.getElementById('gBr')||{}).parentNode;
+  svg=svg.replace('<svg ','<svg xmlns="http://www.w3.org/2000/svg" ').replace(/(<svg[^>]*>)/,'$1'+(defs?defs.outerHTML:''));
+  return new Promise(ok=>{const im=new Image();im.onload=()=>ok(im);im.onerror=()=>ok(null);im.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg)})}
+function loadImg(src){return new Promise(ok=>{if(!src)return ok(null);const im=new Image();if(/^https?:/.test(src))im.crossOrigin='anonymous';im.onload=()=>ok(im);im.onerror=()=>ok(null);im.src=src})}
+const topBadges=(s,n)=>gotList(s).map((b,i)=>[b,i]).sort((a,b)=>TIERS[b[0].tier].o-TIERS[a[0].tier].o||a[1]-b[1]).slice(0,n).map(x=>x[0]);
+async function shareImage(){
+  const s=myStats(),got=gotList(s),top=topBadges(s,6),r=rpgOf(s),ppl=met();
+  const W=1080,H=1350,cv=document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d');
+  try{await document.fonts.ready}catch(e){}
+  const gr=g.createLinearGradient(0,0,W*.6,H);gr.addColorStop(0,'#e8551c');gr.addColorStop(.55,'#7a2a10');gr.addColorStop(1,'#18212b');g.fillStyle=gr;g.fillRect(0,0,W,H);
+  const T=(t,x,y,sz,wt='700',al='center',col='#fff',ff='"Zen Kaku Gothic New",sans-serif')=>{g.font=`${wt} ${sz}px ${ff}`;g.textAlign=al;g.fillStyle=col;g.fillText(t,x,y)};
+  const fit=(t,max,sz,wt,ff)=>{g.font=`${wt} ${sz}px ${ff}`;while(sz>14&&g.measureText(t).width>max){sz-=2;g.font=`${wt} ${sz}px ${ff}`}return sz};
+  const box=(x,y,w,h,rr,c)=>{g.fillStyle=c;g.beginPath();g.roundRect?g.roundRect(x,y,w,h,rr):g.rect(x,y,w,h);g.fill()};
+  T('PETACAR',W/2,92,34,'700','center','rgba(255,255,255,.8)','"JetBrains Mono",monospace');
+  const cx=W/2,cy=300,R=165;g.save();g.beginPath();g.arc(cx,cy,R+16,0,Math.PI*2);g.fillStyle=me.official?'#d4a017':(me.ring||'#e8551c');g.fill();g.beginPath();g.arc(cx,cy,R+4,0,Math.PI*2);g.fillStyle='#fff';g.fill();
+  const im=await loadImg(me.img);g.beginPath();g.arc(cx,cy,R,0,Math.PI*2);g.clip();
+  if(im){const k=Math.max(2*R/im.width,2*R/im.height);g.drawImage(im,cx-im.width*k/2,cy-im.height*k/2,im.width*k,im.height*k)}else{g.fillStyle='#2a3440';g.fillRect(cx-R,cy-R,2*R,2*R)}
+  g.restore();
+  const nm=me.name||'ゲスト',nsz=fit(nm,900,66,'400','"Dela Gothic One",sans-serif');T(nm,W/2,560,nsz,'400','center','#fff','"Dela Gothic One",sans-serif');
+  T(`Lv.${r.L} ${r.cls}${me.official?' ・ 公式':''}`,W/2,618,34,'700');
+  const car=[carLabel(me),me.pref].filter(x=>x&&x!=='未設定'&&x!=='—').join(' ・ ');if(car)T(car,W/2,668,30,'500','center','rgba(255,255,255,.8)');
+  [[got.length,'リワード'],[log.length,'交換した数'],[ppl.length,'会った人']].forEach(([v,l],i)=>{const x=90+i*310;box(x,712,280,190,30,'rgba(255,255,255,.13)');
+    T(String(v),x+140,830,96,'700','center','#fff','"JetBrains Mono",monospace');T(l,x+140,878,30)});
+  T(top.length?'レアなリワード':'まだリワードはありません',W/2,968,34,'700','center','rgba(255,255,255,.9)');
+  const imgs=await Promise.all(top.map(b=>svgToImg(medal(b,200,true))));
+  top.forEach((b,i)=>{const col=i%3,row=Math.floor(i/3),x=90+col*310,y=995+row*150;box(x,y,280,136,26,'rgba(0,0,0,.24)');
+    const m=imgs[i];if(m)g.drawImage(m,x+12,y+14,108,108);
+    const tsz=fit(b.t,140,26,'700','"Zen Kaku Gothic New",sans-serif');T(b.t,x+128,y+66,tsz,'700','left');T(TIERS[b.tier].n,x+128,y+102,22,'500','left','rgba(255,255,255,.7)')});
+  T('ペタカー! — 会ったときだけ交換できるスタンプ',W/2,1318,28,'500','center','rgba(255,255,255,.7)');
+  return cv}
+function openShare(){
+  openSheet(`<b style="font-size:18px;display:block;text-align:center">SNSでシェア</b><p class="note" style="text-align:center;margin:4px 0 10px">プロフィールと集めたリワードを1枚の画像にします</p>
+   <div id="shimg" style="text-align:center"><p class="note">画像を作っています…</p></div>
+   <div class="row" style="margin-top:12px"><button class="btn sub press" data-close>閉じる</button><button class="btn press" id="shgo" disabled>シェアする</button></div>`);
+  bindClose();let blob=null,url='';
+  shareImage().then(cv=>new Promise(ok=>cv.toBlob(ok,'image/png'))).then(b=>{blob=b;if(!b||!$('#shimg'))return;url=URL.createObjectURL(b);
+    $('#shimg').innerHTML=`<img src="${url}" alt="シェア用の画像" style="width:100%;max-width:360px;border-radius:14px"><p class="note" style="margin-top:6px">保存したいときは、画像を長押し（PCは右クリック）してください</p>`;$('#shgo').disabled=false})
+   .catch(e=>{console.warn(e);if($('#shimg'))$('#shimg').innerHTML='<p class="gerr">画像を作れませんでした</p>'});
+  $('#shgo').onclick=async()=>{if(!blob)return;const n=gotList(myStats()).length,text=`ペタカー!でリワードを${n}個集めました #ペタカー`;
+    try{
+      if(window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform()){ // アプリ版：端末の共有メニューを開く
+        const FS=Capacitor.registerPlugin('Filesystem'),SH=Capacitor.registerPlugin('Share');
+        const b64=await new Promise(ok=>{const fr=new FileReader();fr.onload=()=>ok(String(fr.result).split(',')[1]);fr.readAsDataURL(blob)});
+        const w=await FS.writeFile({path:'petacar-share.png',data:b64,directory:'CACHE'});await SH.share({title:'ペタカー!',text:text+' '+SHARE_URL,files:[w.uri]});return}
+      const file=new File([blob],'petacar.png',{type:'image/png'});
+      if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],text:text+' '+SHARE_URL});return}
+      const a=document.createElement('a');a.href=url;a.download='petacar.png';document.body.appendChild(a);a.click();a.remove();toast('画像を保存しました。SNSに貼り付けてください');
+    }catch(e){if(e&&e.name==='AbortError')return;console.warn(e);toast('共有できませんでした。画像を長押しして保存してください')}};
 }
 function zukan(){
   const z=zukanMap(),st=zukanStats(),others=Object.keys(z).filter(k=>k.startsWith('その他|'));
@@ -1818,7 +1870,7 @@ function render(){
   if($('#ttlb'))$('#ttlb').onclick=openTitles;if($('#frb'))$('#frb').onclick=openFrames;if($('#rpghelp'))$('#rpghelp').onclick=openRpgHelp;checkLevelUp();
   $('.tab[data-t=rw]').classList.toggle('dot',tab!=='rw'&&unseen().length>0);
   $$('[data-p]').forEach(b=>b.onclick=()=>detail(b.dataset.p));
-  if(tab==='me'){$('#mk').onclick=openCrop;if($('#mkFirst'))$('#mkFirst').onclick=openCrop;if($('#qcard'))$('#qcard').onclick=openQuests;$('#hito').onclick=openHito;if($('#nmb'))$('#nmb').onclick=openName;$('#carb').onclick=()=>openGarage(render);if($('#newsTop'))$('#newsTop').onclick=()=>openNewsItem($('#newsTop').dataset.n);if($('#openRow'))$('#openRow').onclick=()=>{tab='ex';render()};$('#bgb').onclick=openBg;$('#wrapb').onclick=openWrap;$('#allrec').onclick=()=>{colView='stamp';store.set('colv2',colView);colSort='recent';store.set('sort2',colSort);tab='col';render()}}
+  if(tab==='me'){if($('#shareb'))$('#shareb').onclick=openShare;$('#mk').onclick=openCrop;if($('#mkFirst'))$('#mkFirst').onclick=openCrop;if($('#qcard'))$('#qcard').onclick=openQuests;$('#hito').onclick=openHito;if($('#nmb'))$('#nmb').onclick=openName;$('#carb').onclick=()=>openGarage(render);if($('#newsTop'))$('#newsTop').onclick=()=>openNewsItem($('#newsTop').dataset.n);if($('#openRow'))$('#openRow').onclick=()=>{tab='ex';render()};$('#bgb').onclick=openBg;$('#wrapb').onclick=openWrap;$('#allrec').onclick=()=>{colView='stamp';store.set('colv2',colView);colSort='recent';store.set('sort2',colSort);tab='col';render()}}
   if(tab==='col'||tab==='sp'){$$('[data-shop]').forEach(b=>b.onclick=()=>openShop(b.dataset.shop));if($('#demoShop'))$('#demoShop').onclick=demoShop}
   if(tab==='col'){$$('[data-cv]').forEach(b=>b.onclick=()=>{colView=b.dataset.cv;store.set('colv2',colView);render()});$$('[data-maker]').forEach(b=>b.onclick=()=>openMaker(b.dataset.maker))}
   if(tab==='sp'){$$('[data-spot]').forEach(b=>b.onclick=()=>openSpot(b.dataset.spot));if($('#mapb'))$('#mapb').onclick=openMap;bindSpList();$('#locate').onclick=locate;if($('#demoArr'))$('#demoArr').onclick=demoArrive;if($('#autoOn'))$('#autoOn').onclick=()=>askAlways(render);$$('[data-ss]').forEach(b=>b.onclick=()=>{spotSort=b.dataset.ss;spotLim=40;render()});$$('[data-cat]').forEach(b=>b.onclick=()=>{spotCat=b.dataset.cat;spotLim=40;render()});
