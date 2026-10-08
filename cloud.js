@@ -345,6 +345,7 @@ async function firebaseBackend() {
   // 近くの人：約5kmのマス目の前後2マス（交換の判定と同じ範囲）だけを見る。位置なしの人も見る
   const liveQs = c => c ? [F.query(Col('live'), F.where('ck', 'in', cellsNear(c))), F.query(Col('live'), F.where('ck', '==', 'none'))] : [F.query(Col('live'), F.where('until', '>', Date.now() - 60000))];
   const hereId = spot => encodeURIComponent(spot).slice(0, 700);
+  const passId = (spot, d) => encodeURIComponent(spot).slice(0, 600) + '_' + d;
   return {
     uid, demo, profDoc: profSnap.exists() ? profSnap.data() : null, privDoc: privSnap.exists() ? privSnap.data() : null,
     mine: mineSnap.exists() && Array.isArray(mineSnap.data().ids) ? mineSnap.data().ids : [],
@@ -396,6 +397,16 @@ async function firebaseBackend() {
       }),
       sub: cb => F.onSnapshot(F.query(Col('here'), F.where('last', '>', Date.now()), F.limit(200)), qs => cb(qs.docs.flatMap(d => { const x = d.data(); let spot = ''; try { spot = decodeURIComponent(d.id) } catch (e) { } return Array.isArray(x.t) ? x.t.map(until => ({ spot, until })) : [] })), e => console.warn('here', e)),
     },
+    // スポットのすれ違い：スポット×日ごとに1枚、{uid: 記録した時刻} だけ。記録したときと開いたときに1回読むだけ（見張らない）
+    pass: {
+      mark: (spot, d, t) => F.setDoc(D('pass', passId(spot, d)), { v: { [uid]: t }, exp: F.Timestamp.fromMillis(Date.parse(d + 'T00:00:00+09:00') + 2 * 86400000) }, { merge: true }),
+      get: (spot, d) => F.getDoc(D('pass', passId(spot, d))).then(x => x.exists() && x.data().v && typeof x.data().v === 'object' ? x.data().v : {}),
+      unmark: keys => Promise.all(keys.map(k => F.setDoc(D('pass', k), { v: { [uid]: F.deleteField() } }, { merge: true }).catch(() => { }))),
+    },
+    nice: {
+      send: to => F.setDoc(D('nice', to), { v: { [uid]: Date.now() } }, { merge: true }),
+      mine: () => F.getDoc(D('nice', uid)).then(x => x.exists() && x.data().v && typeof x.data().v === 'object' ? x.data().v : {}).catch(() => ({})),
+    },
     official: cb => F.onSnapshot(Col('official'), qs => { const m = {}; qs.forEach(d => m[d.id] = true); cb(m) }, e => console.warn('official', e)),
     shops: cb => F.onSnapshot(Col('shops'), qs => { const a = []; qs.forEach(d => { const x = cleanShop(d.id, d.data()); if (x) a.push(x) }); cb(a) }, e => { console.warn('shops', e); cb([]) }),
     // メンテナンスのスイッチ（運営がコンソールで config/app を書き換える）。読めないときはスイッチなし扱い
@@ -413,7 +424,8 @@ async function firebaseBackend() {
       // 交換の申し込みの記録（自分が入っているもの）も消す。自分の side も先に消す
       const exs = await Promise.all(['a', 'b'].map(k => F.getDocs(F.query(Col('ex'), F.where(k, '==', uid))).catch(() => null)));
       const exDel = exs.filter(Boolean).flatMap(qs => qs.docs.map(d => F.deleteDoc(D('ex', d.id, 'side', uid)).catch(() => { }).then(() => F.deleteDoc(D('ex', d.id)).catch(() => { }))));
-      await Promise.all([F.deleteDoc(D('live', uid)).catch(() => { }), ...baks, ...imgs, ...exDel]);
+      let pk = []; try { pk = JSON.parse(localStorage.getItem('passk:' + uid) || '[]') } catch (e) { }
+      await Promise.all([F.deleteDoc(D('live', uid)).catch(() => { }), F.deleteDoc(D('nice', uid)).catch(() => { }), ...pk.map(k => F.setDoc(D('pass', k), { v: { [uid]: F.deleteField() } }, { merge: true }).catch(() => { })), ...baks, ...imgs, ...exDel]);
       await Promise.all([F.deleteDoc(D('users', uid, 'priv', 'imgs')), F.deleteDoc(D('users', uid, 'priv', 'state')), F.deleteDoc(D('users', uid))]);
       try { await A.deleteUser(auth.currentUser) }
       catch (e) { if (e.code === 'auth/requires-recent-login') { if (NATIVE) { const apple = auth.currentUser.providerData.some(p => p.providerId === 'apple.com'); await A.reauthenticateWithCredential(auth.currentUser, await nativeCred(A, apple ? 'apple' : 'google')) } else await A.reauthenticateWithPopup(auth.currentUser, auth.currentUser.providerData.some(p => p.providerId === 'apple.com') ? appleProvider : provider); await A.deleteUser(auth.currentUser) } else throw e }
@@ -461,6 +473,15 @@ function mockBackend(uid) {
     here: {
       add: spot => { const k = 'here/' + encodeURIComponent(spot), o = M.docs.get(k) || { t: [] }, now = Date.now(); const t = [...o.t.filter(x => x > now), now + 7200000 + Math.floor(Math.random() * 1000)]; return put(k, { t, last: Math.max(...t) }) },
       sub: cb => sub(() => { const out = []; for (const [k, v] of M.docs) if (k.startsWith('here/') && v.last > Date.now()) v.t.forEach(until => out.push({ spot: decodeURIComponent(k.slice(5)), until })); cb(out) }),
+    },
+    pass: {
+      mark: (spot, d, t) => { const k = 'pass/' + encodeURIComponent(spot) + '_' + d, o = M.docs.get(k) || { v: {} }; return put(k, { v: { ...o.v, [uid]: t } }) },
+      get: (spot, d) => { M.reads = (M.reads || 0) + 1; return Promise.resolve({ ...((M.docs.get('pass/' + encodeURIComponent(spot) + '_' + d) || {}).v || {}) }) },
+      unmark: keys => { keys.forEach(k => { const o = M.docs.get('pass/' + k); if (o) { const v = { ...o.v }; delete v[uid]; put('pass/' + k, { v }) } }); return Promise.resolve() },
+    },
+    nice: {
+      send: to => { const k = 'nice/' + to, o = M.docs.get(k) || { v: {} }; return put(k, { v: { ...o.v, [uid]: Date.now() } }) },
+      mine: () => Promise.resolve({ ...((M.docs.get('nice/' + uid) || {}).v || {}) }),
     },
     official: cb => sub(() => { const m = {}; Object.keys(coll('official')).forEach(k => m[k] = true); cb(m) }),
     shops: cb => sub(() => cb(Object.entries(coll('shops')).map(([k, v]) => cleanShop(k, v)).filter(Boolean))),
@@ -535,7 +556,7 @@ else if (be) {
     uid: be.uid, demo: !!be.demo, store, people,
     onPeople: f => peopleCbs.push(f), isOfficial: id => !!OFF[id],
     img: imgOf, need,
-    live, ex: { ...be.ex, sub: cb => be.ex.sub(m => { need(Object.values(m).flatMap(x => [x.a, x.b])); cb(m) }) }, party: be.party, here: be.here, shops: be.shops, report: be.report, signOut: be.signOut,
+    live, ex: { ...be.ex, sub: cb => be.ex.sub(m => { need(Object.values(m).flatMap(x => [x.a, x.b])); cb(m) }) }, party: be.party, here: be.here, pass: be.pass, nice: be.nice, shops: be.shops, report: be.report, signOut: be.signOut,
     deleteAccount: async () => { store.cancelAll(); const was = frozen; frozen = 'deleting'; try { await be.deleteAccount() } catch (e) { frozen = was; throw e } },
   };
   let started = false, gotPeople = false, gotCfg = false, wait = '', cfg = {}, maintShown = false;
