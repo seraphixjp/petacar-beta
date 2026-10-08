@@ -2544,11 +2544,12 @@ locate=async()=>{toast('現在地を確認しています');const p=await getPos
   if(!p){toast('位置情報が使えませんでした。ブラウザの設定で位置情報を許可してください');return}
   here={la:p.la,lo:p.lo,label:'現在地'};spotSort='near';spotLim=40;lastDrawn={...p};render();toast('近い順に並べました');startWatch()};
 /* スポットの「いま◯人」（2時間以内の記録数。名前は持たない） */
-HERE_N={};let hereRows=[];
+// 「いま◯人」は全国分を常時見張るので通信量が多い→休止（2026-10-08 鈴木さん）。再開は HERE_ON=true
+const HERE_ON=false;HERE_N={};let hereRows=[];
 const recountHere=()=>{const now=Date.now(),m={};hereRows.forEach(r=>{if(r&&r.until>now&&typeof r.spot==='string')m[r.spot]=(m[r.spot]||0)+1});
   const changed=JSON.stringify(m)!==JSON.stringify(HERE_N);HERE_N=m;if(changed&&tab==='sp'&&!$('#sh'))render()};
-C.here.sub(rows=>{hereRows=rows;recountHere()});setInterval(recountHere,60000);
-onSpotRecorded=id=>{HERE_N[id]=hereN(id)+1;C.here.add(id).catch(()=>{})};
+if(HERE_ON){C.here.sub(rows=>{hereRows=rows;recountHere()});setInterval(recountHere,60000)}
+onSpotRecorded=id=>{if(!HERE_ON)return;HERE_N[id]=hereN(id)+1;C.here.add(id).catch(()=>{})};
 window.__app={get me(){return me},myStats,myPins,get settings(){return settings},rerender:()=>{if(!$('#sh'))render()}};
 
 /* ===== アプリを開いている人（2026-10-06）=====
