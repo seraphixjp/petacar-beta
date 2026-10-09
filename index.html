@@ -455,6 +455,12 @@ textarea{width:100%;box-sizing:border-box;margin-top:6px;padding:10px 12px;borde
 .setbig.done{background:linear-gradient(135deg,#fff1a8,#e2a91c 60%,#b07c0a);color:#3a2700}
 .chk{width:24px;height:24px;border-radius:50%;flex:none;display:grid;place-items:center;border:2px dashed var(--line);font-weight:800;font-size:13px}.chk.on{border:0;background:var(--accent);color:#fff}
 .exi{font-size:22px;width:36px;text-align:center;flex:none}
+.mapstat.trips b{font-size:19px}.mapstat.trips span{font-size:10.5px}
+.tleg{font:600 11px var(--mono);color:var(--muted);padding-left:62px;margin:-6px 0}
+.nicest{font-size:11px;font-weight:700;color:var(--muted);white-space:nowrap}.nicest.one{color:#e0577a}.nicest.both{color:#fff;background:#e0577a;border-radius:10px;padding:3px 8px}
+.tripmap{margin-top:12px;border-radius:14px;overflow:hidden}.tripmap canvas{display:block;width:100%;height:auto}
+.rtnow{margin-top:10px;text-align:center;font-size:12.5px;color:var(--muted);display:flex;gap:6px;align-items:center;justify-content:center}.rtnow b{font-family:var(--mono);color:var(--ink)}
+.rtrow .t span{font-size:11.5px}
 .bookprev{display:flex;gap:8px;overflow-x:auto;margin-top:12px;padding-bottom:6px}.bookprev img{width:150px;flex:none;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.2)}
 [hidden]{display:none!important}
 body{margin:0}img{max-width:100%}
@@ -1726,7 +1732,6 @@ const SHOP_DWELL=5*60e3; // 本番の滞在時間。試作の「着いたこと�
 let SHOPS=[ // 試作の見本（架空の店）。ベータでは運営が Firestore の shops に登録した店に置き換わる
  {id:'demo1',name:'見本ガレージ珈琲',short:'SAMPLE GARAGE COFFEE',pref:'群馬',ad:'群馬県甘楽郡甘楽町（見本）',la:36.2433,lo:138.9216,r:100,c1:'#6b2a17',c2:'#f4d7a1',hours:'10:00–18:00（火曜休み）',note:'駐車場8台。空ぶかし・長時間の駐車はご遠慮ください',mark:'G'},
  {id:'demo2',name:'見本タイヤセンター',short:'SAMPLE TIRE CENTER',pref:'群馬',ad:'群馬県富岡市（見本）',la:36.2597,lo:138.8897,r:100,c1:'#14402c',c2:'#bfe6a8',hours:'9:00–19:00',note:'駐車場は店の前の4台だけです',mark:'T'},
- {id:'ota2026',kind:'event',name:'スバルMEETING太田 2026',short:'SUBARU MEETING OTA 2026',pref:'群馬',ad:'群馬県太田市（会場は仮）',la:36.2913,lo:139.3756,r:300,c1:'#14305a',c2:'#e9b949',hours:'10:00–15:00',note:'会場では係員の誘導に従ってください',mark:'S',from:'2026-11-08',until:'2026-11-08'},
  {id:'demo3',name:'見本カーケア工房',short:'SAMPLE CAR CARE',pref:'群馬',ad:'群馬県高崎市（見本）',la:36.3219,lo:139.0033,r:100,c1:'#1d2f6b',c2:'#c9d6ff',hours:'10:00–17:00',note:'',mark:'C'}];
 let shoplog=store.get('shop2',[])||[];const saveShop=()=>store.set('shop2',shoplog);
 const shopDays=id=>shoplog.filter(v=>v.id===id).length;
@@ -1835,6 +1840,7 @@ function openGarage(back){
 const BELL='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg>';
 const NTAG={info:['お知らせ','var(--accent)'],event:['イベント','#2f6fd6'],update:['アップデート','#1d8a4b'],mainte:['メンテナンス','#6b7480']};
 const NEWS=[
+ {id:'b9',d:'2026-10-09',tag:'update',t:'旅のしおりにドライブの記録・移動距離・ナイスが入りました',b:'旅のしおりが新しくなりました。\n\n・ドライブの記録（オンにした人だけ）：アプリを開いている間の位置を、2分か500mごとにざっくり記録して、その日のルートを地図に出します。記録はスマホの中だけに保存され、運営にもほかの人にも送られません。旅のしおりか設定の「ドライブを記録する」でオンにできます。\n・移動距離：ルートがあればルートから、なければスポットどうしの直線距離の目安を出します。\n・すれ違った人とナイス！：その日すれ違った人と、送った・届いたナイス！が並びます。\n・SNS用の画像にも地図が入ります。出発と到着のまわり（約1km）は自動で消すので、自宅の場所は出ません。'},
  {id:'b8',d:'2026-10-09',tag:'update',t:'一人でも楽しめる機能を追加しました',b:'会えない日も楽しめるように、4つの機能を追加しました。\n\n・フォトスタンプ：スポットを記録した日に、その場で撮った写真をスタンプにできます。スポットの画面の「フォトスタンプを作る」から。写真はスマホの中だけに保存されます。\n・旅のしおり：マイスタンプの「旅のしおり」に、行ったスポットと交換した人が1日ずつ残ります。SNS用の画像にもできます。\n・セット：リワードの「セット」に、決まったスポットや車種を集めるセットが16個あります。揃えるとEXP+100とバッジ。\n・データの持ち出し：設定の「データの持ち出し」から、スタンプ帳の画像と記録のファイルを保存できます。'},
  {id:'b7',d:'2026-10-06',tag:'update',t:'近くでペタカーを開いている人が見えるようになりました',b:'交換をはじめていなくても、アプリを開いている近くの人が、マイスタンプと交換タブに出ます。車の写真を見て、駐車場で相手を探してみてください。\n\nタップすると交換を申し込めます。相手がアプリを開いていれば、音と表示でお知らせします。\n\n出るのはだいたいの場所（約5km四方）だけで、アプリを閉じると消えます。出たくないときは、設定→交換でオフにできます（オフにすると、自分からも見えなくなります）。'},
  {id:'b6',d:'2026-10-06',tag:'update',t:'「みんなで交換」ができるようになりました',b:'3人以上で、同時にスマホを振って一度に交換できます。\n\n交換をはじめたら「みんなで交換」を押して部屋を作ります。近くで交換をはじめている人には「参加する」が出ます。3人以上そろったら、ホストが合図を出して全員で「せーの」で振ってください。\n\nタイミングが2秒以内で、近くにいる人どうしで交換されます。合わなかった人とは、ホストの「もう一度振る」でやり直せます。'},
@@ -1952,9 +1958,11 @@ function openDoc(k,back){const PUB={terms:'terms',privacy:'privacy',contact:'sup
 /* ===== 一人でも楽しめる：フォトスタンプ・旅のしおり・セット・データの持ち出し（2026-10-09 鈴木さん） ===== */
 /* --- ご当地フォトスタンプ：写真は端末の中（IndexedDB）だけに保存。記録 pho1=[{id,spot,d,t}] だけ同期する --- */
 const PDB=(()=>{let p=null;
-  const open=()=>p||(p=new Promise((ok,ng)=>{try{const r=indexedDB.open('petacar-photo',1);r.onupgradeneeded=()=>r.result.createObjectStore('ph');r.onsuccess=()=>ok(r.result);r.onerror=()=>ng(r.error)}catch(e){ng(e)}}));
-  const tx=(m,f)=>open().then(db=>new Promise((ok,ng)=>{const t=db.transaction('ph',m),r=f(t.objectStore('ph'));t.oncomplete=()=>ok(r&&r.result);t.onerror=()=>ng(t.error)}));
-  return {get:k=>tx('readonly',s=>s.get(k)),put:(k,v)=>tx('readwrite',s=>s.put(v,k)),del:k=>tx('readwrite',s=>s.delete(k)),clear:()=>tx('readwrite',s=>s.clear())}})();
+  // ph＝フォトスタンプの写真、rt＝ドライブの記録（日付ごと）。どちらも端末の中だけ
+  const open=()=>p||(p=new Promise((ok,ng)=>{try{const r=indexedDB.open('petacar-photo',2);r.onupgradeneeded=()=>{const db=r.result;['ph','rt'].forEach(n=>{if(!db.objectStoreNames.contains(n))db.createObjectStore(n)})};r.onsuccess=()=>ok(r.result);r.onerror=()=>ng(r.error)}catch(e){ng(e)}}));
+  const tx=(st,m,f)=>open().then(db=>new Promise((ok,ng)=>{const t=db.transaction(st,m),r=f(t.objectStore(st));t.oncomplete=()=>ok(r&&r.result);t.onerror=()=>ng(t.error)}));
+  return {get:k=>tx('ph','readonly',s=>s.get(k)),put:(k,v)=>tx('ph','readwrite',s=>s.put(v,k)),del:k=>tx('ph','readwrite',s=>s.delete(k)),clear:()=>Promise.all(['ph','rt'].map(n=>tx(n,'readwrite',s=>s.clear()))),
+    rget:k=>tx('rt','readonly',s=>s.get(k)),rput:(k,v)=>tx('rt','readwrite',s=>s.put(v,k)),rdel:k=>tx('rt','readwrite',s=>s.delete(k)),rkeys:()=>tx('rt','readonly',s=>s.getAllKeys())}})();
 window.__phoClear=()=>PDB.clear().catch(()=>{});
 let pholog=(store.get('pho1',[])||[]).filter(x=>x&&typeof x.id==='string');
 const savePho=()=>store.set('pho1',pholog.slice(-500));
@@ -2047,27 +2055,79 @@ function tripDays(){const m={};
 function tripOf(d){const sp=spotlog.map((v,i)=>({...v,i})).filter(v=>v.d===d&&SP(v.id)).sort((a,b)=>(a.t||0)-(b.t||0)||a.i-b.i);
   const seen=new Set(),spots=sp.filter(v=>!seen.has(v.id)&&seen.add(v.id));
   const ex=log.filter(l=>l.d===d),ppl=[...new Set(ex.map(l=>l.pid))].map(person).filter(Boolean);
-  return {d,spots,ppl,ex,pass:passLog.filter(x=>x.d===d).length,photos:phoOfDay(d),prefs:[...new Set(spots.map(v=>SP(v.id).pref.split('・')[0]))]}}
+  // 移動距離：その日に記録した順にスポットを直線で結んだ合計（走った道のりは記録しないので目安）。同じスポットへの2回目も含めて順番どおりに結ぶ
+  const legs=[];let km=0,prev=null;sp.forEach(v=>{const x=SP(v.id);if(x.la==null)return;if(prev&&prev.id!==x.id){const k=dist(prev,x);km+=k;legs.push({to:v.id,k})}prev=x});
+  const ps=passLog.filter(x=>x.d===d&&person(x.pid)&&!blocked.has(x.pid)).sort((a,b)=>(a.t||0)-(b.t||0));
+  return {d,spots,ppl,ex,km,legs,pass:ps.length,passes:ps,niceS:ps.filter(x=>x.nice).length,niceG:ps.filter(x=>x.got).length,photos:phoOfDay(d),prefs:[...new Set(spots.map(v=>SP(v.id).pref.split('・')[0]))]}}
+const kmTxt=k=>k<1?'1km未満':'約'+(k<10?k.toFixed(1):Math.round(k))+'km';
+/* --- ドライブの記録：オンにした人だけ。アプリを開いている間の位置を、2分か500mごとに1点だけ、端末の中（IndexedDB rt）に保存。サーバーには送らない --- */
+const RT_KM=.5,RT_MS=120e3;
+let rtWatch=null,rtDay=null,rtPts=[],rtLast=null;
+async function rtGet(d){if(d===rtDay)return rtPts;let a=null;try{a=await PDB.rget(d)}catch(e){}return Array.isArray(a)?a:[]}
+async function rtAdd(la,lo,acc,t){if(!(acc<=200)||!isFinite(la)||!isFinite(lo))return;const d=ymd(new Date(t));
+  if(rtDay!==d){rtPts=await rtGet(d);rtDay=d;const q=rtPts[rtPts.length-1];rtLast=q?{la:q[0],lo:q[1],t:q[2]}:null}
+  if(rtLast){const k=dist(rtLast,{la,lo}),dt=t-rtLast.t;if(k<RT_KM&&!(dt>=RT_MS&&k>=.05))return} // 停まっている間は点を増やさない
+  rtPts.push([+la.toFixed(4),+lo.toFixed(4),t]);rtLast={la,lo,t};try{await PDB.rput(d,rtPts)}catch(e){}
+  const e=$('#rtn');if(e)e.textContent=rtPts.length}
+function rtStart(){if(rtWatch!=null||!settings.route||document.hidden||!navigator.geolocation)return;
+  rtWatch=navigator.geolocation.watchPosition(p=>rtAdd(p.coords.latitude,p.coords.longitude,p.coords.accuracy||0,p.timestamp||Date.now()),
+    e=>{if(e.code===1){rtStop();settings.route=false;saveSet();const sw=$('#rtSw');if(sw)sw.setAttribute('aria-checked','false');toast('位置の利用が許可されていないため、ドライブの記録を止めました')}},{enableHighAccuracy:true,maximumAge:20000,timeout:60000})}
+function rtStop(){if(rtWatch!=null)navigator.geolocation.clearWatch(rtWatch);rtWatch=null}
+function setRoute(on){settings.route=!!on;saveSet();on?rtStart():rtStop()}
+document.addEventListener('visibilitychange',()=>document.hidden?rtStop():rtStart());
+setTimeout(rtStart,1500);
+const rtKm=pts=>{let k=0;for(let i=1;i<pts.length;i++)k+=dist({la:pts[i-1][0],lo:pts[i-1][1]},{la:pts[i][0],lo:pts[i][1]});return k};
+// SNSに出すとき：出発と到着のまわり（各1km）を消して、自宅の場所が分からないようにする
+function rtTrim(pts,km=1){const c=[0];for(let i=1;i<pts.length;i++)c.push(c[i-1]+dist({la:pts[i-1][0],lo:pts[i-1][1]},{la:pts[i][0],lo:pts[i][1]}));
+  const tot=c[c.length-1]||0;if(tot<km*2.5)return [];return pts.filter((p,i)=>c[i]>=km&&c[i]<=tot-km)}
+// 地図（国土地理院の淡色地図）にルートとスポットを描く
+async function routeMap(pts,spots,W,H,o={}){const all=[...pts.map(p=>[p[0],p[1]]),...spots.filter(x=>x.la!=null).map(x=>[x.la,x.lo])];if(!all.length)return null;
+  const cv=document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d');g.fillStyle='#e9e7e1';g.fillRect(0,0,W,H);
+  const X=(lo,z)=>(lo+180)/360*256*2**z,Y=(la,z)=>{const q=Math.sin(la*Math.PI/180);return (.5-Math.log((1+q)/(1-q))/(4*Math.PI))*256*2**z};
+  const las=all.map(a=>a[0]),los=all.map(a=>a[1]),la0=Math.min(...las),la1=Math.max(...las),lo0=Math.min(...los),lo1=Math.max(...los),pad=o.pad||40;
+  let z=15;while(z>5&&((X(lo1,z)-X(lo0,z))>W-2*pad||(Y(la0,z)-Y(la1,z))>H-2*pad))z--;
+  const ox=(X(lo0,z)+X(lo1,z))/2-W/2,oy=(Y(la0,z)+Y(la1,z))/2-H/2,jobs=[];
+  for(let tx=Math.floor(ox/256);tx<=Math.floor((ox+W)/256);tx++)for(let ty=Math.floor(oy/256);ty<=Math.floor((oy+H)/256);ty++)
+    jobs.push(loadImg(`https://cyberjapandata.gsi.go.jp/xyz/pale/${z}/${tx}/${ty}.png`).then(im=>{if(im)g.drawImage(im,tx*256-ox,ty*256-oy)}));
+  await Promise.all(jobs);
+  const P=(la,lo)=>[X(lo,z)-ox,Y(la,z)-oy],lw=o.lw||5;
+  if(pts.length>1){g.lineJoin=g.lineCap='round';g.beginPath();pts.forEach((p,i)=>{const [x,y]=P(p[0],p[1]);i?g.lineTo(x,y):g.moveTo(x,y)});g.strokeStyle='#fff';g.lineWidth=lw+4;g.stroke();g.strokeStyle='#e8551c';g.lineWidth=lw;g.stroke()}
+  spots.forEach(x=>{if(x.la==null)return;const [a,b]=P(x.la,x.lo);g.beginPath();g.arc(a,b,o.r||8,0,Math.PI*2);g.fillStyle=CAT[x.cat].c;g.fill();g.lineWidth=3;g.strokeStyle='#fff';g.stroke()});
+  g.font=`500 ${o.fs||11}px sans-serif`;g.textAlign='right';g.fillStyle='rgba(0,0,0,.6)';g.fillText('地理院タイル',W-6,H-6);return cv}
+function routeRow(){return `<div class="srow rtrow"><div class="t"><b>ドライブを記録する</b><span>アプリを開いている間の位置を、2分か500mごとにざっくり記録して、旅のしおりの地図に使います。記録はこのスマホの中だけに保存され、運営にもほかの人にも送られません</span></div><button class="switch" role="switch" aria-checked="${!!settings.route}" id="rtSw" aria-label="ドライブを記録する"></button></div>`}
+function bindRouteRow(after){const b=$('#rtSw');if(b)b.onclick=()=>{setRoute(!settings.route);b.setAttribute('aria-checked',!!settings.route);toast(settings.route?'ドライブの記録をはじめました（開いている間だけ）':'ドライブの記録を止めました');after&&after()}}
 function tripCard(){const t=tripOf(today()),n=t.spots.filter(v=>SP(v.id).cat!=='st').length;
   return `<button class="yrcard trip press" id="tripb"><span class="yk">TRIP NOTE</span><b>${n?`今日の旅のしおり · ${n}か所`:'旅のしおり'}</b><span class="ys">${n?'行ったスポットと出会いを1日ずつ残します':'行ったスポットと出会いを、日記のように1日ずつ残します'}</span>
    ${n?`<span class="tripic">${t.spots.slice(-5).map(v=>spotMark(SP(v.id),true,26)).join('')}</span>`:''}<span class="ya" aria-hidden="true">›</span></button>`}
 function openTrip(){const L=tripDays();
-  openSheet(`<b style="font-size:20px;display:block;text-align:center">旅のしおり</b><p class="note" style="text-align:center;margin:4px 0 12px">あなたにだけ見えます。走ったルートは記録しません</p>
-   ${L.length?`<div class="list">${L.slice(0,60).map(o=>{const t=tripOf(o.d);return `<button class="li press" data-day="${o.d}"><div class="tdate"><b>${+o.d.slice(5,7)}/${+o.d.slice(8)}</b><span>${wdOf(o.d)}</span></div><div class="t"><b>${t.spots.length?esc(SP(t.spots[0].id).n)+(t.spots.length>1?` ほか${t.spots.length-1}か所`:''):'交換した日'}</b><span>${[o.sp?`スポット${t.spots.length}`:'',o.ex?`交換${o.ex}人`:'',t.photos.length?`フォト${t.photos.length}`:''].filter(Boolean).join(' · ')}${o.d.slice(0,4)!==today().slice(0,4)?' · '+o.d.slice(0,4)+'年':''}</span></div><span class="val">›</span></button>`}).join('')}</div>`
+  openSheet(`<b style="font-size:20px;display:block;text-align:center">旅のしおり</b><p class="note" style="text-align:center;margin:4px 0 12px">あなたにだけ見えます</p><div class="set" style="margin-bottom:12px">${routeRow()}</div>
+   ${L.length?`<div class="list">${L.slice(0,60).map(o=>{const t=tripOf(o.d);return `<button class="li press" data-day="${o.d}"><div class="tdate"><b>${+o.d.slice(5,7)}/${+o.d.slice(8)}</b><span>${wdOf(o.d)}</span></div><div class="t"><b>${t.spots.length?esc(SP(t.spots[0].id).n)+(t.spots.length>1?` ほか${t.spots.length-1}か所`:''):'交換した日'}</b><span>${[o.sp?`スポット${t.spots.length}`:'',t.km>=1?kmTxt(t.km):'',o.ex?`交換${o.ex}人`:'',t.pass?`すれ違い${t.pass}`:'',t.niceS+t.niceG?`♥${t.niceS+t.niceG}`:'',t.photos.length?`フォト${t.photos.length}`:''].filter(Boolean).join(' · ')}${o.d.slice(0,4)!==today().slice(0,4)?' · '+o.d.slice(0,4)+'年':''}</span></div><span class="val">›</span></button>`}).join('')}</div>`
     :'<p class="note" style="text-align:center;padding:16px">まだ記録がありません。スポットを記録したり交換したりすると、ここに1日ずつ残ります。</p>'}
    <button class="btn sub press" style="margin-top:14px" data-close>閉じる</button>`);
-  bindClose();$$('#sh [data-day]').forEach(b=>b.onclick=()=>{closeSheet();setTimeout(()=>openTripDay(b.dataset.day,openTrip),260)});
+  bindClose();bindRouteRow();$$('#sh [data-day]').forEach(b=>b.onclick=()=>{closeSheet();setTimeout(()=>openTripDay(b.dataset.day,openTrip),260)});
 }
 function openTripDay(d,back){const t=tripOf(d),isT=d===today();
   openSheet(`<div class="triphead"><span class="yk">TRIP NOTE</span><b>${+d.slice(5,7)}月${+d.slice(8)}日（${wdOf(d)}）</b><span>${d.slice(0,4)}年${t.prefs.length?' · '+esc(t.prefs.join('・')):''}</span></div>
-   <div class="mapstat"><div><b>${t.spots.length}</b><small>か所</small><span>スポット</span></div><div><b>${t.ppl.length}</b><small>人</small><span>交換</span></div><div><b>${t.photos.length}</b><small>枚</small><span>フォト</span></div></div>
+   <div class="mapstat trips"><div><b>${t.spots.length}</b><small>か所</small><span>スポット</span></div><div id="tkm"><b>${t.km<1?'—':t.km<10?t.km.toFixed(1):Math.round(t.km)}</b><small>${t.km<1?'':'km'}</small><span>移動</span></div><div><b>${t.ppl.length}</b><small>人</small><span>交換</span></div><div><b>${t.pass}</b><small>人</small><span>すれ違い</span></div></div>
+   <p class="note" id="tkmn" style="text-align:center;margin:6px 0 0">${t.km>=1?'移動はスポットどうしを直線で結んだ距離の目安です':''}</p>
+   <div class="tripmap" id="tmap" hidden></div>
+   ${isT?`<div class="rtnow">${settings.route?`<span class="livedot"></span>ドライブを記録中（開いている間だけ） · <b id="rtn">${d===rtDay?rtPts.length:'…'}</b>点`:`<button class="seclink press" id="rtOn" style="margin:0">ドライブの記録をオンにする</button>`}</div>`:''}
    ${t.spots.length?`<div class="sec" style="margin-top:14px">行ったところ</div><div class="tline">${t.spots.map(v=>{const x=SP(v.id),ph=t.photos.filter(p=>p.spot===v.id);
-     return `<div class="tl"><span class="tlt">${v.t?hm(v.t):''}</span><button class="tlm press" data-spot="${esc(v.id)}">${spotMark(x,true,38)}</button><div class="t"><b>${esc(x.n)}</b><span>${CAT[x.cat].n} · ${esc(x.pref)}</span>
+     const lg=t.legs.find(g=>g.to===v.id);
+     return `${lg?`<div class="tleg">↓ ${kmTxt(lg.k)}</div>`:''}<div class="tl"><span class="tlt">${v.t?hm(v.t):''}</span><button class="tlm press" data-spot="${esc(v.id)}">${spotMark(x,true,38)}</button><div class="t"><b>${esc(x.n)}</b><span>${CAT[x.cat].n} · ${esc(x.pref)}</span>
        ${ph.length||isT?`<div class="tlp">${ph.map(p=>`<button class="press" data-phoo="${esc(p.id)}">${phoStamp(p,52)}</button>`).join('')}${isT&&!ph.length?`<button class="seclink press" data-shot="${esc(v.id)}" style="margin:0">${CAMI}撮る</button>`:''}</div>`:''}</div></div>`}).join('')}</div>`:''}
    ${t.ppl.length?`<div class="sec" style="margin-top:14px">交換した人</div><div class="tppl">${t.ppl.map(p=>{const l=t.ex.find(e=>e.pid===p.id);return `<button class="cell press" data-tp="${p.id}">${stamp(p,{size:56,ev:l.ev,sz:l.sz,fr:l.fr,kira:l.kira,rare:l.rare,v:l.v,im:l.im,rg:l.rg})}<span class="n">${esc(p.name)}</span></button>`}).join('')}</div>`:''}
-   ${t.pass?`<p class="note" style="margin:10px 4px 0">この日は${t.pass}人とスポットですれ違いました</p>`:''}
-   <div class="row" style="margin-top:16px"><button class="btn sub press" data-close>閉じる</button><button class="btn press" id="tripImg">SNS用の画像にする</button></div>`);
+   ${t.pass?`<div class="sec" style="margin-top:14px">すれ違った人${t.niceS+t.niceG?`<span class="chip">♥ 送った${t.niceS}・届いた${t.niceG}</span>`:''}</div><div class="list">${t.passes.map(x=>{const p=person(x.pid),sp=SP(x.spot);
+     return `<button class="li press" data-tp="${p.id}">${stamp(p,{size:40})}<div class="t"><b>${esc(p.name)}</b><span>${sp?esc(sp.n)+' · ':''}${x.dt}分ちがい</span></div><span class="nicest${x.nice&&x.got?' both':x.nice||x.got?' one':''}">${x.nice&&x.got?'♥ お互いにナイス！':x.got?'♥ ナイス！が届いた':x.nice?'♥ ナイス！を送った':''}</span></button>`}).join('')}</div>`:''}
+   <div class="row" style="margin-top:16px"><button class="btn sub press" data-close>閉じる</button><button class="btn press" id="tripImg">SNS用の画像にする</button></div>
+   <button class="linkbtn" id="rtDel" style="padding:10px;display:none"><span class="danger">この日のルートを消す</span></button>`);
   bindClose(back);hydratePho();
+  if($('#rtOn'))$('#rtOn').onclick=()=>{setRoute(true);toast('ドライブの記録をはじめました（開いている間だけ）');closeSheet();setTimeout(()=>openTripDay(d,back),260)};
+  rtGet(d).then(async pts=>{t.route=pts;if(!$('#tmap'))return;const sps=t.spots.map(v=>SP(v.id));if($('#rtn'))$('#rtn').textContent=pts.length;
+    if(pts.length>=2){const k=rtKm(pts);t.km=k;$('#tkm').innerHTML=`<b>${k<10?k.toFixed(1):Math.round(k)}</b><small>km</small><span>移動</span>`;$('#tkmn').textContent='移動はドライブの記録（2分か500mごとの点）から計算した、ざっくりの距離です';$('#rtDel').style.display='block'}
+    if(pts.length>=2||sps.filter(x=>x.la!=null).length>=2){const cv=await routeMap(pts,sps,680,420);if(cv&&$('#tmap')){$('#tmap').hidden=false;$('#tmap').appendChild(cv)}}});
+  let rtArmed=false;$('#rtDel').onclick=async()=>{if(!rtArmed){rtArmed=true;$('#rtDel .danger').textContent='もう一度押すと、この日のルートを消します';return}
+    try{await PDB.rdel(d)}catch(e){}if(d===rtDay){rtPts=[];rtLast=null}toast('この日のルートを消しました');closeSheet();setTimeout(()=>openTripDay(d,back),260)};
   $$('#sh [data-spot]').forEach(b=>b.onclick=()=>{closeSheet();setTimeout(()=>openSpot(b.dataset.spot,()=>openTripDay(d,back)),260)});
   $$('#sh [data-phoo]').forEach(b=>b.onclick=()=>{closeSheet();setTimeout(()=>openPho(b.dataset.phoo,()=>openTripDay(d,back)),260)});
   $$('#sh [data-shot]').forEach(b=>b.onclick=()=>{closeSheet();setTimeout(()=>openPhoto(b.dataset.shot,()=>openTripDay(d,back)),260)});
@@ -2076,7 +2136,7 @@ function openTripDay(d,back){const t=tripOf(d),isT=d===today();
     try{const cv=await tripImage(t);cv.toBlob(b=>{bt.disabled=false;bt.textContent='SNS用の画像にする';saveFiles([[b,`petacar-trip-${d}.png`]],`${+d.slice(5,7)}/${+d.slice(8)}の旅 #ペタカー`)},'image/png')}
     catch(e){console.warn(e);bt.disabled=false;bt.textContent='SNS用の画像にする';toast('画像を作れませんでした')}};
 }
-async function tripImage(t){const W=1080,H=1350,cv=document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d');
+async function tripImage(t){if(t.route&&t.route.length>=2)t={...t,km:rtKm(t.route)};const W=1080,H=1350,cv=document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d');
   try{await document.fonts.ready}catch(e){}
   const dim=await drawBg(g,W,H,me);const sh=g.createLinearGradient(0,0,0,H);sh.addColorStop(0,`rgba(0,0,0,${.35+dim*.3})`);sh.addColorStop(1,`rgba(0,0,0,${.6+dim*.3})`);g.fillStyle=sh;g.fillRect(0,0,W,H);
   const T=(s,x,y,sz,wt='700',al='center',col='#fff',ff='"Zen Kaku Gothic New",sans-serif')=>{g.font=`${wt} ${sz}px ${ff}`;g.textAlign=al;g.fillStyle=col;g.fillText(s,x,y)};
@@ -2085,11 +2145,14 @@ async function tripImage(t){const W=1080,H=1350,cv=document.createElement('canva
   const d=t.d;T('TRIP NOTE',W/2,96,30,'700','center','#ff9a66','"JetBrains Mono",monospace');
   T(`${d.slice(0,4)}.${d.slice(5,7)}.${d.slice(8)}（${wdOf(d)}）`,W/2,176,64,'400','center','#fff','"Dela Gothic One",sans-serif');
   const sub=[me.name&&me.name!=='ゲスト'?me.name+'さんの旅':'',t.prefs.join('・')].filter(Boolean).join('　');if(sub)T(sub,W/2,232,30,'500','center','rgba(255,255,255,.85)');
-  [[t.spots.length,'スポット'],[t.ppl.length,'交換した人'],[t.photos.length,'フォト']].forEach(([v,l],i)=>{const x=90+i*310;box(x,270,280,150,28,'rgba(255,255,255,.14)');T(String(v),x+140,362,78,'700','center','#fff','"JetBrains Mono",monospace');T(l,x+140,400,26)});
-  let y=470;const ph=t.photos.slice(0,4);
-  if(ph.length){const S=ph.length>2?220:260,gap=24,x0=(W-(ph.length*S+(ph.length-1)*gap))/2;
-    for(let i=0;i<ph.length;i++){const c=await phoCanvas(ph[i],S*2);if(c)g.drawImage(c,x0+i*(S+gap),y,S,S)}y+=S+40}
-  const L=t.spots.slice(0,ph.length?6:10),rowH=ph.length?62:70;
+  [[t.spots.length,'スポット'],[t.km<1?'—':(t.km<10?t.km.toFixed(1):Math.round(t.km))+'',t.km<1?'移動':'移動 km'],[t.ppl.length,'交換した人'],[t.pass,'すれ違い']].forEach(([v,l],i)=>{const x=60+i*245;box(x,270,225,150,28,'rgba(255,255,255,.14)');const sz=fit(String(v),200,72,'700','"JetBrains Mono",monospace');T(String(v),x+112,362,sz,'700','center','#fff','"JetBrains Mono",monospace');T(l,x+112,400,26)});
+  if(t.niceS+t.niceG)T(`♥ ナイス！ 送った${t.niceS}・届いた${t.niceG}`,W/2,452,28,'700','center','#ff9ab0');
+  let y=t.niceS+t.niceG?490:470;const rp=rtTrim(t.route||[]),mp=rp.length>=2?await routeMap(rp,t.spots.map(v=>SP(v.id)),960,360,{lw:8,r:12,fs:16,pad:50}):null;
+  if(mp){g.save();g.beginPath();g.roundRect?g.roundRect(60,y,960,360,28):g.rect(60,y,960,360);g.clip();g.drawImage(mp,60,y);g.restore();y+=390}
+  const ph=t.photos.slice(0,mp?3:4);
+  if(ph.length){const S=mp?130:ph.length>2?220:260,gap=24,x0=(W-(ph.length*S+(ph.length-1)*gap))/2;
+    for(let i=0;i<ph.length;i++){const c=await phoCanvas(ph[i],S*2);if(c)g.drawImage(c,x0+i*(S+gap),y,S,S)}y+=S+(mp?30:40)}
+  const L=t.spots.slice(0,mp?(ph.length?2:4):ph.length?6:10),rowH=ph.length||mp?58:70;
   if(L.length){g.fillStyle='rgba(255,255,255,.35)';g.fillRect(150,y+10,3,(L.length-1)*rowH);
     for(let i=0;i<L.length;i++){const v=L[i],x=SP(v.id),cy=y+10+i*rowH;g.beginPath();g.arc(151,cy,15,0,Math.PI*2);g.fillStyle=CAT[x.cat].c;g.fill();g.lineWidth=4;g.strokeStyle='#fff';g.stroke();
       if(v.t)T(hm(v.t),112,cy+10,24,'700','right','rgba(255,255,255,.8)','"JetBrains Mono",monospace');
@@ -2191,16 +2254,17 @@ async function bookPages(){try{await document.fonts.ready}catch(e){}
 async function backupData(){const imgs={},add=r=>{if(!r||imgs[r])return;const s=IMG(r);if(s&&/^data:image\//.test(s))imgs[r]=s};
   add(me.img);(me.garage||[]).forEach(c=>add(c.img));log.forEach(l=>{add(l.im);const p=person(l.pid);if(p){add(p.img);(p.vers||[]).forEach(v=>add(v.img))}});
   const photos=[];for(const p of pholog){const s=await phoSrc(p.id);photos.push({...p,img:s||null})}
+  const routes={};try{for(const k of await PDB.rkeys())routes[k]=await PDB.rget(k)}catch(e){}
   const ppl={};met().forEach(id=>{const p=person(id);ppl[id]={name:p.name,maker:p.maker,car:p.car,pref:p.pref,ring:p.ring,img:p.img}});
-  return {app:'petacar',kind:'backup',v:1,at:new Date().toISOString(),me:{...me,sample:undefined},people:ppl,log,spots:spotlog,shops:shoplog,pass:passLog,favs:[...favs],settings,photos,images:imgs}}
+  return {app:'petacar',kind:'backup',v:1,at:new Date().toISOString(),me:{...me,sample:undefined},people:ppl,log,spots:spotlog,shops:shoplog,pass:passLog,favs:[...favs],settings,photos,routes,images:imgs}}
 function openExport(){const ph=pholog.length;
   openSheet(`<b style="font-size:20px;display:block;text-align:center">データの持ち出し</b>
    <p class="note" style="text-align:center;margin:4px 0 12px">集めたスタンプと記録を、このスマホに保存できます。<br>もしペタカー! を終了するときは、90日前までにお知らせして、その間はここから書き出せるようにします。</p>
    <div class="list"><button class="li press" id="exBook"><span class="exi">📖</span><div class="t"><b>スタンプ帳を画像で保存</b><span>交換したスタンプとフォトスタンプを、20個ずつの画像にします（${Math.max(1,Math.ceil((met().length+ph)/20))}枚）</span></div><span class="val">›</span></button>
-    <button class="li press" id="exData"><span class="exi">🗂</span><div class="t"><b>記録をファイルで保存</b><span>交換・スポット・すれ違いの記録、スタンプとフォトスタンプの画像をまとめた1つのファイル（JSON）</span></div><span class="val">›</span></button>
-    <label class="li press" for="imFile" style="cursor:pointer"><span class="exi">📥</span><div class="t"><b>フォトスタンプを読み込む</b><span>機種変更のときに。保存したファイルから、フォトスタンプの写真を戻します</span></div><span class="val">›</span><input type="file" id="imFile" accept="application/json,.json" hidden></label></div>
+    <button class="li press" id="exData"><span class="exi">🗂</span><div class="t"><b>記録をファイルで保存</b><span>交換・スポット・すれ違い・ドライブの記録、スタンプとフォトスタンプの画像をまとめた1つのファイル（JSON）</span></div><span class="val">›</span></button>
+    <label class="li press" for="imFile" style="cursor:pointer"><span class="exi">📥</span><div class="t"><b>フォトスタンプ・ドライブの記録を読み込む</b><span>機種変更のときに。保存したファイルから、スマホの中だけにあった写真とルートを戻します</span></div><span class="val">›</span><input type="file" id="imFile" accept="application/json,.json" hidden></label></div>
    <div id="exOut"></div>
-   <p class="note" style="margin:10px 4px 0">交換・スポットの記録とスタンプは、ログインすればどのスマホでも同じものが見られます。フォトスタンプの写真だけはこのスマホの中にあるので、機種変更の前にファイルで保存してください。</p>
+   <p class="note" style="margin:10px 4px 0">交換・スポットの記録とスタンプは、ログインすればどのスマホでも同じものが見られます。フォトスタンプの写真とドライブの記録はこのスマホの中だけにあるので、機種変更の前にファイルで保存してください。</p>
    <button class="btn sub press" style="margin-top:12px" data-close>閉じる</button>`);
   bindClose(openSettings);
   $('#exBook').onclick=async()=>{const o=$('#exOut');o.innerHTML='<p class="note" style="text-align:center;margin-top:10px">画像を作っています…</p>';
@@ -2212,10 +2276,12 @@ function openExport(){const ph=pholog.length;
   $('#imFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const d=JSON.parse(await f.text());if(!d||d.app!=='petacar'||!Array.isArray(d.photos))throw 0;
       let n=0;for(const p of d.photos){if(!p||typeof p.id!=='string'||!/^ph[a-z0-9]{4,20}$/.test(p.id)||typeof p.img!=='string'||!/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(p.img)||p.img.length>600000)continue;
         if(typeof p.spot!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(String(p.d)))continue;await PDB.put(p.id,p.img);phoCache[p.id]=p.img;if(!pholog.some(v=>v.id===p.id)){pholog.push({id:p.id,spot:p.spot,d:p.d,t:+p.t||0});n++}}
-      pholog.sort((a,b)=>(a.t||0)-(b.t||0));savePho();toast(n?`フォトスタンプを${n}枚読み込みました`:'新しいフォトスタンプはありませんでした');render()}
+      let nr=0;if(d.routes&&typeof d.routes==='object')for(const [k,a] of Object.entries(d.routes)){if(!/^\d{4}-\d{2}-\d{2}$/.test(k)||!Array.isArray(a)||a.length>20000)continue;
+        const ok=a.filter(p=>Array.isArray(p)&&p.length===3&&p.every(v=>typeof v==='number'&&isFinite(v)));if(!ok.length)continue;const cur=await rtGet(k);if(cur.length>=ok.length)continue;await PDB.rput(k,ok);if(k===rtDay){rtPts=ok}nr++}
+      pholog.sort((a,b)=>(a.t||0)-(b.t||0));savePho();toast(n||nr?`フォトスタンプ${n}枚・ドライブの記録${nr}日分を読み込みました`:'新しいフォトスタンプ・記録はありませんでした');render()}
     catch(err){toast('ペタカー! のファイルではないようです')}};
 }
-if(!window.__cloud)window.__solo={tripImage,tripOf,bookPages,backupData,setProg,phoCanvas}; // 試作だけ：画像の確認用
+if(!window.__cloud)window.__solo={rtAdd,rtGet,routeMap,tripImage,tripOf,bookPages,backupData,setProg,phoCanvas}; // 試作だけ：画像の確認用
 
 function openSpot(id,back){
   const x=SP(id),c=CAT[x.cat],vs=spotlog.filter(v=>v.id===id).map(v=>v.d).sort().reverse(),done=vs[0]===today();
@@ -2473,7 +2539,7 @@ function openSettings(){
      ${sw('showOpen','アプリを開いている間、近くの人に表示する','交換をはじめていなくても、近くの人の一覧に出て申し込みを受けられます。オフにすると、あなたからも見えなくなります')}
 </div>
    <div class="sec">スポット</div>
-   <div class="set">${sw('autoIn','開いている間は、着いたら自動で記録する','タップしなくても印を押します。アプリを閉じている間の自動記録は、アプリ版で対応します')}</div>
+   <div class="set">${routeRow()}${sw('autoIn','開いている間は、着いたら自動で記録する','タップしなくても印を押します。アプリを閉じている間の自動記録は、アプリ版で対応します')}</div>
    <div class="sec">データ</div>
    <div class="set"><button class="srow press" id="exportb" style="width:100%;border:0;background:none;cursor:pointer;text-align:left"><div class="t"><b>データの持ち出し</b><span>スタンプ帳の画像・記録のファイルを保存。機種変更のときのフォトスタンプの引き継ぎも</span></div><span class="val">›</span></button></div>
    <div class="sec">その他</div>
@@ -2501,7 +2567,7 @@ function openSettings(){
   $('#preview').onclick=previewMe;$('#snsb').onclick=openSns;if($('#demoArr2'))$('#demoArr2').onclick=()=>{closeSheet();render();setTimeout(demoArrive,450)};
   $('#onbagain').onclick=()=>{closeSheet();showOnb()};
   $$('[data-doc]').forEach(b=>b.onclick=()=>openDoc(b.dataset.doc,openSettings));
-  $('#exportb').onclick=openExport;$('#blkList').onclick=openBlocked;$('#delAcc').onclick=openDelete;
+  bindRouteRow();$('#exportb').onclick=openExport;$('#blkList').onclick=openBlocked;$('#delAcc').onclick=openDelete;
   $('#logout').onclick=()=>C.signOut();
   let armed=false;
   if($('#reset'))$('#reset').onclick=()=>{if(!armed){armed=true;$('#reset .danger').textContent='もう一度押すと最初に戻します';return}
