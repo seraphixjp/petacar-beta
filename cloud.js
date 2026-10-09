@@ -219,12 +219,15 @@ function cleanShop(id, d) {
   const num = (v, a, b) => typeof v === 'number' && isFinite(v) && v >= a && v <= b ? v : null;
   const la = num(d.la, 20, 46), lo = num(d.lo, 122, 154); if (la == null || lo == null) return null;
   const day = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10);
-  if (typeof d.from === 'string' && d.from > day) return null;
-  if (typeof d.until === 'string' && d.until < day) return null;
+  // イベント（kind:'event'）は開催の45日前から一覧に出して告知し、終わったあとも集めた人のコレクションに残す。もらえるのは開催日だけ（アプリ側の evOpen）
+  const ev = d.kind === 'event', soon = new Date(Date.now() + (9 * 3600 + 45 * 86400) * 1000).toISOString().slice(0, 10);
+  if (typeof d.from === 'string' && d.from > (ev ? soon : day)) return null;
+  if (typeof d.until === 'string' && d.until < day && !ev) return null;
   const col = v => typeof v === 'string' && /^#[0-9a-fA-F]{6}$/.test(v) ? v : null;
   const img = typeof d.img === 'string' && d.img.length <= 400000 && /^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(d.img) ? d.img : undefined;
   return { id, name: str(d.name, 24, '協力店'), short: str(d.short, 28).replace(/[^ -~]/g, '').toUpperCase(), pref: str(d.pref, 4), ad: str(d.ad, 60), la, lo,
-    r: num(d.r, 30, 300) || 100, c1: col(d.c1) || '#6b2a17', c2: col(d.c2) || '#f4d7a1', hours: str(d.hours, 40), note: str(d.note, 80), mark: str(d.mark, 1), img };
+    r: num(d.r, 30, 300) || 100, c1: col(d.c1) || '#6b2a17', c2: col(d.c2) || '#f4d7a1', hours: str(d.hours, 40), note: str(d.note, 80), mark: str(d.mark, 1), img,
+    kind: ev ? 'event' : 'shop', from: /^\d{4}-\d{2}-\d{2}$/.test(d.from) ? d.from : '', until: /^\d{4}-\d{2}-\d{2}$/.test(d.until) ? d.until : '' };
 }
 function toPerson(id, d) {
   const sns = Array.isArray(d.sns) ? d.sns.filter(u => typeof u === 'string' && /^https:\/\/[^\s"'<>]+$/.test(u) && u.length <= 200).slice(0, 2) : [];

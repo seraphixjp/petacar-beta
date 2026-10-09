@@ -434,6 +434,28 @@ textarea{width:100%;box-sizing:border-box;margin-top:6px;padding:10px 12px;borde
 .ptgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:12px 8px;margin:6px 0 14px;width:100%}
 .ptm{display:grid;justify-items:center;gap:3px;text-align:center;animation:enter .3s}.ptm b{font-size:12.5px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ptm span{font-size:11px;color:var(--muted)}
 .ttlpick .li b small{font-weight:400;color:var(--muted);margin-left:6px}
+.stamp.pho.nopho>img{background:repeating-linear-gradient(45deg,var(--fill) 0 6px,var(--line) 6px 12px)}
+.phorow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;margin-top:12px}.phorow>button:not(.btn){border:0;background:none;padding:0;cursor:pointer}
+.yrcard.trip{background:linear-gradient(135deg,#1f3a5f,#18212b 70%);margin-top:10px}.yrcard.trip .yk{color:#8fc1ff}
+.tripic{display:flex;gap:4px;margin-top:6px}.tripic .spm{flex:none}
+.tdate{display:grid;justify-items:center;min-width:46px;line-height:1.1}.tdate b{font:700 17px var(--mono)}.tdate span{font-size:11px;color:var(--muted)}
+.triphead{text-align:center;display:grid;gap:2px;margin-bottom:10px}.triphead .yk{font:700 11px var(--mono);letter-spacing:.2em;color:var(--accent)}.triphead b{font:400 24px var(--display)}.triphead span{font-size:13px;color:var(--muted)}
+.tline{position:relative;display:grid;gap:12px;padding-left:4px}.tline:before{content:"";position:absolute;left:66px;top:16px;bottom:16px;width:2px;background:var(--line)}
+.tl{display:grid;grid-template-columns:44px 40px 1fr;gap:8px;align-items:start;position:relative}.tlt{font:600 12px var(--mono);color:var(--muted);text-align:right;padding-top:12px}
+.tlm{border:0;background:none;padding:0;cursor:pointer;position:relative;z-index:1}.tl .t{display:grid;gap:2px;padding-top:4px;min-width:0}.tl .t b{font-size:15px}.tl .t span{font-size:12px;color:var(--muted)}
+.tlp{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:4px}.tlp>button:not(.seclink){border:0;background:none;padding:0;cursor:pointer}
+.tppl{display:flex;flex-wrap:wrap;gap:12px}.tppl .cell .stamp{width:56px}
+.setc{display:flex;gap:12px;align-items:center;width:100%;text-align:left;border:0;background:var(--surface);padding:12px 14px;cursor:pointer;color:inherit;font:inherit}
+.list .setc+.setc{border-top:1px solid var(--line)}
+.setc .si{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:var(--fill);color:var(--muted);flex:none}
+.setc.done .si{background:linear-gradient(135deg,#fff1a8,#e2a91c 60%,#b07c0a);color:#3a2700;font-size:20px}
+.setc .t{flex:1;min-width:0;display:grid;gap:2px}.setc .t b{font-size:15px}.setc .t span{font-size:12px;color:var(--muted)}.setc .v{font:600 13px var(--mono);color:var(--muted)}
+.tag.setok{background:linear-gradient(135deg,#fff1a8,#e2a91c);color:#3a2700;margin-left:6px}
+.setbig{width:84px;height:84px;border-radius:24px;display:grid;place-items:center;background:var(--fill);color:var(--muted);font-size:40px;font-weight:800}
+.setbig.done{background:linear-gradient(135deg,#fff1a8,#e2a91c 60%,#b07c0a);color:#3a2700}
+.chk{width:24px;height:24px;border-radius:50%;flex:none;display:grid;place-items:center;border:2px dashed var(--line);font-weight:800;font-size:13px}.chk.on{border:0;background:var(--accent);color:#fff}
+.exi{font-size:22px;width:36px;text-align:center;flex:none}
+.bookprev{display:flex;gap:8px;overflow-x:auto;margin-top:12px;padding-bottom:6px}.bookprev img{width:150px;flex:none;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.2)}
 [hidden]{display:none!important}
 body{margin:0}img{max-width:100%}
 html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -632,6 +654,10 @@ Object.entries({p1:'night',p2:'track',p3:'bay',p4:'trail',p5:'sunset',p6:'fuji',
 const PST=new Proxy({},{get:(t,id)=>{const p=person(id);return {...(p.stats||{}),pins:(p.stats&&p.stats.pins)||[],showStats:p.showStats,showRewards:p.showRewards}}});
 const TIERS={br:{n:'ブロンズ',o:0},si:{n:'シルバー',o:1},go:{n:'ゴールド',o:2},pt:{n:'プラチナ',o:3},lg:{n:'レジェンド',o:4}};
 const BADGES=[
+  {k:'set1',m:'',ic:'flag',num:'1',t:'はじめてのセット',s:'セットを揃えた数',f:s=>s.setc||0,g:1,tier:'br'},
+  {k:'set3',m:'',ic:'flag',num:'3',t:'セット3つ',s:'セットを揃えた数',f:s=>s.setc||0,g:3,tier:'si'},
+  {k:'set6',m:'',ic:'flag',num:'6',t:'セット6つ',s:'セットを揃えた数',f:s=>s.setc||0,g:6,tier:'go'},
+  {k:'set12',m:'',ic:'crown',num:'12',t:'セットコレクター',s:'セットを揃えた数',f:s=>s.setc||0,g:12,tier:'pt'},
   {k:'ex1',m:'',ic:'swap',num:'1',t:'はじめての交換',s:'スタンプを交換した回数',f:s=>s.ex||0,g:1,tier:'br'},
   {k:'x10',m:'',ic:'swap',num:'10',t:'交換10回',s:'スタンプを交換した回数',f:s=>s.ex||0,g:10,tier:'br'},
   {k:'p5',m:'',ic:'people',num:'5',t:'5人と出会う',s:'交換した別々の人の数',f:s=>s.ppl||0,g:5,tier:'br'},
@@ -950,7 +976,7 @@ const kiraRate=(before,ev)=>boost?.5:Math.min(.15,.03+.01*before)*(ev?2:1);
 const rareRate=(before,ev)=>boost?.3:Math.min(.3,.1+.02*before)*(ev?1.5:1);
 const pct=x=>Math.round(x*100)+'%';
 const myStats=()=>{const ppl=met();return hiMerge({ex:log.length,ppl:ppl.length,prefs:new Set(ppl.map(i=>person(i).pref).filter(x=>PREFS.includes(x))).size,same:ppl.filter(i=>person(i).maker===me.maker&&person(i).car===me.car).length,
-  best:Math.max(0,...ppl.map(daysWith)),kira:log.filter(l=>l.kira).length,evs:new Set(log.filter(l=>l.ev).map(l=>l.ev)).size,days:new Set(log.map(l=>l.d)).size,passp:new Set(passLog.map(x=>x.pid)).size,offd:new Set(log.filter(l=>l.off||(person(l.pid)||{}).official).map(l=>l.d)).size,mk:new Set(ppl.map(i=>person(i).maker).filter(m=>m&&m!=='その他')).size,...exStats(),...zukanStats(),...spotStats(),ttl:ttlIdx()})};
+  best:Math.max(0,...ppl.map(daysWith)),kira:log.filter(l=>l.kira).length,evs:new Set(log.filter(l=>l.ev).map(l=>l.ev)).size,days:new Set(log.map(l=>l.d)).size,passp:new Set(passLog.map(x=>x.pid)).size,offd:new Set(log.filter(l=>l.off||(person(l.pid)||{}).official).map(l=>l.d)).size,mk:new Set(ppl.map(i=>person(i).maker).filter(m=>m&&m!=='その他')).size,...exStats(),...zukanStats(),...spotStats(),ttl:ttlIdx(),setc:setCount()})};
 /* 交換の記録から：dayMax 1日の最多人数 / sameMk 同じメーカー / rare 金色 / myCars 自分の車 / months 暦月 / gapMax 再会までの最長 */
 function gpMaxOf(ls){const m={};ls.forEach(l=>{if(l.gp)(m[l.gp]=m[l.gp]||new Set()).add(l.pid)});return Math.max(0,...Object.values(m).map(x=>x.size))}
 function exStats(){const byD={},byP={};log.forEach(l=>{(byD[l.d]=byD[l.d]||new Set()).add(l.pid);(byP[l.pid]=byP[l.pid]||new Set()).add(l.d)});
@@ -961,7 +987,7 @@ function exStats(){const byD={},byP={};log.forEach(l=>{(byD[l.d]=byD[l.d]||new S
     rare:log.filter(l=>l.rare&&!l.kira).length,myCars:new Set(log.map(l=>{const m=myOf(l);return m.maker+'|'+m.car})).size,
     months:new Set(log.map(l=>l.d.slice(5,7))).size,gapMax:Math.max(0,...Object.values(byP).map(gap))}}
 /* 一度取ったバッジは取り消さない：条件が後から変わりうる集計は、これまでの最高値を保存して使う */
-const HI_KEYS=['r3','r4','r5','zkfull','mkMax','same','sameMk','myCars','ekiFull','gmEki','legD','mu','gunsai','dayMax','months','gapMax','rare','gpMax'];
+const HI_KEYS=['setc','r3','r4','r5','zkfull','mkMax','same','sameMk','myCars','ekiFull','gmEki','legD','mu','gunsai','dayMax','months','gapMax','rare','gpMax'];
 let hiS=store.get('hi2',{})||{};
 function hiMerge(s){let ch=false;const o={...s};HI_KEYS.forEach(k=>{const v=+s[k]||0,h=+hiS[k]||0;if(v>h){hiS[k]=v;ch=true}o[k]=Math.max(v,h)});if(ch)store.set('hi2',hiS);return o}
 function zukanStats(){const z=zukanMap(),keys=Object.keys(z).filter(k=>!k.startsWith('その他|'));
@@ -1251,7 +1277,7 @@ function fillNearby_demo(){nearby=POOL_DEMO.filter(p=>!blocked.has(p.id)).sort((
    称号＝獲得したバッジ名を1つ、クラスの横に付けられる */
 const XP_SP={eki:10,pa:5,tg:15,cir:20,mu:15,jin:10,bri:10,mel:15,rd:10,top:30,tera:10,dam:15,cas:15,wh:25,tp:15};
 const XP_TIER={br:30,si:80,go:200,pt:500,lg:1200};
-function expOf(s){if(!s)return 0;let e=(+s.ex||0)*10+(+s.ppl||0)*20+(+s.prefs47||0)*30+(+s.st||0)*2+(+s.zk||0)*5+((+s.qd||0)-(+s.qo||0))*QXP+(+s.qo||0)*QXP_OLD+(+s.qc||0)*QXP_ALL;
+function expOf(s){if(!s)return 0;let e=(+s.ex||0)*10+(+s.ppl||0)*20+(+s.prefs47||0)*30+(+s.st||0)*2+(+s.zk||0)*5+((+s.qd||0)-(+s.qo||0))*QXP+(+s.qo||0)*QXP_OLD+(+s.qc||0)*QXP_ALL+(+s.setc||0)*100;
   for(const k in XP_SP)e+=(+s[k]||0)*XP_SP[k];gotList(s).forEach(b=>e+=XP_TIER[b.tier]||0);return Math.round(e)}
 const LV_MAX=99,needXP=L=>Math.round(40*Math.pow(L-1,1.8)); // Lv L になるのに必要な累計EXP
 function lvOf(e){let L=1;while(L<LV_MAX&&e>=needXP(L+1))L++;return L}
@@ -1333,7 +1359,8 @@ const views={
   <button class="btn sub press shareb" id="shareb" style="margin-top:10px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px;margin-right:6px"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>プロフィールをSNSでシェア</button>
   ${passCard()}
   ${questCard()}
-  <button class="yrcard press" id="wrapb"><span class="yk">PETACAR ${new Date().getFullYear()}</span><b>${new Date().getFullYear()}年のまとめ</b><span class="ys">この1年の出会いとスポットを振り返る</span><span class="ya" aria-hidden="true">›</span></button>
+  ${tripCard()}
+  <button class="yrcard press" id="wrapb" style="margin-top:10px"><span class="yk">PETACAR ${new Date().getFullYear()}</span><b>${new Date().getFullYear()}年のまとめ</b><span class="ys">この1年の出会いとスポットを振り返る</span><span class="ya" aria-hidden="true">›</span></button>
   <div class="sec">最近の交換<button class="seclink" id="allrec">すべて見る ›</button></div>
   <div class="list">${log.slice().sort((a,b)=>b.d.localeCompare(a.d)).slice(0,4).map(l=>{const p=person(l.pid);return `<button class="li press" data-p="${p.id}">${stamp(p,{size:44,ev:l.ev,sz:l.sz,fr:l.fr,kira:l.kira,rare:l.rare,v:l.v,im:l.im,rg:l.rg})}<div class="t"><b>${esc(p.name)} ${l.kira?'<span class="tag kira">EX</span>':l.rare?'<span class="tag rare">レア</span>':''}</b><span>${esc(placeOf(l))}</span></div><span class="d">${fmtD(l.d)}</span></button>`}).join('')}</div>`;
  },
@@ -1356,9 +1383,10 @@ const views={
   ${openSec()}`;
  },
  col(){
-  const seg=`<div class="seg" role="group" aria-label="表示"><button data-cv="stamp" aria-pressed="${colView==='stamp'}">スタンプ</button><button data-cv="zukan" aria-pressed="${colView==='zukan'}">車種図鑑</button><button data-cv="shop" aria-pressed="${colView==='shop'}">ストア</button></div>`;
+  const seg=`<div class="seg" role="group" aria-label="表示"><button data-cv="stamp" aria-pressed="${colView==='stamp'}">スタンプ</button><button data-cv="zukan" aria-pressed="${colView==='zukan'}">車種図鑑</button><button data-cv="shop" aria-pressed="${colView==='shop'}">ストア</button><button data-cv="pho" aria-pressed="${colView==='pho'}">フォト</button></div>`;
   if(colView==='zukan')return seg+zukan();
   if(colView==='shop')return seg+shopsView();
+  if(colView==='pho')return seg+phoView();
   return seg+views.colStamps();
  },
  sp(){
@@ -1391,7 +1419,8 @@ const views={
   const st=myStats(),mp=myPins(),gl=gotList(st),gk=gl.map(b=>b.k);
   const near=BADGES.filter(b=>!gk.includes(b.k)&&b.f(st)>0).sort((a,b)=>b.f(st)/b.g-a.f(st)/a.g||(a.g-a.f(st))-(b.g-b.f(st))); // 達成に近い順（割合→残り数）
   const show=b=>rwFilter==='all'||(rwFilter==='got')===gk.includes(b.k);
-  const seg=`<div class="seg" role="group" aria-label="表示">${[['bd','バッジ'],['cls','クラス']].map(([k,t])=>`<button data-rv="${k}" aria-pressed="${rwView===k}">${t}</button>`).join('')}</div>`;
+  const seg=`<div class="seg" role="group" aria-label="表示">${[['bd','バッジ'],['set','セット'],['cls','クラス']].map(([k,t])=>`<button data-rv="${k}" aria-pressed="${rwView===k}">${t}</button>`).join('')}</div>`;
+  if(rwView==='set')return seg+setsView();
   if(rwView==='cls')return seg+(settings.pubRewards?'':`<div class="incoming" style="margin:0 0 12px"><div><b>リワードは非公開にしています</b><div class="note">ほかの人があなたのプロフィールを見ても、バッジとクラスは表示されません。マイスタンプの設定で変えられます。</div></div></div>`)+rpgWindow(st);
   return `${seg}${settings.pubRewards?'':`<div class="incoming" style="margin:0 0 12px"><div><b>リワードは非公開にしています</b><div class="note">ほかの人があなたのプロフィールを見ても、バッジは表示されません。マイスタンプの設定で変えられます。</div></div></div>`}
   <div class="group zhead"><div class="big">${gl.length}<small>/${BADGES.length}</small></div><b>獲得したバッジ</b>
@@ -1683,7 +1712,7 @@ let pnT=null;
 function demoArrive(){
   const t=today(),c=SPOTS.filter(x=>x.la!=null&&!spotlog.some(v=>v.id===x.id&&v.d===t));
   const x=here?c.map(x=>[x,dist(here,x)]).sort((a,b)=>a[1]-b[1])[0][0]:(c.find(x=>x.id==='akagi')||c[0]);
-  const before=gotList(myStats()).map(q=>q.k);spotlog.push({id:x.id,d:t});saveSpots();onSpotRecorded(x.id);
+  const before=gotList(myStats()).map(q=>q.k);spotlog.push({id:x.id,d:t,t:Date.now()});saveSpots();onSpotRecorded(x.id);
   const nb=gotList(myStats()).filter(q=>!before.includes(q.k)),n=spotDays(x.id);
   buzz([30,60,30]);sfx.chime();render();
   $('#pnote').innerHTML=`<button class="pnote press" id="pnb"><span class="pic" aria-hidden="true">P</span><div class="t"><div class="h"><b>PetaCar</b><span>いま</span></div>
@@ -1697,6 +1726,7 @@ const SHOP_DWELL=5*60e3; // 本番の滞在時間。試作の「着いたこと�
 let SHOPS=[ // 試作の見本（架空の店）。ベータでは運営が Firestore の shops に登録した店に置き換わる
  {id:'demo1',name:'見本ガレージ珈琲',short:'SAMPLE GARAGE COFFEE',pref:'群馬',ad:'群馬県甘楽郡甘楽町（見本）',la:36.2433,lo:138.9216,r:100,c1:'#6b2a17',c2:'#f4d7a1',hours:'10:00–18:00（火曜休み）',note:'駐車場8台。空ぶかし・長時間の駐車はご遠慮ください',mark:'G'},
  {id:'demo2',name:'見本タイヤセンター',short:'SAMPLE TIRE CENTER',pref:'群馬',ad:'群馬県富岡市（見本）',la:36.2597,lo:138.8897,r:100,c1:'#14402c',c2:'#bfe6a8',hours:'9:00–19:00',note:'駐車場は店の前の4台だけです',mark:'T'},
+ {id:'ota2026',kind:'event',name:'スバルMEETING太田 2026',short:'SUBARU MEETING OTA 2026',pref:'群馬',ad:'群馬県太田市（会場は仮）',la:36.2913,lo:139.3756,r:300,c1:'#14305a',c2:'#e9b949',hours:'10:00–15:00',note:'会場では係員の誘導に従ってください',mark:'S',from:'2026-11-08',until:'2026-11-08'},
  {id:'demo3',name:'見本カーケア工房',short:'SAMPLE CAR CARE',pref:'群馬',ad:'群馬県高崎市（見本）',la:36.3219,lo:139.0033,r:100,c1:'#1d2f6b',c2:'#c9d6ff',hours:'10:00–17:00',note:'',mark:'C'}];
 let shoplog=store.get('shop2',[])||[];const saveShop=()=>store.set('shop2',shoplog);
 const shopDays=id=>shoplog.filter(v=>v.id===id).length;
@@ -1716,49 +1746,51 @@ function shopImg(s){ // 店の写真・ロゴ（運営が登録）。無けれ�
   g.fillStyle=c2;for(let i=0;i<5;i++){g.beginPath();g.arc(66+i*27,104,10,0,Math.PI);g.fill()}
   g.fillRect(64,122,112,62);g.fillStyle=c1;g.font='900 50px system-ui,sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText(String(s.mark||s.name||'?').slice(0,1),120,155);
   return shopArtCache[s.id]=cv.toDataURL('image/png')}
-function shopFrame(s){const id='rp'+(++uid),c1=okColor(s.c1),c2=okColor(s.c2),txt=`STORE STAMP ★ ${s.short||'PETACAR'} ★ `;
+const evOpen=s=>(!s.from||s.from<=today())&&(!s.until||s.until>=today());
+const isEv=s=>s&&s.kind==='event',shopKind=s=>isEv(s)?'イベント':'協力店',shopStampName=s=>isEv(s)?'イベントスタンプ':'ストアスタンプ';
+function shopFrame(s){const id='rp'+(++uid),c1=okColor(s.c1),c2=okColor(s.c2),txt=`${isEv(s)?'EVENT':'STORE'} STAMP ★ ${s.short||'PETACAR'} ★ `;
   let d='';for(let i=0;i<=360;i++){const a=i/360*2*Math.PI,r=48.3+1.7*Math.cos(a*36);d+=(i?'L':'M')+(50+r*Math.cos(a)).toFixed(2)+','+(50+r*Math.sin(a)).toFixed(2)}
   return `<svg viewBox="0 0 100 100" aria-hidden="true"><defs><path id="${id}" d="M50,50 m-43.6,0 a43.6,43.6 0 1,1 87.2,0 a43.6,43.6 0 1,1 -87.2,0"/><mask id="${id}m"><rect width="100" height="100" fill="#fff"/><circle cx="50" cy="50" r="38.2" fill="#000"/></mask></defs>
     <path d="${d}Z" fill="${c1}" mask="url(#${id}m)"/>
     <circle cx="50" cy="50" r="38.9" fill="none" stroke="${c2}" stroke-width="1.3" stroke-dasharray="1.4 1.3"/>
     <text font-size="5.2" font-family="JetBrains Mono,monospace" font-weight="800" fill="${c2}" dy="1.9" textLength="268" lengthAdjust="spacing"><textPath href="#${id}">${esc(txt)}</textPath></text>
     <g transform="translate(50 89.5)"><rect x="-15" y="-6" width="30" height="12" rx="3" fill="${c2}" stroke="${c1}" stroke-width="1.6"/>
-    <path d="M-15 -2.2h30" stroke="${c1}" stroke-width=".9" stroke-dasharray="3 3"/><text y="3.6" text-anchor="middle" font-size="5.6" font-family="JetBrains Mono,monospace" font-weight="900" fill="${c1}">STORE</text></g></svg>`}
-const shopStamp=(s,size=84)=>`<div class="stamp shop" style="width:${size}px;font-size:${size/7}px"><img src="${esc(shopImg(s))}" alt="${esc(s.name)}のストアスタンプ">${shopFrame(s)}</div>`;
+    <path d="M-15 -2.2h30" stroke="${c1}" stroke-width=".9" stroke-dasharray="3 3"/><text y="3.6" text-anchor="middle" font-size="5.6" font-family="JetBrains Mono,monospace" font-weight="900" fill="${c1}">${isEv(s)?'EVENT':'STORE'}</text></g></svg>`}
+const shopStamp=(s,size=84)=>`<div class="stamp shop" style="width:${size}px;font-size:${size/7}px"><img src="${esc(shopImg(s))}" alt="${esc(s.name)}の${shopStampName(s)}">${shopFrame(s)}</div>`;
 const shopMark=(s,size=40)=>shopDays(s.id)?shopStamp(s,size):`<div class="stamp shopq" style="width:${size}px;font-size:${size/7}px">?</div>`;
 function shopRows(){const L=here?SHOPS.filter(x=>x.la!=null).map(x=>[x,dist(here,x)]).sort((a,b)=>a[1]-b[1]):SHOPS.map(x=>[x,null]);
-  return L.slice(0,5).map(([x,d])=>`<button class="li press" data-shop="${esc(x.id)}">${shopMark(x)}<div class="t"><b>${esc(x.name)}</b><span>協力店 · ${esc(x.ad||x.pref||'')}</span></div>${shopReady.has(x.id)&&!shopToday(x.id)?'<span class="shopready">もらえます</span>':d!=null?`<span class="d">${fmtKm(d)}</span>`:''}</button>`).join('')}
+  return L.slice(0,5).map(([x,d])=>`<button class="li press" data-shop="${esc(x.id)}">${shopMark(x)}<div class="t"><b>${esc(x.name)}</b><span>${shopKind(x)} · ${esc(x.ad||x.pref||'')}${isEv(x)&&x.from?` · ${fmtD(x.from)}${x.until&&x.until!==x.from?'〜'+fmtD(x.until):''}限定`:''}</span></div>${shopReady.has(x.id)&&!shopToday(x.id)?'<span class="shopready">もらえます</span>':d!=null?`<span class="d">${fmtKm(d)}</span>`:''}</button>`).join('')}
 function shopSection(){if(!SHOPS.length)return '';
-  return `<div class="sec">協力店<span class="chip">ストアスタンプ ${SHOPS.filter(x=>shopDays(x.id)).length}/${SHOPS.length}</span>${window.__cloud?'':'<button class="seclink" id="demoShop">（試作）着いたことにする</button>'}</div>
+  return `<div class="sec">${SHOPS.some(isEv)?'協力店・イベント':'協力店'}<span class="chip">ストアスタンプ ${SHOPS.filter(x=>shopDays(x.id)).length}/${SHOPS.length}</span>${window.__cloud?'':'<button class="seclink" id="demoShop">（試作）着いたことにする</button>'}</div>
   <div class="list">${shopRows()}</div><p class="note" style="margin:6px 4px 0">協力店に着いて5分たつと、その店だけのストアスタンプがもらえます（同じ店は1日1回）。アプリを開いている間だけ反応します。</p>`}
 function shopsView(){const got=SHOPS.filter(x=>shopDays(x.id));
   return `<div class="group zhead"><div class="big">${got.length}<small>/${SHOPS.length}</small></div><b>ストアスタンプ</b>
     <div class="note">協力店に着いて5分たつと、その店だけのスタンプがもらえます。来店した日の数も記録されます。</div></div>
-  ${SHOPS.length?`<div class="grid">${SHOPS.map(x=>{const n=shopDays(x.id);return `<button class="cell press" data-shop="${esc(x.id)}">${n?shopStamp(x):'<div class="stamp shopq" style="width:84px;font-size:12px">?</div>'}<span class="n">${esc(x.name)}</span><span class="s">${n?`来店 ${n}日`:'まだ'}</span></button>`}).join('')}</div>`
+  ${SHOPS.length?`<div class="grid">${SHOPS.map(x=>{const n=shopDays(x.id);return `<button class="cell press" data-shop="${esc(x.id)}">${n?shopStamp(x):'<div class="stamp shopq" style="width:84px;font-size:12px">?</div>'}<span class="n">${esc(x.name)}</span><span class="s">${n?`${isEv(x)?'参加':'来店'} ${n}日`:isEv(x)?fmtD(x.from||today())+'限定':'まだ'}</span></button>`}).join('')}</div>`
    :'<p class="note" style="text-align:center;margin-top:18px">協力店はまだありません。</p>'}`}
 function openShop(id){const x=SH(id);if(!x)return;const n=shopDays(id);
   openSheet(`<div class="result">${n?shopStamp(x,140):'<div class="stamp shopq" style="width:140px;font-size:20px">?</div>'}<b style="font-size:20px">${esc(x.name)}</b>
-    <div class="note">協力店${x.ad?' · '+esc(x.ad):''}</div></div>
-   <div class="mapstat" style="margin-top:12px"><div><b>${n}</b><small>日</small><span>来店した日</span></div><div><b style="font-size:18px">${n?fmtD(shopFirst(id)):'—'}</b><span>はじめて</span></div></div>
-   <div class="list" style="margin-top:12px">${x.hours?`<div class="li" style="cursor:default"><div class="t"><b>営業時間</b><span>${esc(x.hours)}</span></div></div>`:''}${x.note?`<div class="li" style="cursor:default"><div class="t"><b>お店からのお願い</b><span>${esc(x.note)}</span></div></div>`:''}</div>
-   <p class="note" style="margin:10px 4px 0">${n?'':'お店に着いて5分たつと、ストアスタンプがもらえます。'}来店の記録はあなたにだけ見えます。</p>
+    <div class="note">${shopKind(x)}${x.ad?' · '+esc(x.ad):''}${isEv(x)&&x.from?` · ${fmtD(x.from)}${x.until&&x.until!==x.from?'〜'+fmtD(x.until):''}限定`:''}</div></div>
+   <div class="mapstat" style="margin-top:12px"><div><b>${n}</b><small>日</small><span>${isEv(x)?'参加した日':'来店した日'}</span></div><div><b style="font-size:18px">${n?fmtD(shopFirst(id)):'—'}</b><span>はじめて</span></div></div>
+   <div class="list" style="margin-top:12px">${x.hours?`<div class="li" style="cursor:default"><div class="t"><b>${isEv(x)?'開催時間':'営業時間'}</b><span>${esc(x.hours)}</span></div></div>`:''}${x.note?`<div class="li" style="cursor:default"><div class="t"><b>${isEv(x)?'主催者からのお願い':'お店からのお願い'}</b><span>${esc(x.note)}</span></div></div>`:''}</div>
+   <p class="note" style="margin:10px 4px 0">${n?'':isEv(x)?(evOpen(x)?'会場に着いて5分たつと、イベントスタンプがもらえます。':`開催日（${fmtD(x.from||today())}${x.until&&x.until!==x.from?'〜'+fmtD(x.until):''}）に会場に5分いると、イベントスタンプがもらえます。`):'お店に着いて5分たつと、ストアスタンプがもらえます。'}${isEv(x)?'参加':'来店'}の記録はあなたにだけ見えます。</p>
    ${shopReady.has(id)&&!shopToday(id)?'<button class="btn press" id="shopGet" style="margin-top:12px">ストアスタンプをもらう</button>':''}
    <button class="btn sub press" style="margin-top:10px" data-close>閉じる</button>`);
   bindClose();const g=$('#shopGet');if(g)g.onclick=()=>shopGrant(x)}
-function shopPrompt(x){if(shopToday(x.id))return;shopReady.add(x.id);buzz([30,60,30]);sfx.chime();if(tab==='sp'&&!$('#sh'))render();
+function shopPrompt(x){if(shopToday(x.id)||isEv(x)&&!evOpen(x))return;shopReady.add(x.id);buzz([30,60,30]);sfx.chime();if(tab==='sp'&&!$('#sh'))render();
   if($('#sh')){ // 別の画面を開いているときは、上からの通知で知らせる
-    $('#pnote').innerHTML=`<button class="pnote press" id="pnb"><span class="pic" aria-hidden="true">P</span><div class="t"><div class="h"><b>ペタカー!</b><span>いま</span></div><b>${esc(x.name)}のストアスタンプがもらえます</b><span>タップして受け取る</span></div></button>`;
+    $('#pnote').innerHTML=`<button class="pnote press" id="pnb"><span class="pic" aria-hidden="true">P</span><div class="t"><div class="h"><b>ペタカー!</b><span>いま</span></div><b>${esc(x.name)}の${shopStampName(x)}がもらえます</b><span>タップして受け取る</span></div></button>`;
     clearTimeout(pnT);pnT=setTimeout(()=>{const e=$('#pnb');if(e){e.classList.add('out');setTimeout(()=>$('#pnote').innerHTML='',300)}},20000);
     $('#pnb').onclick=()=>{clearTimeout(pnT);$('#pnote').innerHTML='';closeSheet();setTimeout(()=>shopPrompt(x),280)};return}
-  openSheet(`<div class="result shopseal"><div class="note" style="font-weight:700;color:var(--accent)">協力店に5分いました</div>${shopStamp(x,150)}<b style="font-size:20px">${esc(x.name)}</b>
-    <div class="note">この店だけのストアスタンプがもらえます</div></div>
+  openSheet(`<div class="result shopseal"><div class="note" style="font-weight:700;color:var(--accent)">${isEv(x)?'イベント会場':'協力店'}に5分いました</div>${shopStamp(x,150)}<b style="font-size:20px">${esc(x.name)}</b>
+    <div class="note">${isEv(x)?'このイベントの日だけのイベントスタンプがもらえます':'この店だけのストアスタンプがもらえます'}</div></div>
    <button class="btn press" id="shopGet" style="margin-top:14px">ストアスタンプをもらう</button><button class="btn sub press" style="margin-top:10px" data-close>あとで</button>`);
   bindClose();$('#shopGet').onclick=()=>shopGrant(x)}
-async function shopGrant(x){if(shopToday(x.id)){closeSheet();return}
+async function shopGrant(x){if(shopToday(x.id)||isEv(x)&&!evOpen(x)){closeSheet();return}
   const b=$('#shopGet');if(b){b.disabled=true;b.textContent='確認しています…'}
   const ok=await shopCheck(x);if(!ok){if(b){b.disabled=false;b.textContent='ストアスタンプをもらう'}return}
   const first=!shopDays(x.id);shoplog.push({id:x.id,d:today()});saveShop();shopReady.delete(x.id);sfx.chime();buzz([40,40,80]);closeSheet();render();
-  setTimeout(()=>{openSheet(`<div class="result">${shopStamp(x,170)}<b style="font-size:22px">${first?'ストアスタンプをゲット！':`来店 ${shopDays(x.id)}日目`}</b><div class="note">${esc(x.name)}</div></div>
+  setTimeout(()=>{openSheet(`<div class="result">${shopStamp(x,170)}<b style="font-size:22px">${first?`${shopStampName(x)}をゲット！`:`来店 ${shopDays(x.id)}日目`}</b><div class="note">${esc(x.name)}</div></div>
     <div class="row" style="margin-top:14px"><button class="btn sub press" data-close>閉じる</button><button class="btn press" id="shopCol">コレクションで見る</button></div>`);
     bindClose();$('#shopCol').onclick=()=>{closeSheet();colView='shop';store.set('colv2',colView);tab='col';render()}},280)}
 function demoShop(){const x=SHOPS.find(s=>!shopToday(s.id));if(!x){toast('今日はどの協力店のスタンプも受け取り済みです');return}
@@ -1803,6 +1835,7 @@ function openGarage(back){
 const BELL='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg>';
 const NTAG={info:['お知らせ','var(--accent)'],event:['イベント','#2f6fd6'],update:['アップデート','#1d8a4b'],mainte:['メンテナンス','#6b7480']};
 const NEWS=[
+ {id:'b8',d:'2026-10-09',tag:'update',t:'一人でも楽しめる機能を追加しました',b:'会えない日も楽しめるように、4つの機能を追加しました。\n\n・フォトスタンプ：スポットを記録した日に、その場で撮った写真をスタンプにできます。スポットの画面の「フォトスタンプを作る」から。写真はスマホの中だけに保存されます。\n・旅のしおり：マイスタンプの「旅のしおり」に、行ったスポットと交換した人が1日ずつ残ります。SNS用の画像にもできます。\n・セット：リワードの「セット」に、決まったスポットや車種を集めるセットが16個あります。揃えるとEXP+100とバッジ。\n・データの持ち出し：設定の「データの持ち出し」から、スタンプ帳の画像と記録のファイルを保存できます。'},
  {id:'b7',d:'2026-10-06',tag:'update',t:'近くでペタカーを開いている人が見えるようになりました',b:'交換をはじめていなくても、アプリを開いている近くの人が、マイスタンプと交換タブに出ます。車の写真を見て、駐車場で相手を探してみてください。\n\nタップすると交換を申し込めます。相手がアプリを開いていれば、音と表示でお知らせします。\n\n出るのはだいたいの場所（約5km四方）だけで、アプリを閉じると消えます。出たくないときは、設定→交換でオフにできます（オフにすると、自分からも見えなくなります）。'},
  {id:'b6',d:'2026-10-06',tag:'update',t:'「みんなで交換」ができるようになりました',b:'3人以上で、同時にスマホを振って一度に交換できます。\n\n交換をはじめたら「みんなで交換」を押して部屋を作ります。近くで交換をはじめている人には「参加する」が出ます。3人以上そろったら、ホストが合図を出して全員で「せーの」で振ってください。\n\nタイミングが2秒以内で、近くにいる人どうしで交換されます。合わなかった人とは、ホストの「もう一度振る」でやり直せます。'},
  {id:'b1',d:'2026-10-05',tag:'info',pin:true,t:'ベータ版へようこそ',b:'ペタカー! のテストに参加してくれてありがとうございます。\n\nまずはマイスタンプから、自分の車の写真でスタンプを作ってください。そのあと、会った人と「交換をはじめる」→相手をタップ→2人で同時にスマホを振る、で交換できます。\n\n気づいたことは、鈴木までLINEなどで気軽に送ってください。'},
@@ -1883,7 +1916,7 @@ function openDelete(){
   bindClose();
   $('#dchk').onchange=e=>$('#dyes').disabled=!e.target.checked;
   $('#dno').onclick=()=>{if(Date.now()-sheetAt<500)return;openSettings()};
-  $('#dyes').onclick=async()=>{$('#dyes').disabled=true;try{await C.deleteAccount();toast('アカウントを削除しました');setTimeout(()=>location.reload(),1500)}catch(e){$('#dyes').disabled=false;toast('削除できませんでした。もう一度お試しください')}};
+  $('#dyes').onclick=async()=>{$('#dyes').disabled=true;try{await C.deleteAccount();try{await window.__phoClear()}catch(e){}toast('アカウントを削除しました');setTimeout(()=>location.reload(),1500)}catch(e){$('#dyes').disabled=false;toast('削除できませんでした。もう一度お試しください')}};
 }
 const DOCS={
  terms:['利用規約',`<p class="draft">下書きです。公開前に専門家の確認を受けます。</p>
@@ -1916,6 +1949,274 @@ function openDoc(k,back){const PUB={terms:'terms',privacy:'privacy',contact:'sup
    <button class="btn sub press" style="margin-top:16px" id="docb">設定に戻る</button>`);
   bindClose();$('#docb').onclick=()=>{if(Date.now()-sheetAt<500)return;back()};
 }
+/* ===== 一人でも楽しめる：フォトスタンプ・旅のしおり・セット・データの持ち出し（2026-10-09 鈴木さん） ===== */
+/* --- ご当地フォトスタンプ：写真は端末の中（IndexedDB）だけに保存。記録 pho1=[{id,spot,d,t}] だけ同期する --- */
+const PDB=(()=>{let p=null;
+  const open=()=>p||(p=new Promise((ok,ng)=>{try{const r=indexedDB.open('petacar-photo',1);r.onupgradeneeded=()=>r.result.createObjectStore('ph');r.onsuccess=()=>ok(r.result);r.onerror=()=>ng(r.error)}catch(e){ng(e)}}));
+  const tx=(m,f)=>open().then(db=>new Promise((ok,ng)=>{const t=db.transaction('ph',m),r=f(t.objectStore('ph'));t.oncomplete=()=>ok(r&&r.result);t.onerror=()=>ng(t.error)}));
+  return {get:k=>tx('readonly',s=>s.get(k)),put:(k,v)=>tx('readwrite',s=>s.put(v,k)),del:k=>tx('readwrite',s=>s.delete(k)),clear:()=>tx('readwrite',s=>s.clear())}})();
+window.__phoClear=()=>PDB.clear().catch(()=>{});
+let pholog=(store.get('pho1',[])||[]).filter(x=>x&&typeof x.id==='string');
+const savePho=()=>store.set('pho1',pholog.slice(-500));
+const phoCache={};
+async function phoSrc(id){if(id in phoCache)return phoCache[id];let v=null;try{v=await PDB.get(id)}catch(e){}return phoCache[id]=typeof v==='string'?v:null}
+// data-pho の付いた img に、端末に保存した写真を入れる（描画のあとに呼ぶ）
+function hydratePho(){$$('img[data-pho]').forEach(async im=>{const s=await phoSrc(im.dataset.pho);if(s){im.src=s;im.closest('.stamp')&&im.closest('.stamp').classList.remove('nopho')}})}
+const phoOfSpot=id=>pholog.filter(x=>x.spot===id);
+const phoOfDay=d=>pholog.filter(x=>x.d===d);
+const dotD=d=>d.replace(/-/g,'.');
+function phoFrame(x,d){const id='rp'+(++uid),c=x?CAT[x.cat]:{c:'#e8551c'},nm=(x?x.n:'PETACAR').replace(/^道の駅\s*/,'').slice(0,14);
+  // 文字を伸ばさずに一周させる：何回くり返せば埋まるかを見積もって、余りは字間で調整（全角1・半角0.6文字ぶん）
+  const unit=`${nm} ★ ${dotD(d)} ★ `,em=[...unit].reduce((a,ch)=>a+(ch.charCodeAt(0)>255?1:.6),0);let fs=5.4,rep=Math.floor(272/(em*fs));
+  if(rep<1){rep=1;fs=272/em}const txt=unit.repeat(rep);
+  return `<svg viewBox="0 0 100 100" aria-hidden="true"><defs><path id="${id}" d="M50,50 m-44.5,0 a44.5,44.5 0 1,1 89,0 a44.5,44.5 0 1,1 -89,0"/></defs>
+    <circle cx="50" cy="50" r="44.5" fill="none" stroke="${c.c}" stroke-width="10.5"/>
+    <circle cx="50" cy="50" r="49.6" fill="none" stroke="#fff" stroke-width=".9" opacity=".8"/><circle cx="50" cy="50" r="39.4" fill="none" stroke="#fff" stroke-width=".9" opacity=".8"/>
+    <text font-size="${fs.toFixed(2)}" font-family="'Zen Kaku Gothic New',sans-serif" font-weight="800" fill="#fff" dy="${(fs*.36).toFixed(2)}" textLength="276" lengthAdjust="spacing"><textPath href="#${id}">${esc(txt)}</textPath></text>
+    <g transform="translate(80 15)"><circle r="9" fill="#fff" stroke="${c.c}" stroke-width="1.8"/><g transform="translate(-6 -6) scale(.5)" fill="none" stroke="${c.c}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">${ICONS[x?c.ic:'pin']||''}</g></g></svg>`}
+const phoStamp=(p,size=84)=>{const x=SP(p.spot);return `<div class="stamp ev pho nopho" style="width:${size}px;font-size:${size/7}px"><img data-pho="${esc(p.id)}" alt="${esc(x?x.n:'')}のフォトスタンプ">${phoFrame(x,p.d)}</div>`};
+// 写真を撮って（選んで）丸く切り抜く。記録した日だけ作れる
+function openPhoto(spotId,back){const x=SP(spotId);if(!x)return;
+  if(!spotlog.some(v=>v.id===spotId&&v.d===today())){toast('フォトスタンプは、そのスポットを記録した日に作れます');return}
+  let st={src:null,w:0,h:0,z:1,x:0,y:0};
+  openSheet(`<b style="font-size:18px;display:block;text-align:center">フォトスタンプを作る</b><p class="note" style="text-align:center;margin:2px 0 6px">${esc(x.n)} · ${dotD(today())}</p>
+   <div class="crop" id="crop"><img id="cimg" alt=""><label class="pick" id="pickHint" for="pfile"><svg viewBox="0 0 24 24"><path d="M4 8h3l2-2.5h6L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>写真を撮る</label></div>
+   <label class="btn sub press filebtn" for="pfile">写真を撮る・選ぶ<input type="file" id="pfile" accept="image/*"></label>
+   <p class="note err" id="ferr" hidden></p>
+   <input type="range" id="zoom" min="1" max="4" step="0.01" value="1" style="width:100%;margin:10px 0" aria-label="拡大">
+   <p class="note" style="text-align:center;margin:0">ドラッグで位置、つまみで大きさを調整します。写真はこのスマホの中だけに保存され、ほかの人には見えません。ナンバープレートや人の顔が写らないようにしてください。</p>
+   <div class="row" style="margin-top:14px"><button class="btn sub press" data-close>やめる</button><button class="btn press" id="pdone" disabled>このスタンプにする</button></div>`);
+  bindClose(back);
+  const V=240,img=$('#cimg'),crop=$('#crop'),base=()=>Math.max(V/st.w,V/st.h);
+  const draw=()=>{if(!st.src)return;const s=base()*st.z,mx=(st.w*s-V)/2,my=(st.h*s-V)/2;st.x=Math.max(-mx,Math.min(mx,st.x));st.y=Math.max(-my,Math.min(my,st.y));
+    img.style.width=st.w*s+'px';img.style.height=st.h*s+'px';img.style.transform=`translate(calc(-50% + ${st.x}px),calc(-50% + ${st.y}px))`};
+  const load=f=>{if(!f)return;$('#ferr').hidden=true;
+    loadPhoto(f,1600).then(({src,w,h})=>{st={...st,src,w,h,z:1,x:0,y:0};img.src=src;$('#pickHint').hidden=true;$('#zoom').value=1;$('#pdone').disabled=false;draw()})
+      .catch(()=>{const e=$('#ferr');e.hidden=false;e.textContent='この写真は読み込めませんでした。JPEGの写真で試してください。'})};
+  $('#pfile').onchange=e=>load(e.target.files[0]);
+  $('#zoom').oninput=e=>{st.z=+e.target.value;draw()};
+  let drag=null;
+  crop.onpointerdown=e=>{drag={x:e.clientX-st.x,y:e.clientY-st.y};crop.setPointerCapture(e.pointerId)};
+  crop.onpointermove=e=>{if(!drag)return;st.x=e.clientX-drag.x;st.y=e.clientY-drag.y;draw()};
+  crop.onpointerup=crop.onpointercancel=()=>drag=null;
+  $('#pdone').onclick=async()=>{if(!st.src)return;const O=480,k=O/V,s=base()*st.z*k,cv=document.createElement('canvas');cv.width=cv.height=O;const g=cv.getContext('2d');
+    g.beginPath();g.arc(O/2,O/2,O/2,0,Math.PI*2);g.clip();g.drawImage(img,O/2+st.x*k-st.w*s/2,O/2+st.y*k-st.h*s/2,st.w*s,st.h*s);
+    const url=cv.toDataURL('image/jpeg',.82),id='ph'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);$('#pdone').disabled=true;
+    try{await PDB.put(id,url)}catch(e){toast('保存できませんでした（スマホの空き容量を確認してください）');$('#pdone').disabled=false;return}
+    phoCache[id]=url;const first=!pholog.length;pholog.push({id,spot:spotId,d:today(),t:Date.now()});savePho();sfx.chime();closeSheet();render();
+    setTimeout(()=>{openSheet(`<div class="result">${phoStamp(pholog[pholog.length-1],170)}<b style="font-size:22px">${first?'はじめてのフォトスタンプ！':'フォトスタンプを作りました'}</b><div class="note">${esc(x.n)} · ${dotD(today())}</div></div>
+      <div class="row" style="margin-top:14px"><button class="btn sub press" data-close>閉じる</button><button class="btn press" id="phTrip">今日の旅のしおり</button></div>`);
+      bindClose(back);hydratePho();$('#phTrip').onclick=()=>{closeSheet();setTimeout(()=>openTripDay(today()),260)}},280)};
+}
+function openPho(pid,back){const p=pholog.find(v=>v.id===pid);if(!p)return;const x=SP(p.spot);
+  openSheet(`<div class="result">${phoStamp(p,200)}<b style="font-size:20px">${esc(x?x.n:'スポット')}</b><div class="note">${dotD(p.d)}${p.t?' '+hm(p.t):''}${x?' · '+CAT[x.cat].n:''}</div></div>
+   <div class="row" style="margin-top:14px"><button class="btn sub press" id="phSave">画像を保存</button>${x?'<button class="btn sub press" id="phSpot">スポットを見る</button>':''}</div>
+   <div class="row" style="margin-top:10px"><button class="btn sub press" data-close>閉じる</button><button class="btn sub press" id="phDel"><span class="danger">削除</span></button></div>`);
+  bindClose(back);hydratePho();
+  $('#phSave').onclick=async()=>{const cv=await phoCanvas(p,720);if(!cv){toast('この端末に写真がありません');return}cv.toBlob(b=>saveFiles([[b,`petacar-photo-${p.d}.png`]],'ペタカー! のフォトスタンプ'),'image/png')};
+  if($('#phSpot'))$('#phSpot').onclick=()=>{closeSheet();setTimeout(()=>openSpot(p.spot),260)};
+  let armed=false;$('#phDel').onclick=()=>{if(!armed){armed=true;$('#phDel .danger').textContent='もう一度押すと削除';return}
+    pholog=pholog.filter(v=>v.id!==pid);savePho();PDB.del(pid).catch(()=>{});delete phoCache[pid];closeSheet();render();toast('削除しました')};
+}
+// フォトスタンプ1枚を画像にする（フチ込み）
+async function phoCanvas(p,S){const src=await phoSrc(p.id);if(!src)return null;const cv=document.createElement('canvas');cv.width=cv.height=S;const g=cv.getContext('2d');
+  try{await document.fonts.ready}catch(e){}
+  const im=await loadImg(src),fr=await svgToImg(phoFrame(SP(p.spot),p.d).replace('<svg ',`<svg width="${S}" height="${S}" `));
+  g.save();g.beginPath();g.arc(S/2,S/2,S*.385,0,Math.PI*2);g.clip();if(im)g.drawImage(im,S*.115,S*.115,S*.77,S*.77);g.restore();if(fr)g.drawImage(fr,0,0,S,S);return cv}
+const phoView=()=>{const L=pholog.slice().sort((a,b)=>(b.t||0)-(a.t||0));
+  return `<div class="group zhead"><div class="big">${L.length}<small>枚</small></div><b>フォトスタンプ</b>
+    <div class="note">スポットを記録した日に、その場で撮った写真をスタンプにできます。写真はこのスマホの中だけに保存されます。</div></div>
+  ${L.length?`<div class="grid">${L.map(p=>{const x=SP(p.spot);return `<button class="cell press" data-pho="${esc(p.id)}">${phoStamp(p)}<span class="n">${esc(x?x.n.replace(/^道の駅\s*/,''):'スポット')}</span><span class="s">${fmtD(p.d)}</span></button>`}).join('')}</div>`
+   :'<p class="note" style="text-align:center;margin-top:18px">まだフォトスタンプがありません。スポットを記録したら、スポットの画面の「フォトスタンプを作る」から撮れます。</p>'}`};
+// スポットの画面に出す行：今日記録済みなら撮れる・これまでのフォトスタンプ
+function phoSpotRow(id){const L=phoOfSpot(id),rec=spotlog.some(v=>v.id===id&&v.d===today());if(!L.length&&!rec)return '';
+  return `<div class="phorow">${L.slice(-4).map(p=>`<button class="press" data-phoo="${esc(p.id)}" aria-label="${fmtD(p.d)}のフォトスタンプ">${phoStamp(p,56)}</button>`).join('')}
+   ${rec?`<button class="btn sub press" id="phMake" style="flex:1;min-width:150px">${CAMI}フォトスタンプを作る</button>`:''}</div>`}
+const CAMI='<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px;margin-right:6px"><path d="M4 8h3l2-2.5h6L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>';
+function bindPhoSpot(id){const b=$('#phMake');if(b)b.onclick=()=>{closeSheet();setTimeout(()=>openPhoto(id,()=>openSpot(id)),260)};
+  $$('[data-phoo]').forEach(e=>e.onclick=()=>{closeSheet();setTimeout(()=>openPho(e.dataset.phoo,()=>openSpot(id)),260)});hydratePho()}
+
+/* --- 旅のしおり：記録したスポット・交換・すれ違いを日ごとにまとめる（自分だけに見える。位置の追跡はしない） --- */
+const hm=t=>{const d=new Date(t);return `${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`};
+const WD='日月火水木金土';
+const wdOf=d=>WD[new Date(d+'T12:00:00').getDay()];
+function tripDays(){const m={};
+  spotlog.forEach(v=>{if(!SP(v.id)||SP(v.id).cat==='st')return;(m[v.d]=m[v.d]||{sp:0,ex:new Set()}).sp++});
+  log.forEach(l=>{(m[l.d]=m[l.d]||{sp:0,ex:new Set()}).ex.add(l.pid)});
+  return Object.entries(m).map(([d,o])=>({d,sp:o.sp,ex:o.ex.size})).sort((a,b)=>b.d.localeCompare(a.d))}
+function tripOf(d){const sp=spotlog.map((v,i)=>({...v,i})).filter(v=>v.d===d&&SP(v.id)).sort((a,b)=>(a.t||0)-(b.t||0)||a.i-b.i);
+  const seen=new Set(),spots=sp.filter(v=>!seen.has(v.id)&&seen.add(v.id));
+  const ex=log.filter(l=>l.d===d),ppl=[...new Set(ex.map(l=>l.pid))].map(person).filter(Boolean);
+  return {d,spots,ppl,ex,pass:passLog.filter(x=>x.d===d).length,photos:phoOfDay(d),prefs:[...new Set(spots.map(v=>SP(v.id).pref.split('・')[0]))]}}
+function tripCard(){const t=tripOf(today()),n=t.spots.filter(v=>SP(v.id).cat!=='st').length;
+  return `<button class="yrcard trip press" id="tripb"><span class="yk">TRIP NOTE</span><b>${n?`今日の旅のしおり · ${n}か所`:'旅のしおり'}</b><span class="ys">${n?'行ったスポットと出会いを1日ずつ残します':'行ったスポットと出会いを、日記のように1日ずつ残します'}</span>
+   ${n?`<span class="tripic">${t.spots.slice(-5).map(v=>spotMark(SP(v.id),true,26)).join('')}</span>`:''}<span class="ya" aria-hidden="true">›</span></button>`}
+function openTrip(){const L=tripDays();
+  openSheet(`<b style="font-size:20px;display:block;text-align:center">旅のしおり</b><p class="note" style="text-align:center;margin:4px 0 12px">あなたにだけ見えます。走ったルートは記録しません</p>
+   ${L.length?`<div class="list">${L.slice(0,60).map(o=>{const t=tripOf(o.d);return `<button class="li press" data-day="${o.d}"><div class="tdate"><b>${+o.d.slice(5,7)}/${+o.d.slice(8)}</b><span>${wdOf(o.d)}</span></div><div class="t"><b>${t.spots.length?esc(SP(t.spots[0].id).n)+(t.spots.length>1?` ほか${t.spots.length-1}か所`:''):'交換した日'}</b><span>${[o.sp?`スポット${t.spots.length}`:'',o.ex?`交換${o.ex}人`:'',t.photos.length?`フォト${t.photos.length}`:''].filter(Boolean).join(' · ')}${o.d.slice(0,4)!==today().slice(0,4)?' · '+o.d.slice(0,4)+'年':''}</span></div><span class="val">›</span></button>`}).join('')}</div>`
+    :'<p class="note" style="text-align:center;padding:16px">まだ記録がありません。スポットを記録したり交換したりすると、ここに1日ずつ残ります。</p>'}
+   <button class="btn sub press" style="margin-top:14px" data-close>閉じる</button>`);
+  bindClose();$$('#sh [data-day]').forEach(b=>b.onclick=()=>{closeSheet();setTimeout(()=>openTripDay(b.dataset.day,openTrip),260)});
+}
+function openTripDay(d,back){const t=tripOf(d),isT=d===today();
+  openSheet(`<div class="triphead"><span class="yk">TRIP NOTE</span><b>${+d.slice(5,7)}月${+d.slice(8)}日（${wdOf(d)}）</b><span>${d.slice(0,4)}年${t.prefs.length?' · '+esc(t.prefs.join('・')):''}</span></div>
+   <div class="mapstat"><div><b>${t.spots.length}</b><small>か所</small><span>スポット</span></div><div><b>${t.ppl.length}</b><small>人</small><span>交換</span></div><div><b>${t.photos.length}</b><small>枚</small><span>フォト</span></div></div>
+   ${t.spots.length?`<div class="sec" style="margin-top:14px">行ったところ</div><div class="tline">${t.spots.map(v=>{const x=SP(v.id),ph=t.photos.filter(p=>p.spot===v.id);
+     return `<div class="tl"><span class="tlt">${v.t?hm(v.t):''}</span><button class="tlm press" data-spot="${esc(v.id)}">${spotMark(x,true,38)}</button><div class="t"><b>${esc(x.n)}</b><span>${CAT[x.cat].n} · ${esc(x.pref)}</span>
+       ${ph.length||isT?`<div class="tlp">${ph.map(p=>`<button class="press" data-phoo="${esc(p.id)}">${phoStamp(p,52)}</button>`).join('')}${isT&&!ph.length?`<button class="seclink press" data-shot="${esc(v.id)}" style="margin:0">${CAMI}撮る</button>`:''}</div>`:''}</div></div>`}).join('')}</div>`:''}
+   ${t.ppl.length?`<div class="sec" style="margin-top:14px">交換した人</div><div class="tppl">${t.ppl.map(p=>{const l=t.ex.find(e=>e.pid===p.id);return `<button class="cell press" data-tp="${p.id}">${stamp(p,{size:56,ev:l.ev,sz:l.sz,fr:l.fr,kira:l.kira,rare:l.rare,v:l.v,im:l.im,rg:l.rg})}<span class="n">${esc(p.name)}</span></button>`}).join('')}</div>`:''}
+   ${t.pass?`<p class="note" style="margin:10px 4px 0">この日は${t.pass}人とスポットですれ違いました</p>`:''}
+   <div class="row" style="margin-top:16px"><button class="btn sub press" data-close>閉じる</button><button class="btn press" id="tripImg">SNS用の画像にする</button></div>`);
+  bindClose(back);hydratePho();
+  $$('#sh [data-spot]').forEach(b=>b.onclick=()=>{closeSheet();setTimeout(()=>openSpot(b.dataset.spot,()=>openTripDay(d,back)),260)});
+  $$('#sh [data-phoo]').forEach(b=>b.onclick=()=>{closeSheet();setTimeout(()=>openPho(b.dataset.phoo,()=>openTripDay(d,back)),260)});
+  $$('#sh [data-shot]').forEach(b=>b.onclick=()=>{closeSheet();setTimeout(()=>openPhoto(b.dataset.shot,()=>openTripDay(d,back)),260)});
+  $$('#sh [data-tp]').forEach(b=>b.onclick=()=>{closeSheet();setTimeout(()=>detail(b.dataset.tp),260)});
+  $('#tripImg').onclick=async()=>{const bt=$('#tripImg');bt.disabled=true;bt.textContent='画像を作っています…';
+    try{const cv=await tripImage(t);cv.toBlob(b=>{bt.disabled=false;bt.textContent='SNS用の画像にする';saveFiles([[b,`petacar-trip-${d}.png`]],`${+d.slice(5,7)}/${+d.slice(8)}の旅 #ペタカー`)},'image/png')}
+    catch(e){console.warn(e);bt.disabled=false;bt.textContent='SNS用の画像にする';toast('画像を作れませんでした')}};
+}
+async function tripImage(t){const W=1080,H=1350,cv=document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d');
+  try{await document.fonts.ready}catch(e){}
+  const dim=await drawBg(g,W,H,me);const sh=g.createLinearGradient(0,0,0,H);sh.addColorStop(0,`rgba(0,0,0,${.35+dim*.3})`);sh.addColorStop(1,`rgba(0,0,0,${.6+dim*.3})`);g.fillStyle=sh;g.fillRect(0,0,W,H);
+  const T=(s,x,y,sz,wt='700',al='center',col='#fff',ff='"Zen Kaku Gothic New",sans-serif')=>{g.font=`${wt} ${sz}px ${ff}`;g.textAlign=al;g.fillStyle=col;g.fillText(s,x,y)};
+  const fit=(s,max,sz,wt,ff)=>{g.font=`${wt} ${sz}px ${ff}`;while(sz>16&&g.measureText(s).width>max){sz-=2;g.font=`${wt} ${sz}px ${ff}`}return sz};
+  const box=(x,y,w,h,r,c)=>{g.fillStyle=c;g.beginPath();g.roundRect?g.roundRect(x,y,w,h,r):g.rect(x,y,w,h);g.fill()};
+  const d=t.d;T('TRIP NOTE',W/2,96,30,'700','center','#ff9a66','"JetBrains Mono",monospace');
+  T(`${d.slice(0,4)}.${d.slice(5,7)}.${d.slice(8)}（${wdOf(d)}）`,W/2,176,64,'400','center','#fff','"Dela Gothic One",sans-serif');
+  const sub=[me.name&&me.name!=='ゲスト'?me.name+'さんの旅':'',t.prefs.join('・')].filter(Boolean).join('　');if(sub)T(sub,W/2,232,30,'500','center','rgba(255,255,255,.85)');
+  [[t.spots.length,'スポット'],[t.ppl.length,'交換した人'],[t.photos.length,'フォト']].forEach(([v,l],i)=>{const x=90+i*310;box(x,270,280,150,28,'rgba(255,255,255,.14)');T(String(v),x+140,362,78,'700','center','#fff','"JetBrains Mono",monospace');T(l,x+140,400,26)});
+  let y=470;const ph=t.photos.slice(0,4);
+  if(ph.length){const S=ph.length>2?220:260,gap=24,x0=(W-(ph.length*S+(ph.length-1)*gap))/2;
+    for(let i=0;i<ph.length;i++){const c=await phoCanvas(ph[i],S*2);if(c)g.drawImage(c,x0+i*(S+gap),y,S,S)}y+=S+40}
+  const L=t.spots.slice(0,ph.length?6:10),rowH=ph.length?62:70;
+  if(L.length){g.fillStyle='rgba(255,255,255,.35)';g.fillRect(150,y+10,3,(L.length-1)*rowH);
+    for(let i=0;i<L.length;i++){const v=L[i],x=SP(v.id),cy=y+10+i*rowH;g.beginPath();g.arc(151,cy,15,0,Math.PI*2);g.fillStyle=CAT[x.cat].c;g.fill();g.lineWidth=4;g.strokeStyle='#fff';g.stroke();
+      if(v.t)T(hm(v.t),112,cy+10,24,'700','right','rgba(255,255,255,.8)','"JetBrains Mono",monospace');
+      const sz=fit(x.n,700,34,'700','"Zen Kaku Gothic New",sans-serif');T(x.n,186,cy+12,sz,'700','left');}
+    if(t.spots.length>L.length)T(`ほか${t.spots.length-L.length}か所`,186,y+10+L.length*rowH+6,26,'500','left','rgba(255,255,255,.75)');
+    y+=L.length*rowH+30}
+  if(!L.length&&t.ppl.length)T(`${t.ppl.length}人とスタンプを交換しました`,W/2,y+60,38,'700');
+  box(60,1200,960,124,30,'rgba(255,255,255,.95)');drawLogo(g,82,1214,96);
+  T('ペタカー!',196,1260,42,'400','left','#121820','"Dela Gothic One",sans-serif');T('クルマで繋がるスタンプアプリ',196,1302,24,'700','left','#3a4552');
+  const qr=SHARE_QR?await qrCanvas(SHARE_URL):null;
+  if(qr){g.imageSmoothingEnabled=false;g.drawImage(qr,880,1206,112,112);g.imageSmoothingEnabled=true}else{box(690,1226,306,72,36,'#e8551c');T('間もなく配信開始！',843,1273,30,'700','center','#fff')}
+  return cv}
+
+/* --- 画像・ファイルの保存（アプリ版は共有メニュー、Web版は共有 or ダウンロード）。files=[[blob,name],...] --- */
+async function saveFiles(files,text){files=files.filter(f=>f&&f[0]);if(!files.length){toast('保存できませんでした');return}
+  try{
+    if(window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform()){const FS=Capacitor.registerPlugin('Filesystem'),SHR=Capacitor.registerPlugin('Share'),uris=[];
+      for(const [b,n] of files){const b64=await new Promise(ok=>{const r=new FileReader();r.onload=()=>ok(String(r.result).split(',')[1]);r.readAsDataURL(b)});uris.push((await FS.writeFile({path:n,data:b64,directory:'CACHE'})).uri)}
+      await SHR.share({title:'ペタカー!',text:text||'',files:uris});return}
+    const fl=files.map(([b,n])=>new File([b],n,{type:b.type||'application/octet-stream'}));
+    if(navigator.canShare&&navigator.canShare({files:fl})){await navigator.share({files:fl,text:text||''});return}
+    for(const [b,n] of files){const u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=n;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);await new Promise(r=>setTimeout(r,350))}
+    toast(files.length>1?`${files.length}個のファイルを保存しました`:'保存しました');
+  }catch(e){if(e&&e.name==='AbortError')return;console.warn(e);toast('保存できませんでした')}}
+
+/* --- セット：4〜12個で揃う、名前の付いたリスト。揃えるとEXP+100（SETXP）とバッジ --- */
+const SETXP=100;
+const SETS=[
+ {k:'tgGm',t:'群馬の峠めぐり',s:'走り屋のふるさと・群馬の峠',ic:'mountain',sp:['akagi','haruna','myogi','usui','onioshi','tg:9:赤城北面道路','tg:9:裏榛名','tg:9:つまごいパノラマライン','tg:9:利根沼田望郷ライン','tg:9:天神峠']},
+ {k:'hakone',t:'箱根・伊豆の峠',s:'富士山を見ながら走る名道',ic:'mountain',sp:['turnpike','ashinoko','tsubaki','izusky','nishiizu','tg:21:箱根峠','tg:21:十国峠','tg:21:乙女峠']},
+ {k:'fuji',t:'富士山ぐるり',s:'富士山のまわりの名所',ic:'heritage',sp:['fujisubaru','wh:21:富士山本宮浅間大社','wh:18:北口本宮冨士浅間神社','wh:18:忍野八海','wh:21:白糸ノ滝','wh:21:三保松原','cir:21:富士スピードウェイ','eki:18:道の駅 富士吉田']},
+ {k:'kanCir',t:'関東のサーキット',s:'走れるコースをはしご',ic:'flag',sp:['cir:7:筑波サーキット','cir:8:モビリティリゾートもてぎ','cir:8:日光サーキット','cir:10:本庄サーキット','cir:11:袖ヶ浦フォレストレースウェイ','cir:11:茂原ツインサーキット','cir:10:桶川スポーツランド']},
+ {k:'mkMus',t:'メーカーの博物館',s:'日本の自動車メーカーの展示館',ic:'museum',sp:['subaru','toyota','hondacol','mazdamu','nissanh','mus:21:スズキ歴史館','mus:26:ダイハツ ヒューモビリティワールド','mus:22:三菱オートギャラリー']},
+ {k:'tenshu',t:'現存12天守',s:'江戸時代から残る12の天守',ic:'castle',sp:['cas:1:弘前城','cas:19:松本城','cas:17:丸岡城','cas:22:犬山城','cas:24:彦根城','cas:27:姫路城','cas:31:松江城','cas:32:備中松山城','cas:36:丸亀城','cas:37:松山城','cas:37:宇和島城','cas:38:高知城']},
+ {k:'jinja',t:'日本の名社',s:'一度は行きたい神社',ic:'torii',sp:['jin:23:伊勢神宮（内宮）','jin:31:出雲大社','jin:22:熱田神宮','jin:12:明治神宮','jin:25:伏見稲荷大社','jin:33:厳島神社','jin:7:鹿島神宮','jin:11:香取神宮']},
+ {k:'silk',t:'富岡製糸場と絹産業遺産群',s:'群馬の世界遺産4か所',ic:'heritage',sp:['wh:9:富岡製糸場','wh:9:田島弥平旧宅','wh:9:高山社跡','wh:9:荒船風穴']},
+ {k:'gmDam',t:'群馬のダム',s:'利根川の水がめをめぐる',ic:'dam',sp:['dam:9:八ッ場ダム','dam:9:奈良俣ダム','dam:9:矢木沢ダム','dam:9:藤原ダム','dam:9:草木ダム','dam:9:品木ダム','dam:9:四万川ダム']},
+ {k:'gmMel',t:'群馬のメロディライン',s:'走ると曲が流れる道',ic:'note',sp:['mel:9:榛名湖メロディライン','mel:9:国道353号 前橋市','mel:9:国道122号 桐生市・みどり市','mel:9:国道299号 上野村','mel:9:国道462号 神流町','mel:9:国道353号 中之条町','mel:9:県道94号 嬬恋村','mel:9:国道292号 草津町','mel:9:県道36号 高山村','mel:9:国道291号 みなかみ町','mel:9:国道18号旧道 碓氷峠']},
+ {k:'hate',t:'日本の果て',s:'本土・本州・北海道の端っこ',ic:'crown',sp:['top:0:宗谷岬（日本最北端の地）','top:0:納沙布岬（本土最東端）','top:45:佐多岬（本土最南端）','top:41:神崎鼻（本土最西端）','top:1:大間崎（本州最北端）','top:29:潮岬（本州最南端）','top:34:毘沙ノ鼻（本州最西端）','top:0:白神岬（北海道最南端）']},
+ {k:'ichi',t:'道の日本一',s:'クルマで行ける日本一',ic:'crown',sp:['top:9:渋峠（日本国道最高地点）','top:21:富士宮口五合目（マイカーで行ける日本最高所）','top:27:国道174号（日本一短い国道）','top:12:日本国道路元標（日本橋）','top:11:東京湾アクアブリッジ（日本一長い橋）','top:27:明石海峡大橋（日本一の吊橋）','top:20:松ノ木峠PA（高速道路の標高日本一）','top:19:道の駅 美ヶ原高原（日本一高い道の駅）','top:16:千里浜なぎさドライブウェイ（砂浜を走れる道路）','top:0:国道12号（日本一長い直線道路）']},
+ // 交換で集めるセット（車種図鑑に載った車で数える）
+ {k:'sbr',t:'スバルの仲間',s:'この車種の人と交換',ic:'car',car:[['スバル|BRZ'],['スバル|WRX STI'],['スバル|WRX S4'],['スバル|インプレッサ'],['スバル|インプレッサ WRX STI'],['スバル|レヴォーグ'],['スバル|レガシィ'],['スバル|フォレスター']]},
+ {k:'s90',t:'90年代スポーツ',s:'あの頃のスポーツカーの人と交換',ic:'car',car:[['マツダ|RX-7','マツダ|アンフィニRX-7','マツダ|サバンナRX-7'],['トヨタ|スープラ'],['ホンダ|NSX'],['日産|スカイラインGT-R'],['日産|シルビア'],['日産|180SX'],['三菱|ランサーエボリューション'],['スバル|インプレッサ WRX STI'],['ホンダ|インテグラ タイプR'],['マツダ|ユーノスロードスター']]},
+ {k:'kei',t:'軽スポーツ',s:'小さくて楽しい軽のスポーツカー',ic:'car',car:[['ホンダ|ビート'],['スズキ|カプチーノ'],['マツダ|オートザムAZ-1'],['ダイハツ|コペン','ダイハツ|コペン GR SPORT'],['ホンダ|S660']]},
+ {k:'jp8',t:'国産メーカー8社',s:'それぞれのメーカーの車の人と交換',ic:'people',mk:['トヨタ','日産','ホンダ','マツダ','スバル','三菱','スズキ','ダイハツ']}
+];
+// 各項目：{l:表示名, ok:済み, sp:スポットid}
+function setItems(S,vs,zk){
+  if(S.sp)return S.sp.filter(id=>SP(id)).map(id=>({l:SP(id).n,ok:vs.has(id),sp:id}));
+  if(S.car)return S.car.map(a=>({l:a[0].split('|')[1],sub:a[0].split('|')[0],ok:a.some(k=>zk[k])}));
+  return S.mk.map(m=>({l:m,ok:Object.keys(zk).some(k=>k.startsWith(m+'|'))}))}
+function setProg(){const vs=spotSet(),zk=zukanMap();return SETS.map(S=>{const it=setItems(S,vs,zk);return {...S,it,n:it.filter(x=>x.ok).length,g:it.length}}).filter(S=>S.g)}
+function setCount(){try{return setProg().filter(S=>S.n>=S.g).length}catch(e){return 0}} // 起動直後（SETSの定義前）に呼ばれても止まらないように
+function setsView(){const P=setProg(),done=P.filter(S=>S.n>=S.g).length,near=P.filter(S=>S.n<S.g&&S.n>0).sort((a,b)=>(a.g-a.n)-(b.g-b.n));
+  const card=S=>{const ok=S.n>=S.g;return `<button class="setc press${ok?' done':''}" data-setk="${S.k}"><span class="si">${ok?'<b>✓</b>':`<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${ICONS[S.ic]||''}</svg>`}</span><div class="t"><b>${esc(S.t)}${ok?'<span class="tag setok">COMPLETE</span>':''}</b><span>${esc(S.s)}</span><div class="bar"><i style="width:${S.n/S.g*100}%"></i></div></div><span class="v">${S.n}/${S.g}</span></button>`};
+  return `<div class="group zhead"><div class="big">${done}<small>/${P.length}</small></div><b>揃えたセット</b>
+    <div class="note">決まったスポットや車種を集めるセットです。1つ揃うごとに EXP+${SETXP}。少しずつ増えていきます。</div></div>
+  ${near.length?`<div class="sec">もうすぐ揃う</div><div class="list">${near.slice(0,3).map(card).join('')}</div>`:''}
+  <div class="sec">スポットのセット</div><div class="list">${P.filter(S=>S.sp).map(card).join('')}</div>
+  <div class="sec">交換のセット</div><div class="list">${P.filter(S=>!S.sp).map(card).join('')}</div>`}
+function openSet(k){const S=setProg().find(x=>x.k===k);if(!S)return;const ok=S.n>=S.g;
+  openSheet(`<div class="result"><span class="setbig${ok?' done':''}">${ok?'✓':`<svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICONS[S.ic]||''}</svg>`}</span><b style="font-size:20px">${esc(S.t)}</b><div class="note">${esc(S.s)}</div>
+    <div class="mapstat" style="margin-top:6px"><div><b>${S.n}</b><small>/${S.g}</small><span>${ok?'コンプリート！':`あと${S.g-S.n}`}</span></div></div></div>
+   <div class="list" style="margin-top:12px">${S.it.map(x=>`<${x.sp?`button class="li press" data-spot="${esc(x.sp)}"`:'div class="li" style="cursor:default"'}><span class="chk${x.ok?' on':''}" aria-label="${x.ok?'済み':'まだ'}">${x.ok?'✓':''}</span>${x.sp?spotMark(SP(x.sp),x.ok,32):''}<div class="t"><b>${esc(x.l)}</b>${x.sub||x.sp?`<span>${esc(x.sub||(CAT[SP(x.sp).cat].n+' · '+SP(x.sp).pref))}</span>`:''}</div>${x.sp?'<span class="val">›</span>':''}</${x.sp?'button':'div'}>`).join('')}</div>
+   <p class="note" style="margin:10px 4px 0">${S.sp?'スポットを記録すると、チェックが付きます。':S.car?'その車種の人とスタンプを交換すると、チェックが付きます（車種図鑑と同じ数え方）。':'そのメーカーの車の人と交換すると、チェックが付きます。'}</p>
+   <button class="btn sub press" style="margin-top:12px" data-close>閉じる</button>`);
+  bindClose();$$('#sh [data-spot]').forEach(b=>b.onclick=()=>{closeSheet();setTimeout(()=>openSpot(b.dataset.spot,()=>openSet(k)),260)})}
+// 揃った瞬間に知らせる（一度知らせたセットは setok1 に残す）
+function checkSets(){if(me.sample)return;const P=setProg(),ok=store.get('setok1',null),now=P.filter(S=>S.n>=S.g).map(S=>S.k);
+  if(!ok){store.set('setok1',now);return}const nw=now.filter(k=>!ok.includes(k));if(!nw.length)return;store.set('setok1',[...ok,...nw]);
+  const S=P.find(x=>x.k===nw[0]);setTimeout(()=>{if($('#sh')){toast(`セット「${S.t}」コンプリート！ EXP+${SETXP}`);return}
+    openSheet(`<div class="result"><span class="setbig done">✓</span><div class="note" style="font-weight:700;color:var(--accent)">SET COMPLETE</div><b style="font-size:22px">${esc(S.t)}</b><div class="note">${S.g}個ぜんぶ揃いました · EXP+${SETXP}${nw.length>1?`（ほか${nw.length-1}セット）`:''}</div></div>
+      <div class="row" style="margin-top:14px"><button class="btn sub press" data-close>閉じる</button><button class="btn press" id="setGo">セットを見る</button></div>`);
+    bindClose();try{fanfare()}catch(e){}$('#setGo').onclick=()=>{closeSheet();rwView='set';store.set('rwv2',rwView);tab='rw';render()}},400)}
+
+/* --- データの持ち出し：スタンプ帳の画像と、記録をまとめたファイル（サービス終了時もここから書き出せる） --- */
+async function bookPages(){try{await document.fonts.ready}catch(e){}
+  const fm={};log.forEach(l=>{if(!fm[l.pid]||l.d<fm[l.pid])fm[l.pid]=l.d});const ids=Object.keys(fm).filter(id=>person(id)).sort((a,b)=>fm[a].localeCompare(fm[b]));
+  const ph=pholog.slice().sort((a,b)=>(a.t||0)-(b.t||0)),items=[...ids.map(id=>({p:id})),...ph.map(p=>({ph:p}))],PER=20,pages=[];
+  const nP=Math.max(1,Math.ceil(items.length/PER));
+  for(let pg=0;pg<nP;pg++){const W=1080,H=1350,cv=document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d');
+    g.fillStyle='#f6f3ec';g.fillRect(0,0,W,H);g.fillStyle='#e8551c';g.fillRect(0,0,W,12);
+    const T=(s,x,y,sz,wt='700',al='center',col='#18212b',ff='"Zen Kaku Gothic New",sans-serif')=>{g.font=`${wt} ${sz}px ${ff}`;g.textAlign=al;g.fillStyle=col;g.fillText(s,x,y)};
+    T(`${me.name||'ゲスト'}さんのスタンプ帳`,70,96,46,'400','left','#18212b','"Dela Gothic One",sans-serif');T(`${pg+1} / ${nP}`,W-70,96,28,'700','right','#7a8592','"JetBrains Mono",monospace');
+    T(`交換した人 ${ids.length}人 · フォトスタンプ ${ph.length}枚 · ${today().replace(/-/g,'.')} 時点`,70,140,24,'500','left','#5a6572');
+    const part=items.slice(pg*PER,pg*PER+PER),R=74,cw=W/4;
+    for(let i=0;i<part.length;i++){const it=part[i],cx=cw*(i%4)+cw/2,cy=252+Math.floor(i/4)*226;
+      if(it.p){const p=person(it.p),l=best(it.p);const im=await loadImg(IMG(l&&l.im?l.im:(p.vers&&l&&l.v&&p.vers[l.v-1]?p.vers[l.v-1].img:p.img))||avatar(okColor(p.ring)));
+        g.save();g.beginPath();g.arc(cx,cy,R,0,Math.PI*2);g.fillStyle=p.official?'#d4a017':okColor(l&&l.rg||p.ring);g.fill();g.beginPath();g.arc(cx,cy,R-8,0,Math.PI*2);g.clip();
+        if(im){const k=Math.max(2*R/im.width,2*R/im.height);g.drawImage(im,cx-im.width*k/2,cy-im.height*k/2,im.width*k,im.height*k)}g.restore();
+        let nm=p.name;g.font='700 24px "Zen Kaku Gothic New",sans-serif';while(nm.length>1&&g.measureText(nm).width>cw-20)nm=nm.slice(0,-1);
+        T(nm,cx,cy+R+30,24);T(`${fmtD(fm[it.p])}〜 ♥${daysWith(it.p)}`,cx,cy+R+56,19,'500','center','#7a8592','"JetBrains Mono",monospace')}
+      else{const c=await phoCanvas(it.ph,2*R+8);const x=SP(it.ph.spot);if(c)g.drawImage(c,cx-R-4,cy-R-4,2*R+8,2*R+8);else{g.beginPath();g.arc(cx,cy,R,0,Math.PI*2);g.fillStyle='#d9d4c8';g.fill()}
+        let nm=x?x.n.replace(/^道の駅\s*/,''):'スポット';g.font='700 22px "Zen Kaku Gothic New",sans-serif';while(nm.length>1&&g.measureText(nm).width>cw-20)nm=nm.slice(0,-1);
+        T(nm,cx,cy+R+30,22);T(fmtD(it.ph.d),cx,cy+R+56,19,'500','center','#7a8592','"JetBrains Mono",monospace')}}
+    if(!part.length)T('まだスタンプがありません',W/2,600,34,'700','center','#7a8592');
+    T('ペタカー! — 会ったときだけ交換できるスタンプ',W/2,H-40,22,'500','center','#7a8592');pages.push(cv)}
+  return pages}
+async function backupData(){const imgs={},add=r=>{if(!r||imgs[r])return;const s=IMG(r);if(s&&/^data:image\//.test(s))imgs[r]=s};
+  add(me.img);(me.garage||[]).forEach(c=>add(c.img));log.forEach(l=>{add(l.im);const p=person(l.pid);if(p){add(p.img);(p.vers||[]).forEach(v=>add(v.img))}});
+  const photos=[];for(const p of pholog){const s=await phoSrc(p.id);photos.push({...p,img:s||null})}
+  const ppl={};met().forEach(id=>{const p=person(id);ppl[id]={name:p.name,maker:p.maker,car:p.car,pref:p.pref,ring:p.ring,img:p.img}});
+  return {app:'petacar',kind:'backup',v:1,at:new Date().toISOString(),me:{...me,sample:undefined},people:ppl,log,spots:spotlog,shops:shoplog,pass:passLog,favs:[...favs],settings,photos,images:imgs}}
+function openExport(){const ph=pholog.length;
+  openSheet(`<b style="font-size:20px;display:block;text-align:center">データの持ち出し</b>
+   <p class="note" style="text-align:center;margin:4px 0 12px">集めたスタンプと記録を、このスマホに保存できます。<br>もしペタカー! を終了するときは、90日前までにお知らせして、その間はここから書き出せるようにします。</p>
+   <div class="list"><button class="li press" id="exBook"><span class="exi">📖</span><div class="t"><b>スタンプ帳を画像で保存</b><span>交換したスタンプとフォトスタンプを、20個ずつの画像にします（${Math.max(1,Math.ceil((met().length+ph)/20))}枚）</span></div><span class="val">›</span></button>
+    <button class="li press" id="exData"><span class="exi">🗂</span><div class="t"><b>記録をファイルで保存</b><span>交換・スポット・すれ違いの記録、スタンプとフォトスタンプの画像をまとめた1つのファイル（JSON）</span></div><span class="val">›</span></button>
+    <label class="li press" for="imFile" style="cursor:pointer"><span class="exi">📥</span><div class="t"><b>フォトスタンプを読み込む</b><span>機種変更のときに。保存したファイルから、フォトスタンプの写真を戻します</span></div><span class="val">›</span><input type="file" id="imFile" accept="application/json,.json" hidden></label></div>
+   <div id="exOut"></div>
+   <p class="note" style="margin:10px 4px 0">交換・スポットの記録とスタンプは、ログインすればどのスマホでも同じものが見られます。フォトスタンプの写真だけはこのスマホの中にあるので、機種変更の前にファイルで保存してください。</p>
+   <button class="btn sub press" style="margin-top:12px" data-close>閉じる</button>`);
+  bindClose(openSettings);
+  $('#exBook').onclick=async()=>{const o=$('#exOut');o.innerHTML='<p class="note" style="text-align:center;margin-top:10px">画像を作っています…</p>';
+    try{const P=await bookPages(),bl=await Promise.all(P.map(c=>new Promise(ok=>c.toBlob(ok,'image/png'))));
+      o.innerHTML=`<div class="bookprev">${bl.map(b=>`<img src="${URL.createObjectURL(b)}" alt="スタンプ帳">`).join('')}</div><button class="btn press" id="exBookSave" style="margin-top:10px">${bl.length>1?`${bl.length}枚まとめて保存`:'保存する'}</button>`;
+      $('#exBookSave').onclick=()=>saveFiles(bl.map((b,i)=>[b,`petacar-stampbook-${today()}-${i+1}.png`]),'ペタカー! のスタンプ帳')}
+    catch(e){console.warn(e);o.innerHTML='<p class="gerr">画像を作れませんでした</p>'}};
+  $('#exData').onclick=async()=>{try{const d=await backupData(),b=new Blob([JSON.stringify(d)],{type:'application/json'});saveFiles([[b,`petacar-backup-${today()}.json`]],'ペタカー! の記録')}catch(e){console.warn(e);toast('書き出せませんでした')}};
+  $('#imFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const d=JSON.parse(await f.text());if(!d||d.app!=='petacar'||!Array.isArray(d.photos))throw 0;
+      let n=0;for(const p of d.photos){if(!p||typeof p.id!=='string'||!/^ph[a-z0-9]{4,20}$/.test(p.id)||typeof p.img!=='string'||!/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(p.img)||p.img.length>600000)continue;
+        if(typeof p.spot!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(String(p.d)))continue;await PDB.put(p.id,p.img);phoCache[p.id]=p.img;if(!pholog.some(v=>v.id===p.id)){pholog.push({id:p.id,spot:p.spot,d:p.d,t:+p.t||0});n++}}
+      pholog.sort((a,b)=>(a.t||0)-(b.t||0));savePho();toast(n?`フォトスタンプを${n}枚読み込みました`:'新しいフォトスタンプはありませんでした');render()}
+    catch(err){toast('ペタカー! のファイルではないようです')}};
+}
+if(!window.__cloud)window.__solo={tripImage,tripOf,bookPages,backupData,setProg,phoCanvas}; // 試作だけ：画像の確認用
+
 function openSpot(id,back){
   const x=SP(id),c=CAT[x.cat],vs=spotlog.filter(v=>v.id===id).map(v=>v.d).sort().reverse(),done=vs[0]===today();
   openSheet(`<div class="result">${spotMark(x,vs.length>0,84)}<b style="font-size:20px">${esc(x.n)}</b><div><span class="chip">${c.n}</span> <span class="chip">${esc(x.pref)}</span></div>
@@ -1923,12 +2224,12 @@ function openSpot(id,back){
     ${hereN(id)?`<div class="nowline">いま${hereN(id)}人がここで記録しています<small>（2時間以内・名前は出ません）</small></div>`:''}<div class="note">${vs.length?`${vs.length}回行きました · 最後は${fmtD(vs[0])}`:'まだ行ったことがありません'}</div></div>
    ${x.la!=null?`<div class="maprow"><a class="btn sub press" href="${gmap(x)}" target="_blank" rel="noopener">${MAPI}Googleマップで見る</a><a class="btn press" href="${gnav(x)}" target="_blank" rel="noopener">${NAVI}ナビを開始</a></div>
    <button class="linkbtn" id="spCopy" style="padding:10px">名前と住所をコピー</button>`:`<div class="maprow"><a class="btn sub press" href="${gmap(x)}" target="_blank" rel="noopener">${MAPI}Googleマップで探す</a></div><p class="note" style="text-align:center;margin-top:8px">このスポットはまだ位置を登録していないため、名前で検索します。</p>`}
-   <div class="row" style="margin-top:12px"><button class="btn sub press" data-close>閉じる</button><button class="btn press" id="spIn" ${done?'disabled':''}>${done?'今日は記録済み':'ここにいる（位置で確認）'}</button></div>
+   ${phoSpotRow(id)}<div class="row" style="margin-top:12px"><button class="btn sub press" data-close>閉じる</button><button class="btn press" id="spIn" ${done?'disabled':''}>${done?'今日は記録済み':'ここにいる（位置で確認）'}</button></div>
    <p class="note" style="text-align:center;margin-top:10px">${PASSCAT[x.cat]?(x.cat==='tg'?'峠は通過するだけで印が押されます。':'近くを通るだけで印が押されます。停まらなくて大丈夫です。'):`スポットに着いたら「ここにいる」を押してください。位置で確かめてから印を押します。${settings.autoIn?'（自動記録オン：アプリを開いている間は、着いたら自動で押されます）':''}`}</p>`);
-  bindClose(back);
+  bindClose(back);bindPhoSpot(id);
   const cp=$('#spCopy');if(cp)cp.onclick=()=>{const t=x.n+' '+(x.ad||x.pref);try{navigator.clipboard.writeText(t).then(()=>toast('コピーしました'),()=>toast(t))}catch(e){toast(t)}};
-  const b=$('#spIn');if(b&&!done)b.onclick=()=>betaCheckin(x,b,()=>{const before=gotList(myStats()).map(q=>q.k);spotlog.push({id,d:today()});saveSpots();onSpotRecorded(id);sfx.chime();
-    const nb=gotList(myStats()).filter(q=>!before.includes(q.k));closeSheet();render();toast(nb.length?`バッジ獲得：${nb.map(q=>q.t).join('・')}`:`${x.n} の印を押しました`)});
+  const b=$('#spIn');if(b&&!done)b.onclick=()=>betaCheckin(x,b,()=>{const before=gotList(myStats()).map(q=>q.k);spotlog.push({id,d:today(),t:Date.now()});saveSpots();onSpotRecorded(id);sfx.chime();
+    const nb=gotList(myStats()).filter(q=>!before.includes(q.k));closeSheet();render();toast(nb.length?`バッジ獲得：${nb.map(q=>q.t).join('・')}`:`${x.n} の印を押しました`);setTimeout(()=>{if(!$('#sh'))openSpot(id,back)},700)});
 }
 function render(){
   clearInterval(modeTimer);
@@ -1942,17 +2243,17 @@ function render(){
   const v=$('#view');v.innerHTML=views[tab]();
   if(lastTab!==tab){v.classList.remove('enter');void v.offsetWidth;v.classList.add('enter');$('#scroll').scrollTop=0;$('#navbar').classList.remove('on');lastTab=tab}
   bindEv();
-  if($('#ttlb'))$('#ttlb').onclick=openTitles;if($('#frb'))$('#frb').onclick=openFrames;if($('#rpghelp'))$('#rpghelp').onclick=openRpgHelp;checkLevelUp();
+  if($('#ttlb'))$('#ttlb').onclick=openTitles;if($('#frb'))$('#frb').onclick=openFrames;if($('#rpghelp'))$('#rpghelp').onclick=openRpgHelp;checkLevelUp();checkSets();hydratePho();
   $('.tab[data-t=rw]').classList.toggle('dot',tab!=='rw'&&unseen().length>0);
   $$('[data-p]').forEach(b=>b.onclick=()=>detail(b.dataset.p));
-  if(tab==='me'){$$('[data-nice]').forEach(b=>b.onclick=()=>sendNice(b.dataset.nice));if($('#shareb'))$('#shareb').onclick=openShare;$('#mk').onclick=openCrop;if($('#mkFirst'))$('#mkFirst').onclick=openCrop;if($('#qcard'))$('#qcard').onclick=openQuests;$('#hito').onclick=openHito;if($('#nmb'))$('#nmb').onclick=openName;$('#carb').onclick=()=>openGarage(render);if($('#newsTop'))$('#newsTop').onclick=()=>openNewsItem($('#newsTop').dataset.n);if($('#openRow'))$('#openRow').onclick=()=>{tab='ex';render()};$('#bgb').onclick=openBg;$('#wrapb').onclick=openWrap;$('#allrec').onclick=()=>{colView='stamp';store.set('colv2',colView);colSort='recent';store.set('sort2',colSort);tab='col';render()}}
+  if(tab==='me'){$$('[data-nice]').forEach(b=>b.onclick=()=>sendNice(b.dataset.nice));if($('#shareb'))$('#shareb').onclick=openShare;$('#mk').onclick=openCrop;if($('#mkFirst'))$('#mkFirst').onclick=openCrop;if($('#qcard'))$('#qcard').onclick=openQuests;$('#hito').onclick=openHito;if($('#nmb'))$('#nmb').onclick=openName;$('#carb').onclick=()=>openGarage(render);if($('#newsTop'))$('#newsTop').onclick=()=>openNewsItem($('#newsTop').dataset.n);if($('#openRow'))$('#openRow').onclick=()=>{tab='ex';render()};$('#bgb').onclick=openBg;$('#wrapb').onclick=openWrap;if($('#tripb'))$('#tripb').onclick=()=>{const n=tripOf(today()).spots.length;n?openTripDay(today()):openTrip()};$('#allrec').onclick=()=>{colView='stamp';store.set('colv2',colView);colSort='recent';store.set('sort2',colSort);tab='col';render()}}
   if(tab==='col'||tab==='sp'){$$('[data-shop]').forEach(b=>b.onclick=()=>openShop(b.dataset.shop));if($('#demoShop'))$('#demoShop').onclick=demoShop}
-  if(tab==='col'){$$('[data-cv]').forEach(b=>b.onclick=()=>{colView=b.dataset.cv;store.set('colv2',colView);render()});$$('[data-maker]').forEach(b=>b.onclick=()=>openMaker(b.dataset.maker))}
+  if(tab==='col'){$$('[data-cv]').forEach(b=>b.onclick=()=>{colView=b.dataset.cv;store.set('colv2',colView);render()});$$('[data-maker]').forEach(b=>b.onclick=()=>openMaker(b.dataset.maker));$$('#view [data-pho]').forEach(b=>b.onclick=()=>openPho(b.dataset.pho))}
   if(tab==='sp'){$$('[data-spot]').forEach(b=>b.onclick=()=>openSpot(b.dataset.spot));if($('#mapb'))$('#mapb').onclick=openMap;bindSpList();$('#locate').onclick=locate;if($('#demoArr'))$('#demoArr').onclick=demoArrive;if($('#autoOn'))$('#autoOn').onclick=()=>askAlways(render);$$('[data-ss]').forEach(b=>b.onclick=()=>{spotSort=b.dataset.ss;spotLim=40;render()});$$('[data-cat]').forEach(b=>b.onclick=()=>{spotCat=b.dataset.cat;spotLim=40;render()});
     $('#spq').oninput=e=>{spotQ=e.target.value;spotLim=40;$('#spl').innerHTML=spList();bindSpList()};$('#sppref').onchange=e=>{spotPref=e.target.value;spotLim=40;$('#spl').innerHTML=spList();bindSpList()}}
   if(tab==='col'){$$('[data-sort]').forEach(b=>b.onclick=()=>{colSort=b.dataset.sort;store.set('sort2',colSort);render()});
     const cq=$('#colq');if(cq)cq.oninput=e=>{colQ=e.target.value;$('#cgrid').innerHTML=colGrid();$$('#cgrid [data-p]').forEach(b=>b.onclick=()=>detail(b.dataset.p))}}
-  if(tab==='rw'){$$('[data-b]').forEach(b=>b.onclick=()=>openBadge(b.dataset.b));if($('#nearMore'))$('#nearMore').onclick=()=>{nearOpen=!nearOpen;render()};$$('[data-rf]').forEach(b=>b.onclick=()=>{rwFilter=b.dataset.rf;render()});$$('[data-rv]').forEach(b=>b.onclick=()=>{rwView=b.dataset.rv;store.set('rwv2',rwView);render();window.scrollTo&&window.scrollTo(0,0)})}
+  if(tab==='rw'){$$('[data-b]').forEach(b=>b.onclick=()=>openBadge(b.dataset.b));if($('#nearMore'))$('#nearMore').onclick=()=>{nearOpen=!nearOpen;render()};$$('[data-rf]').forEach(b=>b.onclick=()=>{rwFilter=b.dataset.rf;render()});$$('#view [data-setk]').forEach(b=>b.onclick=()=>openSet(b.dataset.setk));$$('[data-rv]').forEach(b=>b.onclick=()=>{rwView=b.dataset.rv;store.set('rwv2',rwView);render();window.scrollTo&&window.scrollTo(0,0)})}
   if(tab==='ex')bindExBeta();
 }
 $$('.tab').forEach(b=>b.onclick=()=>{if(tab===b.dataset.t){$('#scroll').scrollTo({top:0,behavior:'smooth'});return}tab=b.dataset.t;render()});
@@ -2173,6 +2474,8 @@ function openSettings(){
 </div>
    <div class="sec">スポット</div>
    <div class="set">${sw('autoIn','開いている間は、着いたら自動で記録する','タップしなくても印を押します。アプリを閉じている間の自動記録は、アプリ版で対応します')}</div>
+   <div class="sec">データ</div>
+   <div class="set"><button class="srow press" id="exportb" style="width:100%;border:0;background:none;cursor:pointer;text-align:left"><div class="t"><b>データの持ち出し</b><span>スタンプ帳の画像・記録のファイルを保存。機種変更のときのフォトスタンプの引き継ぎも</span></div><span class="val">›</span></button></div>
    <div class="sec">その他</div>
    <div class="set"><button class="srow press" style="width:100%;border:0;background:none;cursor:pointer;text-align:left" id="blkList"><div class="t"><b>ブロックした人</b></div><span class="val">${blocked.size}人 ›</span></button>
      <div class="srow"><div class="t"><b>通知</b><span>イベントの開催や交換の申し込み。本番のアプリで設定できます</span></div></div>
@@ -2183,7 +2486,7 @@ function openSettings(){
      <button class="srow press" style="width:100%;border:0;background:none;cursor:pointer;text-align:left" data-doc="guide"><div class="t"><b>コミュニティガイドライン</b><span>安全に交換するためのルール</span></div><span class="val">›</span></button>
      <button class="srow press" style="width:100%;border:0;background:none;cursor:pointer;text-align:left" data-doc="contact"><div class="t"><b>お問い合わせ・不具合の報告</b></div><span class="val">›</span></button>
      <button class="srow press" style="width:100%;border:0;background:none;cursor:pointer;text-align:left" data-doc="credits"><div class="t"><b>データと素材の出典</b></div><span class="val">›</span></button>
-     <div class="srow"><div class="t"><b>バージョン</b></div><span class="val" style="font-family:var(--mono)">Web版・10/08更新</span></div></div>
+     <div class="srow"><div class="t"><b>バージョン</b></div><span class="val" style="font-family:var(--mono)">Web版・10/09更新</span></div></div>
    <div class="sec">アカウント</div>
    <div class="set"><div class="srow"><div class="t"><b>ログイン方法</b><span>Google アカウント（ベータ版）</span></div></div>
      <button class="srow press" style="width:100%;border:0;background:none;cursor:pointer;text-align:left" id="logout"><div class="t"><b>ログアウト</b></div></button>
@@ -2198,12 +2501,12 @@ function openSettings(){
   $('#preview').onclick=previewMe;$('#snsb').onclick=openSns;if($('#demoArr2'))$('#demoArr2').onclick=()=>{closeSheet();render();setTimeout(demoArrive,450)};
   $('#onbagain').onclick=()=>{closeSheet();showOnb()};
   $$('[data-doc]').forEach(b=>b.onclick=()=>openDoc(b.dataset.doc,openSettings));
-  $('#blkList').onclick=openBlocked;$('#delAcc').onclick=openDelete;
+  $('#exportb').onclick=openExport;$('#blkList').onclick=openBlocked;$('#delAcc').onclick=openDelete;
   $('#logout').onclick=()=>C.signOut();
   let armed=false;
   if($('#reset'))$('#reset').onclick=()=>{if(!armed){armed=true;$('#reset .danger').textContent='もう一度押すと最初に戻します';return}
-    ['me2','log2','pins2','sort2','set2','spot2','colv2','fav2','seen2','news1','blk1','cls3','lv1','rwv2','qok1','qok2'].forEach(k=>{try{localStorage.removeItem(k)}catch(e){}});
-    me=SAMPLE_ME;log=SAMPLE_LOG.slice();pins=null;seenB=null;colSort='love';blocked=new Set();favs=new Set();newsRead=new Set();settings={theme:'auto',pubRewards:true,pubStats:true,pubEvents:true,showSns:true,sns:['',''],eventOnly:false,autoIn:false,sound:true,reqFrom:'all',modeMin:5,showOpen:true,pass:true};
+    ['me2','log2','pins2','sort2','set2','spot2','colv2','fav2','seen2','news1','blk1','cls3','lv1','rwv2','qok1','qok2','pho1','setok1'].forEach(k=>{try{localStorage.removeItem(k)}catch(e){}});
+    me=SAMPLE_ME;log=SAMPLE_LOG.slice();pins=null;pholog=[];window.__phoClear();seenB=null;colSort='love';blocked=new Set();favs=new Set();newsRead=new Set();settings={theme:'auto',pubRewards:true,pubStats:true,pubEvents:true,showSns:true,sns:['',''],eventOnly:false,autoIn:false,sound:true,reqFrom:'all',modeMin:5,showOpen:true,pass:true};
     applyTheme();closeSheet();tab='me';render();toast('最初の状態に戻しました')};
 }
 function previewMe(){
@@ -2541,7 +2844,7 @@ try{navigator.permissions.query({name:'geolocation'}).then(s=>{if(s.state==='gra
 function arrive(x){arrived.add(x.id);buzz([250,120,250]);sfx.chime(); // 運転中でも気づけるよう、長めに2回震わせる（2026-10-08 鈴木さん）
   if(PASSCAT[x.cat]||settings.autoIn){ // 自動記録オン（開いている間）も、ここでそのまま押す // 峠・橋・道は停まる場所がないので、通過で印を押す（運転中に画面を触らせない）
     if(spotlog.some(v=>v.id===x.id&&v.d===today()))return;
-    const before=gotList(myStats()).map(q=>q.k);spotlog.push({id:x.id,d:today()});saveSpots();onSpotRecorded(x.id);
+    const before=gotList(myStats()).map(q=>q.k);spotlog.push({id:x.id,d:today(),t:Date.now()});saveSpots();onSpotRecorded(x.id);
     const nb=gotList(myStats()).filter(q=>!before.includes(q.k));if(tab==='sp'&&!$('#sh'))render();
     $('#pnote').innerHTML=`<div class="pnote" id="pnb"><span class="pic" aria-hidden="true">P</span><div class="t"><div class="h"><b>ペタカー!</b><span>いま</span></div>
     <b>${esc(x.n)}${PASSCAT[x.cat]?'を通過しました':'に着きました'}！</b><span>${nb.length?`バッジ獲得：${esc(nb.map(q=>q.t).join('・'))}`:`印を押しました（${spotDays(x.id)}回目）`}</span></div></div>`;
@@ -2552,8 +2855,8 @@ function arrive(x){arrived.add(x.id);buzz([250,120,250]);sfx.chime(); // 運転�
   $('#pnb').onclick=()=>{clearTimeout(pnT);$('#pnote').innerHTML='';
     if(spotlog.some(v=>v.id===x.id&&v.d===today()))return;
     if(!myPos||Date.now()-myPos.at>120000||!inRange(x,myPos)){tab='sp';render();openSpot(x.id);return}
-    const before=gotList(myStats()).map(q=>q.k);spotlog.push({id:x.id,d:today()});saveSpots();onSpotRecorded(x.id);sfx.chime();buzz(30);
-    const nb=gotList(myStats()).filter(q=>!before.includes(q.k));render();toast(nb.length?`バッジ獲得：${nb.map(q=>q.t).join('・')}`:`${x.n} の印を押しました（${spotDays(x.id)}回目）`)}}
+    const before=gotList(myStats()).map(q=>q.k);spotlog.push({id:x.id,d:today(),t:Date.now()});saveSpots();onSpotRecorded(x.id);sfx.chime();buzz(30);
+    const nb=gotList(myStats()).filter(q=>!before.includes(q.k));render();toast(nb.length?`バッジ獲得：${nb.map(q=>q.t).join('・')}`:`${x.n} の印を押しました（${spotDays(x.id)}回目）`);setTimeout(()=>{if(!$('#sh'))openSpot(x.id)},700)}} // 停まってタップした人には、フォトスタンプを撮れるようスポット画面を出す
 // Web版の自動記録：アプリを開いている間だけ、着いたらタップなしで印を押す（2026-10-06 鈴木さん）
 function webAutoRow(){return settings.autoIn
   ?`<div class="autorow"><span class="livedot"></span><div class="t"><b>自動記録オン（開いている間）</b><span>スポットに着いたら、タップしなくても印を押します</span></div><button class="seclink" id="wAutoOff">オフにする</button></div>`
