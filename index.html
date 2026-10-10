@@ -461,6 +461,7 @@ textarea{width:100%;box-sizing:border-box;margin-top:6px;padding:10px 12px;borde
 .tripmap{margin-top:12px;border-radius:14px;overflow:hidden}.tripmap canvas{display:block;width:100%;height:auto}
 .rtnow{margin-top:10px;text-align:center;font-size:12.5px;color:var(--muted);display:flex;gap:6px;align-items:center;justify-content:center}.rtnow b{font-family:var(--mono);color:var(--ink)}
 .rtrow .t span{font-size:11.5px}
+.cell .clsm{font:700 10px var(--sans);color:var(--accent);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:-2px}
 .bookprev{display:flex;gap:8px;overflow-x:auto;margin-top:12px;padding-bottom:6px}.bookprev img{width:150px;flex:none;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.2)}
 [hidden]{display:none!important}
 body{margin:0}img{max-width:100%}
@@ -1453,7 +1454,7 @@ function colGrid(){
   if(!ids.length)return `<p class="note" style="text-align:center;margin-top:18px">${q?'見つかりません。':colSort==='fav'?'まだお気に入りがいません。相手のプロフィールの「☆ お気に入りに追加」で登録できます。':'まだ交換した人がいません。'}</p>`;
   return `${q?`<p class="note" style="margin:0 4px 8px">${ids.length}人</p>`:''}<div class="grid">${ids.map(id=>{const p=person(id),n=daysWith(id),b=best(id),kc=log.filter(l=>l.pid===id&&l.kira).length;
     const sub=colSort==='recent'?`<span class="s">${fmtD(lastMet(id))}</span>`:colSort==='car'?`<span class="s">${esc(carLabel(p))}</span>`:colSort==='rare'?`<span class="s">${kc?`EX×${kc} · `:''}${new Set(log.filter(l=>l.pid===id).map(l=>(l.im||l.v||1)+(l.ev||l.sz||'-')+(l.kira?'k':l.rare?'r':''))).size}種類</span>`:`<span class="hearts">♥${n} ${rank(n)}</span>`;
-    return `<button class="cell press" data-p="${id}">${favMark(id)}${stamp(p,{ev:b.ev,sz:b.sz,fr:b.fr,kira:b.kira,rare:b.rare,v:b.v,im:b.im,rg:b.rg})}<span class="n">${esc(p.name)}</span>${sub}</button>`}).join('')}</div>`;
+    return `<button class="cell press" data-p="${id}">${favMark(id)}${stamp(p,{ev:b.ev,sz:b.sz,fr:b.fr||p.frame,kira:b.kira,rare:b.rare,v:b.v,im:b.im,rg:b.rg})}<span class="n">${esc(p.name)}</span>${clsMini(id)}${sub}</button>`}).join('')}</div>`;
 }
 const PINI='<svg viewBox="0 0 24 24" width="11" height="11" fill="#fff"><path d="M12 2.5l2.8 6 6.6.7-5 4.5 1.4 6.5L12 17l-5.8 3.2 1.4-6.5-5-4.5 6.6-.7z"/></svg>';
 // 場所が決まっているバッジは、対象のスポットと「済／まだ」を詳細に出す（2026-10-06 鈴木さん「あとどこなのか分かりづらい」）
@@ -1634,7 +1635,7 @@ async function shareImage(){
     const im=await loadImg(IMG(p.img)||avatar(okColor(p.ring)));g.beginPath();g.arc(cx,cy,R*.97,0,Math.PI*2);g.clip();
     if(im){const k=Math.max(2*R/im.width,2*R/im.height);g.drawImage(im,cx-im.width*k/2,cy-im.height*k/2,im.width*k,im.height*k)}else{g.fillStyle='#2a3440';g.fillRect(cx-R,cy-R,2*R,2*R)}g.restore()};
   // プロフィール
-  await disc(me,W/2,190,120);
+  {const c=await stampCanvas(stamp({...me,frame:myFrame()},{size:300}),600);if(c){g.save();g.shadowColor='rgba(0,0,0,.45)';g.shadowBlur=30;g.shadowOffsetY=8;g.drawImage(c,W/2-150,40,300,300);g.restore()}else await disc(me,W/2,190,120)}
   const nm=me.name||'ゲスト',nsz=fit(nm,900,60,'400','"Dela Gothic One",sans-serif');T(nm,W/2,402,nsz,'400','center','#fff','"Dela Gothic One",sans-serif');
   T(`Lv.${r.L} ${r.cls}${me.official?' ・ 公式':''}`,W/2,452,32,'700');
   const car=[carLabel(me),me.pref].filter(x=>x&&x!=='未設定'&&x!=='—').join(' ・ ');if(car)T(car,W/2,494,28,'500','center','rgba(255,255,255,.85)');
@@ -1643,7 +1644,7 @@ async function shareImage(){
   // 交換したスタンプ（重ねて並べる。いちばん仲良しが一番上）
   T(fr.total?'交換したスタンプ':'まだ交換したスタンプはありません',W/2,730,30,'700','center','rgba(255,255,255,.92)');
   if(fr.list.length){const R=50,step=78,n=fr.list.length,more=fr.total-n,wAll=(n-1)*step+2*R+(more>0?96:0),x0=(W-wAll)/2+R;
-    for(let i=n-1;i>=0;i--)await disc(fr.list[i].p,x0+i*step,800,R);
+    for(let i=n-1;i>=0;i--){const p=fr.list[i].p,b=best(p.id)||{},c=await stampCanvas(stamp(p,{size:2*R,ev:b.ev,sz:b.sz,fr:b.fr||p.frame,v:b.v,im:b.im,rg:b.rg}),4*R);if(c){g.save();g.shadowColor='rgba(0,0,0,.45)';g.shadowBlur=12;g.shadowOffsetY=3;g.drawImage(c,x0+i*step-R*1.08,800-R*1.08,R*2.16,R*2.16);g.restore()}else await disc(p,x0+i*step,800,R)}
     fr.list.forEach((f,i)=>{if(!f.fav)return;const x=x0+i*step+R*.62,y=800-R*.7;g.beginPath();g.arc(x,y,15,0,Math.PI*2);g.fillStyle='#ffd23f';g.fill();g.lineWidth=3;g.strokeStyle='#121820';g.stroke();T('★',x,y+8,20,'700','center','#121820')});
     if(more>0){const x=x0+(n-1)*step+R+52;box(x-40,800-30,80,60,30,'rgba(255,255,255,.2)');T(`+${more}`,x,811,30,'700','center','#fff','"JetBrains Mono",monospace')}}
   // レアなリワード
@@ -1664,12 +1665,15 @@ async function shareImage(){
 function openShare(){
   openSheet(`<b style="font-size:18px;display:block;text-align:center">SNSでシェア</b><p class="note" style="text-align:center;margin:4px 0 10px">プロフィールと集めたリワードを1枚の画像にします</p>
    <div id="shimg" style="text-align:center"><p class="note">画像を作っています…</p></div>
-   <div class="row" style="margin-top:12px"><button class="btn sub press" data-close>閉じる</button><button class="btn press" id="shgo" disabled>シェアする</button></div>`);
+   <label class="f" style="margin-top:12px">いっしょに投稿する文<textarea id="shText" rows="5" style="width:100%;font:inherit;font-size:13px;line-height:1.6;padding:10px;border-radius:12px;border:1px solid var(--line);background:var(--fill);color:var(--ink);resize:vertical">${esc(profileShareText())}</textarea></label>
+   <div class="row" style="margin-top:12px"><button class="btn sub press" id="shsave" disabled>${DLI}画像を保存</button><button class="btn press" id="shgo" disabled>${SHI}シェアする</button></div>
+   <button class="btn sub press" style="margin-top:10px" data-close>閉じる</button>`);
   bindClose();let blob=null,url='';
   shareImage().then(cv=>new Promise(ok=>cv.toBlob(ok,'image/png'))).then(b=>{blob=b;if(!b||!$('#shimg'))return;url=URL.createObjectURL(b);
-    $('#shimg').innerHTML=`<img src="${url}" alt="シェア用の画像" style="width:100%;max-width:360px;border-radius:14px"><p class="note" style="margin-top:6px">保存したいときは、画像を長押し（PCは右クリック）してください</p>`;$('#shgo').disabled=false})
+    $('#shimg').innerHTML=`<img src="${url}" alt="シェア用の画像" style="width:100%;max-width:360px;border-radius:14px">`;$('#shgo').disabled=false;$('#shsave').disabled=false})
    .catch(e=>{console.warn(e);if($('#shimg'))$('#shimg').innerHTML='<p class="gerr">画像を作れませんでした</p>'});
-  $('#shgo').onclick=async()=>{if(!blob)return;const n=gotList(myStats()).length,text=`ペタカー!でリワードを${n}個集めました #ペタカー`;
+  $('#shsave').onclick=()=>blob&&saveImage(blob,'petacar-profile.png');
+  $('#shgo').onclick=async()=>{if(!blob)return;shareImageFile(blob,'petacar.png',($('#shText')||{}).value||profileShareText());return;const text='';
     try{
       if(window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform()){ // アプリ版：端末の共有メニューを開く
         const FS=Capacitor.registerPlugin('Filesystem'),SH=Capacitor.registerPlugin('Share');
@@ -2021,7 +2025,7 @@ function openPho(pid,back){const p=pholog.find(v=>v.id===pid);if(!p)return;const
    <div class="row" style="margin-top:14px"><button class="btn sub press" id="phSave">画像を保存</button>${x?'<button class="btn sub press" id="phSpot">スポットを見る</button>':''}</div>
    <div class="row" style="margin-top:10px"><button class="btn sub press" data-close>閉じる</button><button class="btn sub press" id="phDel"><span class="danger">削除</span></button></div>`);
   bindClose(back);hydratePho();
-  $('#phSave').onclick=async()=>{const cv=await phoCanvas(p,720);if(!cv){toast('この端末に写真がありません');return}cv.toBlob(b=>saveFiles([[b,`petacar-photo-${p.d}.png`]],'ペタカー! のフォトスタンプ'),'image/png')};
+  $('#phSave').onclick=async()=>{const cv=await phoCanvas(p,720);if(!cv){toast('この端末に写真がありません');return}cv.toBlob(b=>saveImage(b,`petacar-photo-${p.d}.png`),'image/png')};
   if($('#phSpot'))$('#phSpot').onclick=()=>{closeSheet();setTimeout(()=>openSpot(p.spot),260)};
   let armed=false;$('#phDel').onclick=()=>{if(!armed){armed=true;$('#phDel .danger').textContent='もう一度押すと削除';return}
     pholog=pholog.filter(v=>v.id!==pid);savePho();PDB.del(pid).catch(()=>{});delete phoCache[pid];closeSheet();render();toast('削除しました')};
@@ -2133,38 +2137,103 @@ function openTripDay(d,back){const t=tripOf(d),isT=d===today();
   $$('#sh [data-shot]').forEach(b=>b.onclick=()=>{closeSheet();setTimeout(()=>openPhoto(b.dataset.shot,()=>openTripDay(d,back)),260)});
   $$('#sh [data-tp]').forEach(b=>b.onclick=()=>{closeSheet();setTimeout(()=>detail(b.dataset.tp),260)});
   $('#tripImg').onclick=async()=>{const bt=$('#tripImg');bt.disabled=true;bt.textContent='画像を作っています…';
-    try{const cv=await tripImage(t);cv.toBlob(b=>{bt.disabled=false;bt.textContent='SNS用の画像にする';saveFiles([[b,`petacar-trip-${d}.png`]],`${+d.slice(5,7)}/${+d.slice(8)}の旅 #ペタカー`)},'image/png')}
+    try{const cv=await tripImage(t);cv.toBlob(b=>{bt.disabled=false;bt.textContent='SNS用の画像にする';if(!b){toast('画像を作れませんでした');return}closeSheet();setTimeout(()=>openImageSheet(b,{title:'旅のしおりをシェア',name:`petacar-trip-${d}.png`,text:tripShareText(t),back:()=>openTripDay(d,back)}),260)},'image/png')}
     catch(e){console.warn(e);bt.disabled=false;bt.textContent='SNS用の画像にする';toast('画像を作れませんでした')}};
 }
-async function tripImage(t){if(t.route&&t.route.length>=2)t={...t,km:rtKm(t.route)};const W=1080,H=1350,cv=document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d');
+async function tripImage(t){if(t.route&&t.route.length>=2)t={...t,km:rtKm(t.route)};
+  const W=1080,H=1350,HH=640,cv=document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d');
   try{await document.fonts.ready}catch(e){}
-  const dim=await drawBg(g,W,H,me);const sh=g.createLinearGradient(0,0,0,H);sh.addColorStop(0,`rgba(0,0,0,${.35+dim*.3})`);sh.addColorStop(1,`rgba(0,0,0,${.6+dim*.3})`);g.fillStyle=sh;g.fillRect(0,0,W,H);
   const T=(s,x,y,sz,wt='700',al='center',col='#fff',ff='"Zen Kaku Gothic New",sans-serif')=>{g.font=`${wt} ${sz}px ${ff}`;g.textAlign=al;g.fillStyle=col;g.fillText(s,x,y)};
   const fit=(s,max,sz,wt,ff)=>{g.font=`${wt} ${sz}px ${ff}`;while(sz>16&&g.measureText(s).width>max){sz-=2;g.font=`${wt} ${sz}px ${ff}`}return sz};
   const box=(x,y,w,h,r,c)=>{g.fillStyle=c;g.beginPath();g.roundRect?g.roundRect(x,y,w,h,r):g.rect(x,y,w,h);g.fill()};
-  const d=t.d;T('TRIP NOTE',W/2,96,30,'700','center','#ff9a66','"JetBrains Mono",monospace');
-  T(`${d.slice(0,4)}.${d.slice(5,7)}.${d.slice(8)}（${wdOf(d)}）`,W/2,176,64,'400','center','#fff','"Dela Gothic One",sans-serif');
-  const sub=[me.name&&me.name!=='ゲスト'?me.name+'さんの旅':'',t.prefs.join('・')].filter(Boolean).join('　');if(sub)T(sub,W/2,232,30,'500','center','rgba(255,255,255,.85)');
-  [[t.spots.length,'スポット'],[t.km<1?'—':(t.km<10?t.km.toFixed(1):Math.round(t.km))+'',t.km<1?'移動':'移動 km'],[t.ppl.length,'交換した人'],[t.pass,'すれ違い']].forEach(([v,l],i)=>{const x=60+i*245;box(x,270,225,150,28,'rgba(255,255,255,.14)');const sz=fit(String(v),200,72,'700','"JetBrains Mono",monospace');T(String(v),x+112,362,sz,'700','center','#fff','"JetBrains Mono",monospace');T(l,x+112,400,26)});
-  if(t.niceS+t.niceG)T(`♥ ナイス！ 送った${t.niceS}・届いた${t.niceG}`,W/2,452,28,'700','center','#ff9ab0');
-  let y=t.niceS+t.niceG?490:470;const rp=rtTrim(t.route||[]),mp=rp.length>=2?await routeMap(rp,t.spots.map(v=>SP(v.id)),960,360,{lw:8,r:12,fs:16,pad:50}):null;
-  if(mp){g.save();g.beginPath();g.roundRect?g.roundRect(60,y,960,360,28):g.rect(60,y,960,360);g.clip();g.drawImage(mp,60,y);g.restore();y+=390}
-  const ph=t.photos.slice(0,mp?3:4);
-  if(ph.length){const S=mp?130:ph.length>2?220:260,gap=24,x0=(W-(ph.length*S+(ph.length-1)*gap))/2;
-    for(let i=0;i<ph.length;i++){const c=await phoCanvas(ph[i],S*2);if(c)g.drawImage(c,x0+i*(S+gap),y,S,S)}y+=S+(mp?30:40)}
-  const L=t.spots.slice(0,mp?(ph.length?2:4):ph.length?6:10),rowH=ph.length||mp?58:70;
-  if(L.length){g.fillStyle='rgba(255,255,255,.35)';g.fillRect(150,y+10,3,(L.length-1)*rowH);
-    for(let i=0;i<L.length;i++){const v=L[i],x=SP(v.id),cy=y+10+i*rowH;g.beginPath();g.arc(151,cy,15,0,Math.PI*2);g.fillStyle=CAT[x.cat].c;g.fill();g.lineWidth=4;g.strokeStyle='#fff';g.stroke();
-      if(v.t)T(hm(v.t),112,cy+10,24,'700','right','rgba(255,255,255,.8)','"JetBrains Mono",monospace');
-      const sz=fit(x.n,700,34,'700','"Zen Kaku Gothic New",sans-serif');T(x.n,186,cy+12,sz,'700','left');}
-    if(t.spots.length>L.length)T(`ほか${t.spots.length-L.length}か所`,186,y+10+L.length*rowH+6,26,'500','left','rgba(255,255,255,.75)');
-    y+=L.length*rowH+30}
-  if(!L.length&&t.ppl.length)T(`${t.ppl.length}人とスタンプを交換しました`,W/2,y+60,38,'700');
-  box(60,1200,960,124,30,'rgba(255,255,255,.95)');drawLogo(g,82,1214,96);
+  const d=t.d,sps=t.spots.map(v=>SP(v.id)),rp=rtTrim(t.route||[]);
+  g.fillStyle='#10151c';g.fillRect(0,0,W,H);
+  // 上半分：地図（ルートかスポットが2つ以上あるとき。出発・到着の1kmは消してある）か、マイスタンプの背景
+  const mp=rp.length>=2||sps.filter(x=>x.la!=null).length>=2?await routeMap(rp,sps,W,HH,{lw:10,r:14,fs:18,pad:110}):null;
+  if(mp)g.drawImage(mp,0,0);else{g.save();g.beginPath();g.rect(0,0,W,HH);g.clip();await drawBg(g,W,HH,me);g.restore()}
+  let gr=g.createLinearGradient(0,0,0,220);gr.addColorStop(0,'rgba(10,14,20,.8)');gr.addColorStop(1,'rgba(10,14,20,0)');g.fillStyle=gr;g.fillRect(0,0,W,220);
+  gr=g.createLinearGradient(0,HH-340,0,HH);gr.addColorStop(0,'rgba(16,21,28,0)');gr.addColorStop(.7,'rgba(16,21,28,.85)');gr.addColorStop(1,'rgba(16,21,28,1)');g.fillStyle=gr;g.fillRect(0,HH-340,W,340);
+  // 上のタグ：TRIP NOTE・都道府県・ナイス
+  box(60,56,236,54,27,'#e8551c');T('TRIP NOTE',178,93,26,'800','center','#fff','"JetBrains Mono",monospace');
+  let tx=312;if(t.prefs.length){const pt=t.prefs.slice(0,3).join('・');g.font='700 26px "Zen Kaku Gothic New",sans-serif';const w=g.measureText(pt).width+48;box(tx,56,w,54,27,'rgba(255,255,255,.92)');T(pt,tx+w/2,93,26,'700','center','#18212b');tx+=w+16}
+  if(t.niceS+t.niceG){const nt=`♥ ナイス！ ${t.niceS+t.niceG}`;g.font='800 26px "Zen Kaku Gothic New",sans-serif';const w=g.measureText(nt).width+48;box(tx,56,w,54,27,'#e0577a');T(nt,tx+w/2,93,26,'800','center','#fff')}
+  // 日付（大きく）
+  T(`${+d.slice(5,7)}.${d.slice(8)}`,56,HH-118,160,'400','left','#fff','"Dela Gothic One",sans-serif');
+  T(`${d.slice(0,4)}  ${['SUN','MON','TUE','WED','THU','FRI','SAT'][new Date(d+'T12:00:00').getDay()]}`,62,HH-62,34,'800','left','#ff9a66','"JetBrains Mono",monospace');
+  if(me.name&&me.name!=='ゲスト')T(`${me.name}さんの旅${me.car&&me.car!=='未設定'?' ／ '+carLabel(me):''}`,62,HH-18,28,'700','left','rgba(255,255,255,.88)');
+  // フォトスタンプ：右下にステッカー風に重ねる
+  const ph=t.photos.slice(0,3);for(let i=ph.length-1;i>=0;i--){const S=i?180:250,c=await phoCanvas(ph[i],S*2);if(!c)continue;
+    const cx=W-70-S/2-(i?120+i*95:0),cy=HH-170+(i?60:0);g.save();g.translate(cx,cy);g.rotate((i%2?-1:1)*.1);g.shadowColor='rgba(0,0,0,.55)';g.shadowBlur=26;g.shadowOffsetY=10;g.drawImage(c,-S/2,-S/2,S,S);g.restore()}
+  // 数字（移動距離はオレンジで目立たせる）
+  [[t.spots.length,'か所','スポット'],[t.km<1?'—':t.km<10?t.km.toFixed(1):String(Math.round(t.km)),t.km<1?'':'km','移動'],[t.ppl.length,'人','交換'],[t.pass,'人','すれ違い']].forEach(([v,u,l],i)=>{
+    const x=60+i*245,y=676;const hot=i===1&&t.km>=1;box(x,y,225,140,26,hot?'#e8551c':'rgba(255,255,255,.08)');
+    const vs=fit(String(v),150,66,'700','"JetBrains Mono",monospace'),vw=g.measureText(String(v)).width;g.font='700 26px "Zen Kaku Gothic New",sans-serif';const uw=g.measureText(u).width,sx=x+112-(vw+uw+6)/2;
+    T(String(v),sx,y+82,vs,'700','left','#fff','"JetBrains Mono",monospace');T(u,sx+vw+6,y+82,26,'700','left','rgba(255,255,255,.85)');T(l,x+112,y+120,24,'700','center',hot?'#fff':'rgba(255,255,255,.62)')});
+  // 左：行ったところ（スポットのアイコン付き）／右：出会った人のスタンプ
+  const two=t.ppl.length>0,L=t.spots.slice(0,5),y0=870,wide=two&&!L.length; // スポットが無い日は、出会った人を全幅で大きく
+  if(!wide)T('行ったところ',60,y0,26,'800','left','rgba(255,255,255,.55)');
+  if(L.length){const top=y0+50;g.fillStyle='rgba(255,255,255,.16)';g.fillRect(83,top,3,(L.length-1)*56);
+    for(let i=0;i<L.length;i++){const x=SP(L[i].id),cy=top+i*56,ic=await svgToImg(spotMark(x,true,46));if(ic)g.drawImage(ic,61,cy-23,46,46);
+      const rx=two?560:1020,sz=fit(x.n,rx-140-(L[i].t?80:0),31,'700','"Zen Kaku Gothic New",sans-serif');T(x.n,122,cy+11,sz,'700','left');
+      if(L[i].t)T(hm(L[i].t),rx,cy+10,22,'700','right','rgba(255,255,255,.5)','"JetBrains Mono",monospace')}
+    if(t.spots.length>L.length)T(`ほか${t.spots.length-L.length}か所`,122,top+L.length*56+2,24,'600','left','rgba(255,255,255,.55)')}
+  else if(!wide)T('スポットの記録はありません',60,y0+52,28,'600','left','rgba(255,255,255,.45)');
+  if(two){const X0=wide?60:618,C=wide?6:3,S=wide?130:112,ST=wide?160:136,P=t.ppl.slice(0,C*2);T('出会った人',X0,y0,26,'800','left','rgba(255,255,255,.55)');
+    for(let i=0;i<P.length;i++){const p=P[i],l=t.ex.find(e=>e.pid===p.id)||{},cx=X0+(i%C)*ST,cy=y0+24+Math.floor(i/C)*(S+36);
+      const c=await stampCanvas(stamp(p,{size:S,ev:l.ev,sz:l.sz,fr:l.fr||p.frame,kira:l.kira,rare:l.rare,v:l.v,im:l.im,rg:l.rg}),S*2);if(c)g.drawImage(c,cx,cy,S,S);
+      let nm=p.name;g.font='700 20px "Zen Kaku Gothic New",sans-serif';while(nm.length>1&&g.measureText(nm).width>ST-8)nm=nm.slice(0,-1);T(nm,cx+S/2,cy+S+24,20,'700','center','rgba(255,255,255,.85)')}
+    if(t.ppl.length>P.length)T(`ほか${t.ppl.length-P.length}人`,wide?1020:X0+400,y0,22,'600','right','rgba(255,255,255,.55)')}
+  // 下の帯
+  box(60,1200,960,124,30,'rgba(255,255,255,.96)');drawLogo(g,82,1214,96);
   T('ペタカー!',196,1260,42,'400','left','#121820','"Dela Gothic One",sans-serif');T('クルマで繋がるスタンプアプリ',196,1302,24,'700','left','#3a4552');
   const qr=SHARE_QR?await qrCanvas(SHARE_URL):null;
   if(qr){g.imageSmoothingEnabled=false;g.drawImage(qr,880,1206,112,112);g.imageSmoothingEnabled=true}else{box(690,1226,306,72,36,'#e8551c');T('間もなく配信開始！',843,1273,30,'700','center','#fff')}
   return cv}
+// スタンプ（縁・フチ込み）を画像にする。stamp() の見た目をそのまま canvas に描く
+async function stampCanvas(html,S){const doc=new DOMParser().parseFromString(html,'text/html'),st=doc.querySelector('.stamp');if(!st)return null;
+  const im=st.querySelector('img'),sv=st.querySelector(':scope>svg'),ins=st.classList.contains('shop')?.12:st.classList.contains('ev')?.115:.06;
+  const cv=document.createElement('canvas');cv.width=cv.height=S;const g=cv.getContext('2d'),pic=im&&im.getAttribute('src')?await loadImg(im.getAttribute('src')):null,r=S*(.5-ins);
+  g.save();g.beginPath();g.arc(S/2,S/2,r,0,Math.PI*2);g.clip();
+  if(pic){const k=Math.max(2*r/pic.width,2*r/pic.height);g.drawImage(pic,S/2-pic.width*k/2,S/2-pic.height*k/2,pic.width*k,pic.height*k)}else{g.fillStyle='#2a3440';g.fillRect(0,0,S,S)}g.restore();
+  if(sv){const fr=await svgToImg(sv.outerHTML.replace('<svg ',`<svg width="${S}" height="${S}" `));if(fr)g.drawImage(fr,0,0,S,S)}
+  return cv}
+/* --- 画像を端末に保存：Androidアプリは写真（Pictures/PetaCar）へ直接、iPhoneアプリは共有メニューの「画像を保存」、Web版はダウンロード --- */
+const b64Of=b=>new Promise(ok=>{const r=new FileReader();r.onload=()=>ok(String(r.result).split(',')[1]);r.readAsDataURL(b)});
+const isNative=()=>!!(window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform());
+async function saveImage(blob,name){
+  if(isNative()&&Capacitor.getPlatform&&Capacitor.getPlatform()==='android'){try{await Capacitor.registerPlugin('PhotoSave').save({data:await b64Of(blob),name});toast('写真に保存しました（ギャラリーの「PetaCar」）');return}catch(e){console.warn('PhotoSave',e)}}
+  if(isNative())return saveFiles([[blob,name]],''); // iPhone・古いAndroid：共有メニューから「画像を保存」
+  const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);toast('画像を保存しました')}
+async function shareImageFile(blob,name,text){const t=text+'\n'+SHARE_URL;
+  try{if(isNative()){const FS=Capacitor.registerPlugin('Filesystem'),SHR=Capacitor.registerPlugin('Share'),w=await FS.writeFile({path:name,data:await b64Of(blob),directory:'CACHE'});await SHR.share({title:'ペタカー!',text:t,files:[w.uri]});return}
+    const f=new File([blob],name,{type:blob.type||'image/png'});if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],text:t});return}
+    try{await navigator.clipboard.writeText(t)}catch(e){}await saveImage(blob,name);toast('画像を保存して、紹介文をコピーしました。SNSに貼り付けてください')}
+  catch(e){if(e&&e.name==='AbortError')return;console.warn(e);toast('共有できませんでした')}}
+const DLI='<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px;margin-right:6px"><path d="M12 4v11M7 10l5 5 5-5"/><path d="M5 19h14"/></svg>';
+const SHI='<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px;margin-right:6px"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>';
+// できた画像を見せて「画像を保存」「シェアする」。紹介文は下に出して、そのまま直せる
+function openImageSheet(blob,o){const url=URL.createObjectURL(blob);
+  openSheet(`<b style="font-size:18px;display:block;text-align:center">${esc(o.title)}</b>
+   <div style="text-align:center;margin-top:10px"><img src="${url}" alt="" style="width:100%;max-width:360px;border-radius:14px;box-shadow:0 4px 18px rgba(0,0,0,.35)"></div>
+   <label class="f" style="margin-top:12px">いっしょに投稿する文<textarea id="imText" rows="5" style="width:100%;font:inherit;font-size:13px;line-height:1.6;padding:10px;border-radius:12px;border:1px solid var(--line);background:var(--fill);color:var(--ink);resize:vertical">${esc(o.text)}</textarea></label>
+   <div class="row" style="margin-top:12px"><button class="btn sub press" id="imSave">${DLI}画像を保存</button><button class="btn press" id="imShare">${SHI}シェアする</button></div>
+   <button class="btn sub press" style="margin-top:10px" data-close>閉じる</button>`);
+  bindClose(o.back);
+  $('#imSave').onclick=()=>saveImage(blob,o.name);
+  $('#imShare').onclick=()=>shareImageFile(blob,o.name,($('#imText')||{}).value||o.text)}
+/* --- 紹介文（SNSに投稿する文） --- */
+function tripShareText(t){const d=t.d,km=t.km>=1?(t.km<10?t.km.toFixed(1):Math.round(t.km))+'km':'',names=t.spots.slice(0,3).map(v=>SP(v.id).n.replace(/^道の駅\s*/,'道の駅'));
+  const head=`${+d.slice(5,7)}/${+d.slice(8)}（${wdOf(d)}）の旅しおり🚗`;
+  const body=[t.prefs.length?`${t.prefs.slice(0,3).join('・')}を${km?km+'走って':'めぐって'}、${t.spots.length}か所に立ち寄りました。`:'',names.length?`📍${names.join(' → ')}${t.spots.length>3?' ほか':''}`:'',
+    t.ppl.length?`🤝 ${t.ppl.length}人とスタンプ交換${t.pass?`・すれ違い${t.pass}人`:''}`:t.pass?`👋 すれ違い${t.pass}人`:'',t.niceS+t.niceG?`♥ ナイス！${t.niceS+t.niceG}`:''].filter(Boolean);
+  return [head,...body,'#ペタカー #旅のしおり #ドライブ #クルマ好きと繋がりたい'].join('\n')}
+function profileShareText(){const s=myStats(),r=rpgOf(s),car=carLabel(me);
+  return [`ペタカー!で「Lv.${r.L} ${r.cls}」になりました🚗✨`,car&&car!=='未設定'&&car!=='その他 未設定'?`相棒は ${car}。`:'',
+    `🤝 ${met().length}人のクルマ好きと${log.length}回スタンプ交換`,`📍 ${spotSet().size}か所をめぐって、リワードは${gotList(s).length}個`,
+    '会ったときだけ交換できる、クルマのスタンプアプリです','#ペタカー #クルマ好きと繋がりたい #愛車'].filter(Boolean).join('\n')}
+// コレクション・プロフィールに出す相手のクラス（リワードを公開している人だけ）
+function clsMini(id,big){const ps=PST[id];if(!ps||ps.showRewards===false||ps.hidden)return '';const r=rpgOf(ps);if(r.L<=1&&r.cls==='ビギナー')return '';
+  return big?`<div style="margin-top:-2px">${clsChip({...r,title:''})}</div>`:`<span class="clsm">Lv.${r.L} ${esc(r.cls)}</span>`}
 
 /* --- 画像・ファイルの保存（アプリ版は共有メニュー、Web版は共有 or ダウンロード）。files=[[blob,name],...] --- */
 async function saveFiles(files,text){files=files.filter(f=>f&&f[0]);if(!files.length){toast('保存できませんでした');return}
@@ -2270,7 +2339,7 @@ function openExport(){const ph=pholog.length;
   $('#exBook').onclick=async()=>{const o=$('#exOut');o.innerHTML='<p class="note" style="text-align:center;margin-top:10px">画像を作っています…</p>';
     try{const P=await bookPages(),bl=await Promise.all(P.map(c=>new Promise(ok=>c.toBlob(ok,'image/png'))));
       o.innerHTML=`<div class="bookprev">${bl.map(b=>`<img src="${URL.createObjectURL(b)}" alt="スタンプ帳">`).join('')}</div><button class="btn press" id="exBookSave" style="margin-top:10px">${bl.length>1?`${bl.length}枚まとめて保存`:'保存する'}</button>`;
-      $('#exBookSave').onclick=()=>saveFiles(bl.map((b,i)=>[b,`petacar-stampbook-${today()}-${i+1}.png`]),'ペタカー! のスタンプ帳')}
+      $('#exBookSave').onclick=async()=>{if(isNative()&&Capacitor.getPlatform&&Capacitor.getPlatform()==='android'){for(let i=0;i<bl.length;i++)await saveImage(bl[i],`petacar-stampbook-${today()}-${i+1}.png`);return}saveFiles(bl.map((b,i)=>[b,`petacar-stampbook-${today()}-${i+1}.png`]),'ペタカー! のスタンプ帳')}}
     catch(e){console.warn(e);o.innerHTML='<p class="gerr">画像を作れませんでした</p>'}};
   $('#exData').onclick=async()=>{try{const d=await backupData(),b=new Blob([JSON.stringify(d)],{type:'application/json'});saveFiles([[b,`petacar-backup-${today()}.json`]],'ペタカー! の記録')}catch(e){console.warn(e);toast('書き出せませんでした')}};
   $('#imFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const d=JSON.parse(await f.text());if(!d||d.app!=='petacar'||!Array.isArray(d.photos))throw 0;
@@ -2281,7 +2350,7 @@ function openExport(){const ph=pholog.length;
       pholog.sort((a,b)=>(a.t||0)-(b.t||0));savePho();toast(n||nr?`フォトスタンプ${n}枚・ドライブの記録${nr}日分を読み込みました`:'新しいフォトスタンプ・記録はありませんでした');render()}
     catch(err){toast('ペタカー! のファイルではないようです')}};
 }
-if(!window.__cloud)window.__solo={rtAdd,rtGet,routeMap,tripImage,tripOf,bookPages,backupData,setProg,phoCanvas}; // 試作だけ：画像の確認用
+if(!window.__cloud)window.__solo={stampCanvas,tripShareText,profileShareText,rtAdd,rtGet,routeMap,tripImage,tripOf,bookPages,backupData,setProg,phoCanvas}; // 試作だけ：画像の確認用
 
 function openSpot(id,back){
   const x=SP(id),c=CAT[x.cat],vs=spotlog.filter(v=>v.id===id).map(v=>v.d).sort().reverse(),done=vs[0]===today();
@@ -2483,7 +2552,7 @@ function openHito(){
 function detail(id){
   const p=person(id),n=daysWith(id),h=log.filter(l=>l.pid===id).slice().reverse(),b=best(id),ps=PST[id];
   const seen=new Set(),variants=h.filter(l=>{const k=(l.im||l.v||1)+(l.ev||l.sz||'-')+(l.kira?'k':l.rare?'r':'');if(seen.has(k))return false;seen.add(k);return true});
-  openSheet(`<div class="result pcard" style="background:${bgCSS(p)}">${stamp(p,{size:120,ev:b.ev,sz:b.sz,fr:b.fr,kira:b.kira,rare:b.rare,v:b.v,im:b.im,rg:b.rg})}<b style="font-size:20px">${p.official?OFFB:''}${esc(p.name)}</b>${p.msg?`<div class="hitop">${esc(p.msg)}</div>`:''}${snsRow(p.sns)}
+  openSheet(`<div class="result pcard" style="background:${bgCSS(p)}">${stamp(p,{size:120,ev:b.ev,sz:b.sz,fr:b.fr||p.frame,kira:b.kira,rare:b.rare,v:b.v,im:b.im,rg:b.rg})}<b style="font-size:20px">${p.official?OFFB:''}${esc(p.name)}</b>${clsMini(id,true)}${p.msg?`<div class="hitop">${esc(p.msg)}</div>`:''}${snsRow(p.sns)}
    <div><span class="chip">${esc(carLabel(p))}</span> <span class="chip">${esc(p.pref)}</span></div>
    <button class="favbtn press" id="favb" aria-pressed="${favs.has(id)}">${favs.has(id)?'★ お気に入り':'☆ お気に入りに追加'}</button>
    <div class="lv" style="margin-top:4px">${Array.from({length:10},(_,i)=>`<i class="${i<n?'on':''}"></i>`).join('')}</div>
@@ -2552,7 +2621,7 @@ function openSettings(){
      <button class="srow press" style="width:100%;border:0;background:none;cursor:pointer;text-align:left" data-doc="guide"><div class="t"><b>コミュニティガイドライン</b><span>安全に交換するためのルール</span></div><span class="val">›</span></button>
      <button class="srow press" style="width:100%;border:0;background:none;cursor:pointer;text-align:left" data-doc="contact"><div class="t"><b>お問い合わせ・不具合の報告</b></div><span class="val">›</span></button>
      <button class="srow press" style="width:100%;border:0;background:none;cursor:pointer;text-align:left" data-doc="credits"><div class="t"><b>データと素材の出典</b></div><span class="val">›</span></button>
-     <div class="srow"><div class="t"><b>バージョン</b></div><span class="val" style="font-family:var(--mono)">Web版・10/09更新</span></div></div>
+     <div class="srow"><div class="t"><b>バージョン</b></div><span class="val" style="font-family:var(--mono)">Web版・10/10更新</span></div></div>
    <div class="sec">アカウント</div>
    <div class="set"><div class="srow"><div class="t"><b>ログイン方法</b><span>Google アカウント（ベータ版）</span></div></div>
      <button class="srow press" style="width:100%;border:0;background:none;cursor:pointer;text-align:left" id="logout"><div class="t"><b>ログアウト</b></div></button>
