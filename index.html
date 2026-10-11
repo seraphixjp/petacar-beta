@@ -1331,7 +1331,7 @@ function openRpgHelp(){openSheet(`<b style="font-size:20px;display:block;text-al
   <div class="list" style="margin-top:8px">${RSTATS.map(x=>`<div class="li" style="display:block"><b>${x.n}</b> <span class="note">→ ${x.cls}</span><div class="note" style="margin-top:2px">${x.src.map(([,t,p])=>`${t} +${p}`).join('・')}</div></div>`).join('')}</div>
   <div class="row" style="margin-top:12px"><button class="btn press" data-close>閉じる</button></div>`);bindClose()}
 // クラスアップの音：きらっと上がるアルペジオ＋やわらかい和音（ベル系の音色）
-let fanA=null;function fanfare(){if(settings.sound===false)return;try{const C=window.AudioContext||window.webkitAudioContext;const a=fanA||(fanA=new C());if(a.state==='suspended')a.resume();const t=a.currentTime+.05;
+let fanA=null;function fanfare(){if(settings.sound===false)return;try{const C=window.AudioContext||window.webkitAudioContext;if(fanA&&(fanA.state==='closed'||fanA.state==='interrupted')){try{fanA.close()}catch(e){}fanA=null}const a=fanA||(fanA=new C());if(a.state!=='running')a.resume();const t=a.currentTime+.05;
   const out=a.createGain();out.gain.value=.9;out.connect(a.destination);
   const dl=a.createDelay();dl.delayTime.value=.13;const fb=a.createGain();fb.gain.value=.28;const wet=a.createGain();wet.gain.value=.22;dl.connect(fb);fb.connect(dl);dl.connect(wet);wet.connect(out); // ほんのり響き
   const bell=(f,d,len,v)=>{[[1,'sine',v],[2,'sine',v*.28],[3.01,'sine',v*.08],[1.003,'triangle',v*.35]].forEach(([m,ty,vv])=>{const o=a.createOscillator(),g=a.createGain();o.type=ty;o.frequency.value=f*m;
@@ -1488,24 +1488,25 @@ const unseen=()=>{const g=gotKeys();if(!seenB){seenB=g;store.set('seen2',seenB)}
 const buzz=pat=>{try{navigator.vibrate&&navigator.vibrate(pat)}catch(e){}};
 /* 効果音：ファイルを使わず、その場で合成する */
 const sfx=(()=>{let A=null;
-  const ctx=()=>{try{if(!A){const C=window.AudioContext||window.webkitAudioContext;if(!C)return null;A=new C()}if(A.state==='suspended')A.resume();return A}catch(e){return null}};
+  const ctx=()=>{try{if(A&&(A.state==='closed'||A.state==='interrupted')){try{A.close()}catch(e){}A=null}if(!A){const C=window.AudioContext||window.webkitAudioContext;if(!C)return null;A=new C()}if(A.state!=='running')A.resume();return A}catch(e){return null}};
   const noise=(a,len)=>{const b=a.createBuffer(1,Math.ceil(a.sampleRate*len),a.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;const n=a.createBufferSource();n.buffer=b;return n};
   const env=(a,t,peak,att,dec)=>{const g=a.createGain();g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(peak,t+att);g.gain.exponentialRampToValueAtTime(0.0001,t+att+dec);g.connect(a.destination);return g};
   const tone=(a,t,type,f0,f1,peak,dec,att=.004)=>{const o=a.createOscillator();o.type=type;o.frequency.setValueAtTime(f0,t);if(f1!==f0)o.frequency.exponentialRampToValueAtTime(f1,t+dec*.8);o.connect(env(a,t,peak,att,dec));o.start(t);o.stop(t+att+dec+.02)};
   const hiss=(a,t,type,f,q,peak,dec)=>{const n=noise(a,dec+.05),fl=a.createBiquadFilter();fl.type=type;fl.frequency.value=f;fl.Q.value=q;n.connect(fl);fl.connect(env(a,t,peak,.002,dec));n.start(t)};
   const on=()=>settings.sound!==false;
+  const go=fn=>{const a=ctx();if(!a)return;if(a.state==='running')fn(a);else a.resume().then(()=>fn(a),()=>{})};
   return {
     unlock(){if(on())ctx()},
     // ペタッ：貼りつく「ペ」＋押さえる「タ」＋止まる「ッ」
-    peta(kira,delay=.18){if(!on())return;const a=ctx();if(!a)return;const t=a.currentTime+delay;
+    peta(kira,delay=.18){if(!on())return;go(a=>{const t=a.currentTime+delay;
       hiss(a,t,'bandpass',1500,.9,.55,.05);            // ペ：シールが当たる音
       tone(a,t,'sine',210,62,.75,.12);                 // 押さえた重み
       tone(a,t+.045,'triangle',720,300,.32,.06);       // タ：ゴムっぽい弾み
       hiss(a,t+.085,'highpass',3200,.7,.22,.018);      // ッ：ぴたっと止まる
-      if(kira)[2093,2637,3136,4186,5274].forEach((f,i)=>{tone(a,t+.32+i*.055,'sine',f,f,.12,.5);tone(a,t+.32+i*.055,'sine',f*2.01,f*2.01,.03,.25)})},
+      if(kira)[2093,2637,3136,4186,5274].forEach((f,i)=>{tone(a,t+.32+i*.055,'sine',f,f,.12,.5);tone(a,t+.32+i*.055,'sine',f*2.01,f*2.01,.03,.25)})})},
     // チェックイン：ポロン
-    chime(){if(!on())return;const a=ctx();if(!a)return;const t=a.currentTime+.02;
-      [[880,0],[1318.5,.11]].forEach(([f,d])=>{tone(a,t+d,'sine',f,f,.32,.9,.006);tone(a,t+d,'sine',f*2.76,f*2.76,.05,.35,.004);tone(a,t+d,'triangle',f/2,f/2,.06,.5,.006)})}
+    chime(){if(!on())return;go(a=>{const t=a.currentTime+.02;
+      [[880,0],[1318.5,.11]].forEach(([f,d])=>{tone(a,t+d,'sine',f,f,.32,.9,.006);tone(a,t+d,'sine',f*2.76,f*2.76,.05,.35,.004);tone(a,t+d,'triangle',f/2,f/2,.06,.5,.006)})})}
   }})();
 addEventListener('pointerdown',()=>sfx.unlock(),{once:true});
 function showOnb(){
