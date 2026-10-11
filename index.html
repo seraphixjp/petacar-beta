@@ -2591,7 +2591,7 @@ function rewardsBlock(name,ps,pinKeys,showStats,showRewards){
 /* settings */
 function sw(key,label,sub){return `<div class="srow"><div class="t"><b>${label}</b>${sub?`<span>${sub}</span>`:''}</div><button class="switch" role="switch" data-set="${key}" aria-checked="${!!settings[key]}" aria-label="${label}"></button></div>`}
 function segRow(key,label,opts,sub){return `<div class="srow stack"><div class="t"><b>${label}</b>${sub?`<span>${sub}</span>`:''}</div><div class="seg" data-segset="${key}">${opts.map(([v,t])=>`<button data-v="${v}" aria-pressed="${String(settings[key])===String(v)}">${t}</button>`).join('')}</div></div>`}
-function openSettings(){
+function provText(){const p=(C.providers&&C.providers())||[];const n=p.map(x=>x==='apple.com'?'Apple':x==='google.com'?'Google':x==='password'?'メール':'').filter(Boolean);return n.length?n.join('・')+' でログインできます':'—'}function linkRows(){const p=(C.providers&&C.providers())||[];if(p.includes('password'))return '';return [['apple','apple.com','Apple'],['google','google.com','Google']].filter(k=>!p.includes(k[1])).map(k=>`<button class="srow press" style="width:100%;border:0;background:none;cursor:pointer;text-align:left" onclick="__linkAcc('${k[0]}')"><div class="t"><b>${k[2]}でもログインできるようにする</b><span>どちらで入っても、同じ記録のアカウントになります</span></div><span class="val">›</span></button>`).join('')}window.__linkAcc=async k=>{const nm=k==='apple'?'Apple':'Google';try{await C.link(k);toast(nm+'でもログインできるようになりました');openSettings()}catch(e){const c=(e&&e.code)||'';if(/cancel|popup-closed|canceled|1001/i.test(c+' '+(e&&e.message||'')))return;toast(c==='auth/credential-already-in-use'||c==='auth/email-already-in-use'?'その'+nm+'アカウントは、別のペタカーのアカウントで使われています。サポート（info@seraphix-jp.com）へご連絡ください':c==='auth/provider-already-linked'?'もうつながっています':'つなげませんでした（'+(c||'エラー')+'）')}};function openSettings(){
   openSheet(`<b style="font-size:20px;display:block;text-align:center;margin-bottom:6px">設定</b>
    <div class="sec">表示</div>
    <div class="set">${segRow('theme','画面の色',[['auto','スマホに合わせる'],['light','白'],['dark','黒']],'「スマホに合わせる」は、スマホのダークモードの設定に合わせて切り替わります')}
@@ -2626,7 +2626,7 @@ function openSettings(){
      <button class="srow press" style="width:100%;border:0;background:none;cursor:pointer;text-align:left" data-doc="credits"><div class="t"><b>データと素材の出典</b></div><span class="val">›</span></button>
      <div class="srow"><div class="t"><b>バージョン</b></div><span class="val" style="font-family:var(--mono)">Web版・10/11更新</span></div></div>
    <div class="sec">アカウント</div>
-   <div class="set"><div class="srow"><div class="t"><b>ログイン方法</b><span>Google アカウント（ベータ版）</span></div></div>
+   <div class="set"><div class="srow"><div class="t"><b>ログイン方法</b><span>${provText()}</span></div></div>${linkRows()}
      <button class="srow press" style="width:100%;border:0;background:none;cursor:pointer;text-align:left" id="logout"><div class="t"><b>ログアウト</b></div></button>
      <button class="srow press" style="width:100%;border:0;background:none;cursor:pointer;text-align:left" id="delAcc"><div class="t"><b class="danger">アカウントを削除</b><span>スタンプ・交換の記録・写真をすべて消します</span></div><span class="val">›</span></button></div>
    <button class="btn sub press" style="margin-top:16px" data-close>閉じる</button>`);

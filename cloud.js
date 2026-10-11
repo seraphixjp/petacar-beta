@@ -419,6 +419,9 @@ async function firebaseBackend() {
     bakGet: (slot, withProf) => Promise.all([F.getDoc(D('users', uid, 'priv', 'b' + slot)), withProf ? F.getDoc(D('users', uid, 'priv', 'bp' + slot)) : null]).then(([a, b]) => a.exists() ? { ...a.data(), prof: b && b.exists() ? b.data().data : null } : null),
     bakPut: (slot, day, privD, profD) => Promise.all([F.setDoc(D('users', uid, 'priv', 'b' + slot), { day, at: Date.now(), data: privD }), profD ? F.setDoc(D('users', uid, 'priv', 'bp' + slot), { day, at: Date.now(), data: profD }) : null]),
     report: d => F.addDoc(Col('reports'), { ...d, by: uid, at: Date.now() }),
+    providers: () => (auth.currentUser ? auth.currentUser.providerData.map(p => p.providerId) : []),
+    // いまのアカウントに Apple／Google をつなぐ（どちらで入っても同じアカウントになる）
+    link: async kind => { const u = auth.currentUser; if (NATIVE) await A.linkWithCredential(u, await nativeCred(A, kind)); else await A.linkWithPopup(u, kind === 'apple' ? appleProvider : provider); await u.reload().catch(() => { }) },
     signOut: () => (NATIVE ? FA.signOut().catch(() => { }) : Promise.resolve()).then(() => A.signOut(auth)).then(() => location.reload()),
     deleteAccount: async () => {
       const baks = ['pre', 0, 1, 2, 3, 4, 5, 6].flatMap(k => ['b' + k, 'bp' + k]).map(k => F.deleteDoc(D('users', uid, 'priv', k)));
@@ -493,6 +496,8 @@ function mockBackend(uid) {
     bakGet: slot => { const a = M.docs.get('users/' + uid + '/priv/b' + slot), b = M.docs.get('users/' + uid + '/priv/bp' + slot); return Promise.resolve(a ? JSON.parse(JSON.stringify({ ...a, prof: b ? b.data : null })) : null) },
     bakPut: (slot, day, privD, profD) => { put('users/' + uid + '/priv/b' + slot, { day, at: Date.now(), data: privD }); if (profD) put('users/' + uid + '/priv/bp' + slot, { day, at: Date.now(), data: profD }); return Promise.resolve() },
     report: d => put('reports/r' + Date.now(), { ...d, by: uid }),
+    providers: () => ['google.com'],
+    link: () => Promise.resolve(),
     signOut: () => Promise.resolve(location.reload()),
     deleteAccount: async () => { const mine = (M.docs.get('users/' + uid + '/priv/imgs') || {}).ids || []; for (const k of [...M.docs.keys()]) if (k === 'users/' + uid || k.startsWith('users/' + uid + '/') || k === 'live/' + uid || mine.includes(k.slice(4)) && k.startsWith('img/')) M.docs.delete(k); notify() },
   };
@@ -559,7 +564,7 @@ else if (be) {
     uid: be.uid, demo: !!be.demo, store, people,
     onPeople: f => peopleCbs.push(f), isOfficial: id => !!OFF[id],
     img: imgOf, need,
-    live, ex: { ...be.ex, sub: cb => be.ex.sub(m => { need(Object.values(m).flatMap(x => [x.a, x.b])); cb(m) }) }, party: be.party, here: be.here, pass: be.pass, nice: be.nice, shops: be.shops, report: be.report, signOut: be.signOut,
+    live, ex: { ...be.ex, sub: cb => be.ex.sub(m => { need(Object.values(m).flatMap(x => [x.a, x.b])); cb(m) }) }, party: be.party, here: be.here, pass: be.pass, nice: be.nice, shops: be.shops, report: be.report, signOut: be.signOut, providers: be.providers, link: be.link,
     deleteAccount: async () => { store.cancelAll(); const was = frozen; frozen = 'deleting'; try { await be.deleteAccount() } catch (e) { frozen = was; throw e } },
   };
   let started = false, gotPeople = false, gotCfg = false, wait = '', cfg = {}, maintShown = false;
