@@ -142,7 +142,11 @@ function makeStore(backend, profDoc, privDoc, mine) {
     blocked[kind] = true;
     bar('savebar', kind === 'priv' ? '記録が減る保存を止めました。アプリを開き直してください（データは守られています）' : 'プロフィールの保存を止めました。アプリを開き直してください（スタンプは守られています）');
   };
+  const authRetried = {};
   const retry = (f, e, what) => {
+    if (e && e.code === 'permission-denied' && !authRetried[what] && backend.refreshAuth) {
+      authRetried[what] = true; setTimeout(() => { authRetried[what] = false }, 60000);
+      backend.refreshAuth().then(() => f(), () => f()); return }
     if (e && (e.code === 'invalid-argument' || e.code === 'permission-denied')) { bar('savebar', '保存できませんでした（' + (what || '') + '・' + e.code + '：' + String(e.message || '').replace(/^.*?:\s*/, '').slice(0, 90) + '）。お手数ですが、この画面のスクリーンショットをサポート（info@seraphix-jp.com）へお送りください'); return }
     bar('savebar', '保存できませんでした。通信状態を確認してください（自動でやり直します）'); setTimeout(f, 5000) };
   const flushPriv = debounce(() => {
@@ -419,6 +423,7 @@ async function firebaseBackend() {
     bakGet: (slot, withProf) => Promise.all([F.getDoc(D('users', uid, 'priv', 'b' + slot)), withProf ? F.getDoc(D('users', uid, 'priv', 'bp' + slot)) : null]).then(([a, b]) => a.exists() ? { ...a.data(), prof: b && b.exists() ? b.data().data : null } : null),
     bakPut: (slot, day, privD, profD) => Promise.all([F.setDoc(D('users', uid, 'priv', 'b' + slot), { day, at: Date.now(), data: privD }), profD ? F.setDoc(D('users', uid, 'priv', 'bp' + slot), { day, at: Date.now(), data: profD }) : null]),
     report: d => F.addDoc(Col('reports'), { ...d, by: uid, at: Date.now() }),
+    refreshAuth: () => (auth.currentUser ? auth.currentUser.getIdToken(true) : Promise.reject(new Error('no user'))),
     providers: () => (auth.currentUser ? auth.currentUser.providerData.map(p => p.providerId) : []),
     // いまのアカウントに Apple／Google をつなぐ（どちらで入っても同じアカウントになる）
     link: async kind => { const u = auth.currentUser; if (NATIVE) await A.linkWithCredential(u, await nativeCred(A, kind)); else await A.linkWithPopup(u, kind === 'apple' ? appleProvider : provider); await u.reload().catch(() => { }) },
