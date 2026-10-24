@@ -314,6 +314,26 @@ button{font-family:inherit;color:inherit}
 .danger{color:var(--ng)!important}
 
 /* sheet + toast */
+.smap{position:absolute;inset:0;z-index:15;background:var(--bg);display:flex;flex-direction:column;animation:fade .2s}
+.smapc{flex:1;min-height:0;background:#dfe3e6;position:relative;z-index:0}
+.smtop{position:absolute;left:0;right:0;top:0;z-index:500;padding:max(10px,env(safe-area-inset-top)) 10px 0;display:flex;gap:8px;align-items:flex-start;pointer-events:none}
+.smtop>*{pointer-events:auto}
+.smx{flex:none;width:40px;height:40px;border-radius:50%;border:0;background:var(--surface);color:var(--ink);box-shadow:0 2px 10px rgba(0,0,0,.25);font-size:22px;line-height:1;cursor:pointer}
+.smchips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:2px 2px 8px}.smchips::-webkit-scrollbar{display:none}
+.smchips .sortchip{flex:none;box-shadow:0 2px 8px rgba(0,0,0,.18);background:var(--surface)}
+.smchips .sortchip[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.smchips i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:0}
+.smleg{position:absolute;left:10px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:500;background:var(--bg);border-radius:12px;padding:6px 10px;font-size:11.5px;color:var(--muted);box-shadow:0 2px 8px rgba(0,0,0,.18);display:flex;gap:10px;align-items:center}
+.smleg i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px;vertical-align:-1px}
+.smloc{position:absolute;right:10px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:500;width:44px;height:44px;border-radius:50%;border:0;background:var(--bg);color:var(--accent);box-shadow:0 2px 10px rgba(0,0,0,.25);display:grid;place-items:center;cursor:pointer}
+.smcard{position:absolute;left:10px;right:10px;bottom:calc(68px + env(safe-area-inset-bottom,0px));z-index:600;background:var(--bg);border-radius:18px;padding:12px;box-shadow:0 6px 24px rgba(0,0,0,.3);display:flex;gap:12px;align-items:center;animation:fade .15s}
+.smcard .t{flex:1;min-width:0}.smcard .t b{display:block;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.smcard .t span{display:block;font-size:12px;color:var(--muted);margin-top:2px}
+.smcard .btn{width:auto;flex:none;padding:10px 14px;font-size:13px}
+.smmsg{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:400;color:var(--muted);font-size:13px;text-align:center}
+.smapc .leaflet-control-attribution{font-size:9px}
+.smapc .leaflet-control-zoom{display:none}
+:root[data-theme="dark"] .smapc .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.9) contrast(.9)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .smapc .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.9) contrast(.9)}}
 .sheet{position:absolute;inset:0;background:rgba(5,8,12,.5);display:flex;align-items:flex-end;z-index:20;animation:fade .2s}
 .sheet>div{background:var(--bg);width:100%;max-height:94%;overflow:auto;border-radius:24px 24px 0 0;padding:8px 16px calc(18px + env(safe-area-inset-bottom,0px));animation:up .3s cubic-bezier(.2,.8,.2,1)}
 .grab{position:sticky;top:-8px;z-index:3;height:26px;margin:-8px -16px 6px;background:var(--bg);touch-action:none;cursor:grab;display:grid;place-items:center}
@@ -525,6 +545,7 @@ setTimeout(function () {
     <button class="tab" data-t="sp"><svg viewBox="0 0 24 24"><path d="M12 21s-6-5.6-6-10.8a6 6 0 0 1 12 0C18 15.4 12 21 12 21z"/><circle cx="12" cy="10.2" r="2.2"/></svg>スポット</button>
     <button class="tab" data-t="rw"><svg viewBox="0 0 24 24"><circle cx="12" cy="9" r="6"/><path d="M8.5 14l-2 7 5.5-3 5.5 3-2-7"/></svg>リワード</button>
   </nav>
+  <div id="smap"></div>
   <div id="sheet"></div>
   <div id="toast"></div><div id="pnote"></div><div id="lvup"></div>
 </div>
@@ -1041,6 +1062,94 @@ function openPref(pf){
   $$('#sh [data-spot]').forEach(b=>b.onclick=()=>openSpot(b.dataset.spot));
 }
 
+/* ===== スポットの地図（2026-10-25 テスター要望）
+   Leaflet＋国土地理院の淡色地図。種類の絞り込みはスポット一覧と共通（spotCat）。鉄道駅は「鉄道駅」を選んだときだけ出す。
+   行ったところは種類の色で塗りつぶし、まだのところは白抜き。現在地は表示に使うだけで保存しない ===== */
+let LF=null,smMap=null,smLayer=null,smMe=null,smSel=null,smWatch=null;
+const smR=(on,z)=>z<=7?(on?4.5:2.6):z<=9?(on?6:3.8):(on?7:5.5); // 広い範囲では点を小さくして混み合いを減らす
+function loadLeaflet(){
+  if(window.L&&L.map)return Promise.resolve(window.L);
+  if(LF)return LF;
+  LF=new Promise((ok,ng)=>{
+    const css=document.createElement('link');css.rel='stylesheet';css.href='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';document.head.appendChild(css);
+    const js=document.createElement('script');js.src='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
+    js.onload=()=>ok(window.L);js.onerror=()=>{LF=null;ng(new Error('leaflet'))};document.head.appendChild(js)});
+  return LF;
+}
+const smList=()=>SPOTS.filter(x=>x.la!=null&&(spotCat==='all'?x.cat!=='st':x.cat===spotCat));
+function openSpotMap(focusId){
+  const cats=[['all','すべて'],...Object.entries(CAT).map(([k,c])=>[k,c.n])];
+  $('#smap').innerHTML=`<div class="smap" role="dialog" aria-modal="true" aria-label="スポットの地図">
+    <div class="smapc" id="smapc"><div class="smmsg">地図を読み込んでいます…</div></div>
+    <div class="smtop"><button class="smx press" id="smx" aria-label="地図を閉じる">×</button>
+     <div class="smchips" role="group" aria-label="種類">${cats.map(([k,t])=>`<button class="sortchip press" data-smc="${k}" aria-pressed="${spotCat===k}">${k==='all'?'':`<i style="background:${CAT[k].c}"></i>`}${t}</button>`).join('')}</div></div>
+    <div class="smleg" id="smleg"></div>
+    <button class="smloc press" id="smloc" aria-label="現在地を表示"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3.2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="7.5"/></svg></button>
+    <div id="smcard"></div></div>`;
+  $('#smx').onclick=closeSpotMap;
+  $$('[data-smc]').forEach(b=>b.onclick=()=>{spotCat=b.dataset.smc;spotLim=40;$$('[data-smc]').forEach(o=>o.setAttribute('aria-pressed',o===b));smCard(null);smDraw(true)});
+  $('#smloc').onclick=smLocate;
+  const ac=$('[data-smc][aria-pressed="true"]');if(ac)ac.scrollIntoView({inline:'center',block:'nearest'});
+  loadLeaflet().then(L=>{
+    if(!$('#smapc'))return;
+    $('#smapc').innerHTML='';
+    smMap=L.map('smapc',{zoomControl:false,preferCanvas:true,minZoom:5,maxZoom:18,worldCopyJump:false,maxBounds:[[18,118],[50,160]]});
+    L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png',{maxZoom:18,maxNativeZoom:18,attribution:'<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">地理院タイル</a>'}).addTo(smMap);
+    smMap.attributionControl.setPrefix(false);
+    smMap.on('click',()=>smCard(null));
+    smMap.on('zoomend',()=>{const z=smMap.getZoom();if(smLayer)smLayer.eachLayer(m=>{m.setRadius(smR(m.options.on,z));m.setStyle({weight:z<=7?1.5:2})})});
+    const f=focusId&&SP(focusId);
+    if(f&&f.la!=null)smMap.setView([f.la,f.lo],13);
+    else if(here)smMap.setView([here.la,here.lo],10);
+    else{const pf=spotPref||me.pref,P=pf?SPOTS.filter(x=>x.la!=null&&x.cat!=='st'&&inPref(x,pf)):[];
+      if(P.length)smMap.fitBounds(P.map(x=>[x.la,x.lo]),{padding:[30,30],maxZoom:11});else smMap.setView([36.5,137.8],5)}
+    smDraw(false);
+    if(here){smShowMe();if(!here.demo)smStartWatch()}
+    if(f)smCard(f.id);
+  }).catch(()=>{const c=$('#smapc');if(c)c.innerHTML='<div class="smmsg">地図を読み込めませんでした。<br>電波のよいところでもう一度開いてください。</div>'});
+}
+function smDraw(fit){
+  if(!smMap)return;
+  if(smLayer)smLayer.remove();
+  const L=window.L,list=smList(),rd=L.canvas({padding:.3,tolerance:6}),vis=spotSet();
+  smLayer=L.layerGroup().addTo(smMap);const z=smMap.getZoom();
+  const add=x=>{const on=vis.has(x.id),c=CAT[x.cat].c;
+    L.circleMarker([x.la,x.lo],{renderer:rd,radius:smR(on,z),weight:z<=7?1.5:2,on,color:on?'#fff':c,fillColor:on?c:'#fff',fillOpacity:1,opacity:1})
+     .on('click',e=>{L.DomEvent.stopPropagation(e);smCard(x.id)}).addTo(smLayer)};
+  list.filter(x=>!vis.has(x.id)).forEach(add);list.filter(x=>vis.has(x.id)).forEach(add); // 行ったところを上に
+  const n=list.filter(x=>vis.has(x.id)).length;
+  $('#smleg').innerHTML=`<span><i style="background:var(--accent)"></i>行った ${n}</span><span><i style="background:#fff;box-shadow:inset 0 0 0 2px var(--accent)"></i>まだ ${list.length-n}</span>`;
+  if(fit&&list.length&&spotCat!=='all'&&spotCat!=='st'){const b=window.L.latLngBounds(list.map(x=>[x.la,x.lo]));if(!b.contains(smMap.getCenter())||smMap.getZoom()<6)smMap.fitBounds(b,{padding:[30,30],maxZoom:11})}
+}
+function smCard(id){
+  if(smSel){smSel.remove();smSel=null}
+  const el=$('#smcard');if(!el)return;
+  if(!id){el.innerHTML='';return}
+  const x=SP(id),n=spotDays(id);
+  smSel=window.L.circleMarker([x.la,x.lo],{radius:13,weight:3,color:CAT[x.cat].c,fill:false,interactive:false}).addTo(smMap);
+  el.innerHTML=`<div class="smcard">${spotMark(x,n>0,44)}<div class="t"><b>${esc(x.n)}</b><span>${CAT[x.cat].n} · ${esc(x.pref)}${here?` · 約${fmtKm(dist(here,x))}`:''}</span><span>${n?`${n}回行きました`:'まだ行ったことがありません'}</span></div><button class="btn press" id="smgo">詳しく</button></div>`;
+  $('#smgo').onclick=()=>openSpot(id,()=>{smDraw(false);smCard(id)});
+}
+function smShowMe(){
+  if(!smMap||!here)return;
+  const ll=[here.la,here.lo];
+  if(smMe){smMe.eachLayer(m=>m.setLatLng(ll));return} // 動いたら点だけ動かす（地図は動かさない）
+  smMe=window.L.layerGroup([window.L.circleMarker(ll,{radius:14,stroke:false,fillColor:'#2f7cf6',fillOpacity:.18,interactive:false}),
+    window.L.circleMarker(ll,{radius:7,weight:3,color:'#fff',fillColor:'#2f7cf6',fillOpacity:1,interactive:false})]).addTo(smMap);
+}
+/* 地図を開いている間だけ現在地を見て、青い点を動かす。位置の許可がまだの人には、地図を開いただけでは聞かない（現在地ボタンを押したときから） */
+function smStartWatch(){
+  if(smWatch!=null||!navigator.geolocation)return;
+  smWatch=navigator.geolocation.watchPosition(p=>{if(!smMap)return;here={la:p.coords.latitude,lo:p.coords.longitude,label:'現在地'};smShowMe()},()=>{},{enableHighAccuracy:true,maximumAge:5000,timeout:30000});
+}
+function smLocate(){
+  if(!navigator.geolocation){toast('現在地が使えません');return}
+  toast('現在地を確認しています');
+  navigator.geolocation.getCurrentPosition(p=>{here={la:p.coords.latitude,lo:p.coords.longitude,label:'現在地'};spotSort='near';smShowMe();smStartWatch();if(smMap)smMap.setView([here.la,here.lo],Math.max(smMap.getZoom(),11))},
+    ()=>toast('現在地を取得できませんでした'),{timeout:8000,maximumAge:60000});
+}
+function closeSpotMap(){if(smWatch!=null){navigator.geolocation.clearWatch(smWatch);smWatch=null}if(smMap){smMap.remove();smMap=null}smLayer=smMe=smSel=null;$('#smap').innerHTML='';render()}
+
 /* ===== 今月のお題（月ごとに決まったお題なので、運営の作業も保存もいらない。全員同じお題）
    2026年9月までは毎月1つ。2026年10月から毎月3つ（1つ目は今までと同じ選び方なので、10月の1つ目はそのまま） ===== */
 const moStart=ds=>ds.slice(0,7)+'-01';
@@ -1410,6 +1519,7 @@ const views={
     <p class="note" style="text-align:center;margin:8px 0 0">位置は近い順に並べるためだけに使い、保存しません。</p>`}
   ${webAutoRow()}
   ${shopSection()}
+  <button class="btn sub press" id="spmapb" style="margin-top:18px">${MAPI}地図でスポットを見る</button>
   <input type="search" class="srch" id="spq" value="${esc(spotQ)}" placeholder="スポット名で探す（例：大黒、甘楽）" autocomplete="off" aria-label="スポットを検索" style="margin-top:18px">
   <div class="sortbar" role="group" aria-label="種類">${[['all','すべて'],...Object.entries(CAT).map(([k,c])=>[k,c.n])].map(([k,t])=>`<button class="sortchip press" data-cat="${k}" aria-pressed="${spotCat===k}">${t}</button>`).join('')}</div>
   <div style="margin-bottom:10px"><select id="sppref" aria-label="都道府県"><option value="">全国の都道府県</option>${PREFS.map(x=>`<option ${x===spotPref?'selected':''}>${x}</option>`).join('')}</select></div>
@@ -1848,6 +1958,7 @@ function openGarage(back){
 const BELL='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg>';
 const NTAG={info:['お知らせ','var(--accent)'],event:['イベント','#2f6fd6'],update:['アップデート','#1d8a4b'],mainte:['メンテナンス','#6b7480']};
 const NEWS=[
+ {id:'b10',d:'2026-10-25',tag:'update',t:'スポットを地図で見られるようになりました',b:'スポットタブの「地図でスポットを見る」から、全国のスポットを地図で見られます。\n\n行ったところは色で塗りつぶし、まだのところは白抜きの丸で出ます。上のボタンで峠・道の駅などの種類を絞り込めます。丸をタップするとスポットの名前が出て、「詳しく」からナビも開けます。\n\n自分の位置は青い点で出て、移動すると点も動きます（右下のボタンで現在地に戻れます）。現在地は地図に出すだけで、保存はしません。'},
  {id:'b9',d:'2026-10-09',tag:'update',t:'旅のしおりにドライブの記録・移動距離・ナイスが入りました',b:'旅のしおりが新しくなりました。\n\n・ドライブの記録（オンにした人だけ）：アプリを開いている間の位置を、2分か500mごとにざっくり記録して、その日のルートを地図に出します。記録はスマホの中だけに保存され、運営にもほかの人にも送られません。旅のしおりか設定の「ドライブを記録する」でオンにできます。\n・移動距離：ルートがあればルートから、なければスポットどうしの直線距離の目安を出します。\n・すれ違った人とナイス！：その日すれ違った人と、送った・届いたナイス！が並びます。\n・SNS用の画像にも地図が入ります。出発と到着のまわり（約1km）は自動で消すので、自宅の場所は出ません。'},
  {id:'b8',d:'2026-10-09',tag:'update',t:'一人でも楽しめる機能を追加しました',b:'会えない日も楽しめるように、4つの機能を追加しました。\n\n・フォトスタンプ：スポットを記録した日に、その場で撮った写真をスタンプにできます。スポットの画面の「フォトスタンプを作る」から。写真はスマホの中だけに保存されます。\n・旅のしおり：マイスタンプの「旅のしおり」に、行ったスポットと交換した人が1日ずつ残ります。SNS用の画像にもできます。\n・セット：リワードの「セット」に、決まったスポットや車種を集めるセットが16個あります。揃えるとEXP+100とバッジ。\n・データの持ち出し：設定の「データの持ち出し」から、スタンプ帳の画像と記録のファイルを保存できます。'},
  {id:'b7',d:'2026-10-06',tag:'update',t:'近くでペタカーを開いている人が見えるようになりました',b:'交換をはじめていなくても、アプリを開いている近くの人が、マイスタンプと交換タブに出ます。車の写真を見て、駐車場で相手を探してみてください。\n\nタップすると交換を申し込めます。相手がアプリを開いていれば、音と表示でお知らせします。\n\n出るのはだいたいの場所（約5km四方）だけで、アプリを閉じると消えます。出たくないときは、設定→交換でオフにできます（オフにすると、自分からも見えなくなります）。'},
@@ -2388,7 +2499,7 @@ function render(){
   if(tab==='me'){$$('[data-nice]').forEach(b=>b.onclick=()=>sendNice(b.dataset.nice));if($('#shareb'))$('#shareb').onclick=openShare;$('#mk').onclick=openCrop;if($('#mkFirst'))$('#mkFirst').onclick=openCrop;if($('#qcard'))$('#qcard').onclick=openQuests;$('#hito').onclick=openHito;if($('#nmb'))$('#nmb').onclick=openName;$('#carb').onclick=()=>openGarage(render);if($('#newsTop'))$('#newsTop').onclick=()=>openNewsItem($('#newsTop').dataset.n);if($('#openRow'))$('#openRow').onclick=()=>{tab='ex';render()};$('#bgb').onclick=openBg;$('#wrapb').onclick=openWrap;if($('#tripb'))$('#tripb').onclick=()=>{const n=tripOf(today()).spots.length;n?openTripDay(today()):openTrip()};$('#allrec').onclick=()=>{colView='stamp';store.set('colv2',colView);colSort='recent';store.set('sort2',colSort);tab='col';render()}}
   if(tab==='col'||tab==='sp'){$$('[data-shop]').forEach(b=>b.onclick=()=>openShop(b.dataset.shop));if($('#demoShop'))$('#demoShop').onclick=demoShop}
   if(tab==='col'){$$('[data-cv]').forEach(b=>b.onclick=()=>{colView=b.dataset.cv;store.set('colv2',colView);render()});$$('[data-maker]').forEach(b=>b.onclick=()=>openMaker(b.dataset.maker));$$('#view [data-pho]').forEach(b=>b.onclick=()=>openPho(b.dataset.pho))}
-  if(tab==='sp'){$$('[data-spot]').forEach(b=>b.onclick=()=>openSpot(b.dataset.spot));if($('#mapb'))$('#mapb').onclick=openMap;bindSpList();$('#locate').onclick=locate;if($('#demoArr'))$('#demoArr').onclick=demoArrive;if($('#autoOn'))$('#autoOn').onclick=()=>askAlways(render);$$('[data-ss]').forEach(b=>b.onclick=()=>{spotSort=b.dataset.ss;spotLim=40;render()});$$('[data-cat]').forEach(b=>b.onclick=()=>{spotCat=b.dataset.cat;spotLim=40;render()});
+  if(tab==='sp'){$$('[data-spot]').forEach(b=>b.onclick=()=>openSpot(b.dataset.spot));if($('#mapb'))$('#mapb').onclick=openMap;if($('#spmapb'))$('#spmapb').onclick=()=>openSpotMap();bindSpList();$('#locate').onclick=locate;if($('#demoArr'))$('#demoArr').onclick=demoArrive;if($('#autoOn'))$('#autoOn').onclick=()=>askAlways(render);$$('[data-ss]').forEach(b=>b.onclick=()=>{spotSort=b.dataset.ss;spotLim=40;render()});$$('[data-cat]').forEach(b=>b.onclick=()=>{spotCat=b.dataset.cat;spotLim=40;render()});
     $('#spq').oninput=e=>{spotQ=e.target.value;spotLim=40;$('#spl').innerHTML=spList();bindSpList()};$('#sppref').onchange=e=>{spotPref=e.target.value;spotLim=40;$('#spl').innerHTML=spList();bindSpList()}}
   if(tab==='col'){$$('[data-sort]').forEach(b=>b.onclick=()=>{colSort=b.dataset.sort;store.set('sort2',colSort);render()});
     const cq=$('#colq');if(cq)cq.oninput=e=>{colQ=e.target.value;$('#cgrid').innerHTML=colGrid();$$('#cgrid [data-p]').forEach(b=>b.onclick=()=>detail(b.dataset.p))}}
@@ -2625,7 +2736,7 @@ function provText(){const p=(C.providers&&C.providers())||[];const n=p.map(x=>x=
      <button class="srow press" style="width:100%;border:0;background:none;cursor:pointer;text-align:left" data-doc="guide"><div class="t"><b>コミュニティガイドライン</b><span>安全に交換するためのルール</span></div><span class="val">›</span></button>
      <button class="srow press" style="width:100%;border:0;background:none;cursor:pointer;text-align:left" data-doc="contact"><div class="t"><b>お問い合わせ・不具合の報告</b></div><span class="val">›</span></button>
      <button class="srow press" style="width:100%;border:0;background:none;cursor:pointer;text-align:left" data-doc="credits"><div class="t"><b>データと素材の出典</b></div><span class="val">›</span></button>
-     <div class="srow"><div class="t"><b>バージョン</b></div><span class="val" style="font-family:var(--mono)">Web版・10/14更新</span></div></div>
+     <div class="srow"><div class="t"><b>バージョン</b></div><span class="val" style="font-family:var(--mono)">Web版・10/25更新</span></div></div>
    <div class="sec">アカウント</div>
    <div class="set"><div class="srow"><div class="t"><b>ログイン方法</b><span>${provText()}</span></div></div>${linkRows()}
      <button class="srow press" style="width:100%;border:0;background:none;cursor:pointer;text-align:left" id="logout"><div class="t"><b>ログアウト</b></div></button>
