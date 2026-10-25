@@ -155,6 +155,9 @@ button{font-family:inherit;color:inherit}
 .member{border-radius:24px;padding:20px;display:grid;justify-items:center;gap:8px;text-align:center;color:#fff;position:relative;overflow:hidden}
 .member>*{position:relative}
 .member .nm{font-family:var(--display);font-size:22px;line-height:1.2} .member button.nmb{border:0;background:none;color:inherit;padding:2px 6px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;margin:0 auto} .nmb .npen{opacity:.65;flex:none}
+span.supb{display:inline-block!important;font-size:inherit!important;width:1.1em!important;height:1.1em!important;margin:0 4px 0 0!important;padding:0!important;vertical-align:-.16em;flex:none;overflow:visible!important}.supb svg{display:block;width:100%;height:100%}
+.supbig span.supb{width:64px!important;height:64px!important;margin:0!important}
+.suplinks{display:flex;flex-wrap:wrap;gap:4px 14px;justify-content:center;margin-top:10px}.suplinks button{appearance:none;border:0;background:none;padding:0;color:var(--accent);font:inherit;font-size:12px;cursor:pointer}
 .hito{border:0;background:rgba(0,0,0,.28);color:#fff;font:500 13.5px/1.4 var(--sans);padding:5px 12px;border-radius:999px;max-width:92%;overflow-wrap:anywhere;cursor:pointer;backdrop-filter:blur(4px)}.hito.add{background:rgba(255,255,255,.16);color:rgba(255,255,255,.85);font-size:12.5px}
 .offb{display:inline-flex;align-items:center;gap:2px;margin-right:6px;padding:1px 7px 1px 5px;border-radius:999px;background:linear-gradient(135deg,#fff1a8,#e2a91c 55%,#b07c0a);color:#2a1d00;font:800 11px/1.5 var(--sans);vertical-align:3px;text-shadow:none;letter-spacing:.04em}
 .jmap{display:grid;grid-template-columns:repeat(13,1fr);gap:3px;margin:8px 0}.jt{aspect-ratio:1;border:0;border-radius:6px;padding:0;font:700 clamp(8px,2.6vw,11px)/1 var(--sans);color:var(--muted);cursor:pointer;display:grid;place-items:center}.jt.on{color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.35)}.jt.full{color:#2a1d00;text-shadow:none}
@@ -278,6 +281,7 @@ button{font-family:inherit;color:inherit}
 @keyframes shine{0%,55%{transform:skewX(-20deg) translateX(0)}100%{transform:skewX(-20deg) translateX(160px)}}
 .tier{font-size:10px;font-weight:700;border-radius:4px;padding:0 5px;margin-left:6px;vertical-align:1px}
 .tier-br{background:#f3d2b3;color:#6b3410}.tier-si{background:#e3e8ee;color:#3a4552}.tier-go{background:#fbe7a1;color:#6b4a00}
+.tier-sp{background:#d6e7ff;color:#0b3f8f}
 .tier-pt{background:#dde8f6;color:#24375a}.tier-lg{background:linear-gradient(90deg,#ffd1ec,#fff1b8,#c9f3ff);color:#5a1d48}
 .mini{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center;margin-bottom:14px}
 .mini b{display:block;font:700 18px var(--mono)}.mini span{font-size:11px;color:var(--muted)}
@@ -527,6 +531,8 @@ setTimeout(function () {
   <radialGradient id="gBrF" cx=".38" cy=".3" r=".85"><stop offset="0" stop-color="#ffd9b3"/><stop offset=".6" stop-color="#d58a4c"/><stop offset="1" stop-color="#9a5223"/></radialGradient>
   <radialGradient id="gSiF" cx=".38" cy=".3" r=".85"><stop offset="0" stop-color="#ffffff"/><stop offset=".6" stop-color="#d9e0e7"/><stop offset="1" stop-color="#a3aeba"/></radialGradient>
   <radialGradient id="gLgF" cx=".4" cy=".3" r=".9"><stop offset="0" stop-color="#3a1f63"/><stop offset=".7" stop-color="#1c0f36"/><stop offset="1" stop-color="#0e0820"/></radialGradient>
+  <linearGradient id="gSp" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9cc8ff"/><stop offset=".5" stop-color="#1d6fe0"/><stop offset="1" stop-color="#0b3f8f"/></linearGradient>
+  <radialGradient id="gSpF" cx=".38" cy=".3" r=".85"><stop offset="0" stop-color="#6fb0ff"/><stop offset=".6" stop-color="#1d6fe0"/><stop offset="1" stop-color="#0d4aa8"/></radialGradient>
   <linearGradient id="gHo" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff5fb8"/><stop offset=".25" stop-color="#ffd166"/><stop offset=".5" stop-color="#6ee7ff"/><stop offset=".75" stop-color="#a78bfa"/><stop offset="1" stop-color="#ff5fb8"/></linearGradient>
 </defs></svg>
 <div class="shell" id="shell">
@@ -683,8 +689,11 @@ const person=id=>POOL.find(p=>p.id===id)||ghostOf(id);
 Object.entries({p1:'night',p2:'track',p3:'bay',p4:'trail',p5:'sunset',p6:'fuji',p7:'pa',p8:'carbon'}).forEach(([id,b])=>person(id).bg={kind:'preset',id:b});
 /* sample stats for other people (prototype only) */
 const PST=new Proxy({},{get:(t,id)=>{const p=person(id);return {...(p.stats||{}),pins:(p.stats&&p.stats.pins)||[],showStats:p.showStats,showRewards:p.showRewards}}});
-const TIERS={br:{n:'ブロンズ',o:0},si:{n:'シルバー',o:1},go:{n:'ゴールド',o:2},pt:{n:'プラチナ',o:3},lg:{n:'レジェンド',o:4}};
+const TIERS={br:{n:'ブロンズ',o:0},si:{n:'シルバー',o:1},go:{n:'ゴールド',o:2},pt:{n:'プラチナ',o:3},lg:{n:'レジェンド',o:4},sp:{n:'サポーター',o:3}};
 const BADGES=[
+  {k:'sup1',m:'',ic:'heart',num:'1',t:'サポーター',s:'ペタカー!サポーターになる（サポーター限定）',f:s=>s.supm||0,g:1,tier:'sp'},
+  {k:'sup6',m:'',ic:'heart',num:'6',t:'半年のサポーター',s:'サポーターだった月が6か月（サポーター限定）',f:s=>s.supm||0,g:6,tier:'sp'},
+  {k:'sup12',m:'',ic:'heart',num:'12',t:'1年のサポーター',s:'サポーターだった月が12か月（サポーター限定）',f:s=>s.supm||0,g:12,tier:'sp'},
   {k:'set1',m:'',ic:'flag',num:'1',t:'はじめてのセット',s:'セットを揃えた数',f:s=>s.setc||0,g:1,tier:'br'},
   {k:'set3',m:'',ic:'flag',num:'3',t:'セット3つ',s:'セットを揃えた数',f:s=>s.setc||0,g:3,tier:'si'},
   {k:'set6',m:'',ic:'flag',num:'6',t:'セット6つ',s:'セットを揃えた数',f:s=>s.setc||0,g:6,tier:'go'},
@@ -821,7 +830,7 @@ const ICONS={
 };
 const TC={br:{ink:'#5a2c0e',tag:'#7a3e17',tagT:'#ffe3c8',rim:'gBr',face:'gBrF'},si:{ink:'#34404c',tag:'#56626f',tagT:'#f4f7fa',rim:'gSi',face:'gSiF'},
   go:{ink:'#6e4a00',tag:'#9a6a00',tagT:'#fff4c6',rim:'gGo',face:'gGo2'},pt:{ink:'#233a5e',tag:'#3a5683',tagT:'#eef4fb',rim:'gPt',face:'gPt2'},
-  lg:{ink:'#ffe08a',tag:'#ffe08a',tagT:'#2a1440',rim:'gHo',face:'gLgF'}};
+  lg:{ink:'#ffe08a',tag:'#ffe08a',tagT:'#2a1440',rim:'gHo',face:'gLgF'},sp:{ink:'#ffffff',tag:'#0b3f8f',tagT:'#ffffff',rim:'gSp',face:'gSpF'}};
 // プラチナ以上はトロフィー（2026-10-06 鈴木さん）。レジェンドは同じ形で、虹色に光らせて色味を変えるだけ。光の帯・虹色・キラッはメダルと同じ
 function trophy(b,size,got){size=Math.round(size*1.15); // 背景の箱が無いぶん、メダルより一回り大きく
   const T=b.tier,c=TC[T],L=!got,id=++uid,G=T==='lg';
@@ -844,7 +853,20 @@ function trophy(b,size,got){size=Math.round(size*1.15); // 背景の箱が無い
     :`<g class="spark" fill="#fff">${st(85,11,10)}${st(13,64,7)}</g><g class="spark s2" fill="#eef6ff">${st(90,52,6.5)}</g>`;
   return `<svg class="md md-${T} tro ${L?'locked':''}" width="${size}" height="${size}" viewBox="5 3 90 94" role="img" aria-label="${esc(b.t)}（${TIERS[T].n}）">${rim}${face}${gloss}${ic}${tag}${spark}</svg>`;
 }
+function ribbon(b,size,got){
+  const c=TC.sp,L=!got,id=++uid,ink=L?'var(--muted)':c.ink;
+  const fill=k=>L?'style="fill:var(--fill);stroke:var(--line);stroke-width:1.5"':`fill="url(#${k})"`;
+  let pts='';for(let i=0;i<32;i++){const r=i%2?38:44,a=Math.PI*2*i/32;pts+=`${(50+r*Math.sin(a)).toFixed(1)},${(42-r*Math.cos(a)).toFixed(1)} `}
+  const tails=`<path d="M36 66L26 97L36 91L42 99L48 70Z" ${fill(c.rim)}/><path d="M64 66L74 97L64 91L58 99L52 70Z" ${fill(c.rim)}/>`;
+  const face=`<polygon points="${pts}" ${fill(c.rim)}/><circle cx="50" cy="42" r="31" ${fill(c.face)}/>`+(L?'':`<circle cx="50" cy="42" r="28" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="1"/>`);
+  const ic=`<g transform="translate(35,20) scale(1.25)" fill="none" stroke="${ink}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONS[b.ic]}</g>`;
+  const tw=b.num.length*7+12;
+  const tag=`<rect x="${50-tw/2}" y="50" width="${tw}" height="14" rx="7" ${L?'style="fill:var(--line)"':`fill="${c.tag}"`}/><text x="50" y="60.4" text-anchor="middle" font-family="JetBrains Mono,monospace" font-weight="700" font-size="10.5" ${L?'style="fill:var(--muted)"':`fill="${c.tagT}"`}>${b.num}</text>`;
+  const gloss=L?'':`<clipPath id="mc${id}"><circle cx="50" cy="42" r="31"/></clipPath><ellipse clip-path="url(#mc${id})" cx="40" cy="20" rx="30" ry="14" fill="rgba(255,255,255,.28)"/>`;
+  return `<svg class="md md-sp rib ${L?'locked':''}" width="${size}" height="${size}" viewBox="0 0 100 100" role="img" aria-label="${esc(b.t)}（サポーター）">${tails}${face}${gloss}${ic}${tag}</svg>`;
+}
 function medal(b,size=46,got=true){
+  if(b.tier==='sp')return ribbon(b,size,got);
   if(b.tier==='pt'||b.tier==='lg')return trophy(b,size,got);
   const T=b.tier,c=TC[T],L=!got,id=++uid;
   const rimFill=L?'style="fill:var(--fill);stroke:var(--line);stroke-width:1.5"':`fill="url(#${c.rim})"`;
@@ -945,7 +967,7 @@ function gotNice(pids){pids=pids.filter(id=>person(id)&&!blocked.has(id));if(!pi
   passLog.forEach(x=>{if(pids.includes(x.pid)&&x.d===today())x.got=1});savePass();
   const p=person(pids[0]),x=passLog.find(v=>v.pid===pids[0]&&v.d===today()),sp=x&&SP(x.spot);buzz([40,60,40]);
   $('#pnote').innerHTML=`<div class="pnote" id="pnb"><span class="pic nicepic" aria-hidden="true">♥</span><div class="t"><div class="h"><b>ペタカー!</b><span>ナイス！</span></div>
-    <b>${esc(p.name)}さんからナイス！${pids.length>1?`（ほか${pids.length-1}人）`:''}</b><span>${sp?`${esc(sp.n)}ですれ違った人です`:'すれ違った人からです'}</span></div></div>`;
+    <b>${supM(p)}${esc(p.name)}さんからナイス！${pids.length>1?`（ほか${pids.length-1}人）`:''}</b><span>${sp?`${esc(sp.n)}ですれ違った人です`:'すれ違った人からです'}</span></div></div>`;
   clearTimeout(pnT);pnT=setTimeout(()=>{const e=$('#pnb');if(e){e.classList.add('out');setTimeout(()=>$('#pnote').innerHTML='',300)}},10000);
   if(tab==='me'&&!$('#sh'))render()}
 window.__gotNice=gotNice;
@@ -1006,7 +1028,9 @@ const met=()=>[...new Set(log.map(l=>l.pid))];
 const kiraRate=(before,ev)=>boost?.5:Math.min(.15,.03+.01*before)*(ev?2:1);
 const rareRate=(before,ev)=>boost?.3:Math.min(.3,.1+.02*before)*(ev?1.5:1);
 const pct=x=>Math.round(x*100)+'%';
-const myStats=()=>{const ppl=met();return hiMerge({ex:log.length,ppl:ppl.length,prefs:new Set(ppl.map(i=>person(i).pref).filter(x=>PREFS.includes(x))).size,same:ppl.filter(i=>person(i).maker===me.maker&&person(i).car===me.car).length,
+// サポーターだった暦月（JST）。サポーター中に開いた月だけ足していく
+const supMonths=()=>{let L=store.get('supMon',[]);if(!Array.isArray(L))L=[];if(supOn(me)){const m=new Date(Date.now()+9*3600e3).toISOString().slice(0,7);if(!L.includes(m)){L=[...L,m].slice(-240);store.set('supMon',L)}}return L.length};
+const myStats=()=>{const ppl=met();return hiMerge({supm:supMonths(),ex:log.length,ppl:ppl.length,prefs:new Set(ppl.map(i=>person(i).pref).filter(x=>PREFS.includes(x))).size,same:ppl.filter(i=>person(i).maker===me.maker&&person(i).car===me.car).length,
   best:Math.max(0,...ppl.map(daysWith)),kira:log.filter(l=>l.kira).length,evs:new Set(log.filter(l=>l.ev).map(l=>l.ev)).size,days:new Set(log.map(l=>l.d)).size,passp:new Set(passLog.map(x=>x.pid)).size,offd:new Set(log.filter(l=>l.off||(person(l.pid)||{}).official).map(l=>l.d)).size,mk:new Set(ppl.map(i=>person(i).maker).filter(m=>m&&m!=='その他')).size,...exStats(),...zukanStats(),...spotStats(),ttl:ttlIdx(),setc:setCount()})};
 /* 交換の記録から：dayMax 1日の最多人数 / sameMk 同じメーカー / rare 金色 / myCars 自分の車 / months 暦月 / gapMax 再会までの最長 */
 function gpMaxOf(ls){const m={};ls.forEach(l=>{if(l.gp)(m[l.gp]=m[l.gp]||new Set()).add(l.pid)});return Math.max(0,...Object.values(m).map(x=>x.size))}
@@ -1346,6 +1370,10 @@ function stamp(p,o={}){
   else svg=`<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48" fill="none" stroke="${p.ring}" stroke-width="3.6"/></svg>`;
   return `<div class="stamp ${ev||off||szx||fr?'ev':''}" style="width:${size}px;font-size:${size/7}px"><img src="${p.img}" alt="${esc(p.name)}のスタンプ">${o.kira?'<div class="k"></div>':o.rare?'<div class="k g"></div>':''}${svg}${o.kira?'<div class="kb">EX</div>':o.rare?'<div class="kb g">RARE</div>':''}</div>`;
 }
+// サポーター：期限（ms）は課金サーバーだけが users/{uid}.sup に書く（本人は書けない）。名前の前に青丸白星
+const supOn=p=>!!(p&&typeof p.sup==='number'&&p.sup>Date.now());
+const SUPB='<span class="supb" title="ペタカー!サポーター" role="img" aria-label="サポーター"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="8" fill="#1d6fe0"/><path d="M8 3.1l1.45 2.95 3.25.47-2.35 2.29.56 3.24L8 10.53l-2.91 1.52.56-3.24L3.3 6.52l3.25-.47z" fill="#fff"/></svg></span>';
+const supM=p=>supOn(p)?SUPB:'';
 const OFFB='<span class="offb" title="運営が本人確認した公式アカウント"><svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"><path d="M3.5 8.3l3 3 6-6.4" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>公式</span>';
 const curV=p=>p.vers?p.vers.length:(p.ver||1);
 const vOf=(p,l)=>l&&l.v?l.v:curV(p);
@@ -1377,16 +1405,16 @@ function fillOpen_demo(){if(!settings.showOpen){openNear=[];return}if(!openNear.
 const openList=()=>settings.showOpen?openNear.filter(id=>!nearby.includes(id)&&person(id)):[];
 function passCard(){if(settings.pass===false)return '';const l=passToday().filter(x=>person(x.pid)&&!blocked.has(x.pid));if(!l.length)return '';
   return `<div class="sec">今日すれ違った人<small class="secn">${l.length}人</small></div><div class="passl">${l.slice(0,8).map(x=>{const p=person(x.pid),sp=SP(x.spot);
-    return `<div class="passr"><button class="pav press" data-p="${esc(x.pid)}" aria-label="${esc(p.name)}さんのプロフィール">${stamp(p,{size:44})}</button><div class="pt"><b>${esc(p.name)}</b><span>${esc(sp?sp.n:'スポット')}で ${x.dt?x.dt+'分差':'同じ時刻'}</span>${x.got?`<span class="gotn">♥ ${x.nice?'お互いにナイス！':'ナイス！が届きました'}</span>`:''}</div>
+    return `<div class="passr"><button class="pav press" data-p="${esc(x.pid)}" aria-label="${esc(p.name)}さんのプロフィール">${stamp(p,{size:44})}</button><div class="pt"><b>${supM(p)}${esc(p.name)}</b><span>${esc(sp?sp.n:'スポット')}で ${x.dt?x.dt+'分差':'同じ時刻'}</span>${x.got?`<span class="gotn">♥ ${x.nice?'お互いにナイス！':'ナイス！が届きました'}</span>`:''}</div>
       <button class="nicebtn press" data-nice="${esc(x.pid)}"${x.nice?' disabled':''}>${x.nice?'ナイス済み':'ナイス！'}</button></div>`}).join('')}</div>
     <p class="note" style="margin:6px 4px 0">同じスポットに前後30分以内に来た人です。スタンプは、会って交換したときにもらえます</p>`}
-function openRow(){if(incoming&&person(incoming)){const p=person(incoming);return `<button class="newsrow openrow press" id="openRow"><span class="oav">${stamp(p,{size:28})}</span><b>${esc(p.name)} さんから交換の申し込み</b><span class="val" aria-hidden="true">›</span></button>`}
+function openRow(){if(incoming&&person(incoming)){const p=person(incoming);return `<button class="newsrow openrow press" id="openRow"><span class="oav">${stamp(p,{size:28})}</span><b>${supM(p)}${esc(p.name)} さんから交換の申し込み</b><span class="val" aria-hidden="true">›</span></button>`}
   const l=openList();if(!l.length||tab==='ex')return '';
   return `<button class="newsrow openrow press" id="openRow"><span class="oav">${l.slice(0,3).map(id=>stamp(person(id),{size:28})).join('')}</span><b>近くでペタカーを開いている人 ${l.length}人</b><span class="val" aria-hidden="true">›</span></button>`}
 function openSec(){if(!settings.showOpen)return '';const l=openList();
   if(!l.length)return openNeedPos?`<button class="li press" id="openPos" style="margin-top:16px;border-radius:16px;background:var(--surface)">${PEOPLEI}<div class="t"><b>近くでペタカーを開いている人を探す</b><span>位置情報を使います（だいたいの場所だけ）</span></div><span class="d">›</span></button>`:'';
   return `<div class="sec">ペタカーを開いている人 <span class="chip">${l.length}人</span></div>
-    <div class="grid">${l.map(id=>{const p=person(id),n=daysWith(id);return `<button class="cell press" data-o="${id}">${favMark(id)}${stamp(p)}<span class="n">${esc(p.name)}</span><span class="s">${esc(p.car)}${n?` · ♥${n}`:''}</span></button>`}).join('')}</div>
+    <div class="grid">${l.map(id=>{const p=person(id),n=daysWith(id);return `<button class="cell press" data-o="${id}">${favMark(id)}${stamp(p)}<span class="n">${supM(p)}${esc(p.name)}</span><span class="s">${esc(p.car)}${n?` · ♥${n}`:''}</span></button>`}).join('')}</div>
     <p class="note" style="text-align:center;margin-top:14px">この辺りでアプリを開いている人です。タップすると交換を申し込めます。</p>`}
 function fillNearby_demo(){nearby=POOL_DEMO.filter(p=>!blocked.has(p.id)).sort(()=>Math.random()-.5).slice(0,inEvent()?6:4).map(p=>p.id)}
 
@@ -1466,7 +1494,7 @@ const views={
   return `<div class="member" style="background:${bgCSS(me)}">
     <button class="bgb" id="bgb" aria-label="背景を変える"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/></svg></button>
     <button class="edit" id="mk" aria-label="スタンプを作る">${stamp(me,{size:150,ev:inEvent()?LIVE:null})}</button>
-    <button class="nm nmb press" id="nmb" aria-label="表示名を変える">${me.official?OFFB:''}${esc(me.name)}<svg class="npen" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button>
+    <button class="nm nmb press" id="nmb" aria-label="表示名を変える">${me.official?OFFB:''}${supM(me)}${esc(me.name)}<svg class="npen" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button>
     <div style="margin-top:-6px">${clsChip({...rpgOf(myStats()),title:''})}</div>
     <button class="hito press${me.msg?'':' add'}" id="hito">${me.msg?esc(me.msg):'＋ ひとことを書く'}</button>
     <div><button class="chip carchip press" id="carb" aria-label="ガレージ（今日の車を選ぶ）">${CARI}${esc(carLabel(me))}${me.garage.length>1?`<small>${me.garage.length}台</small>`:''}<i aria-hidden="true">▾</i></button> <span class="chip">${esc(me.pref)}</span></div>
@@ -1481,7 +1509,7 @@ const views={
   ${tripCard()}
   <button class="yrcard press" id="wrapb" style="margin-top:10px"><span class="yk">PETACAR ${new Date().getFullYear()}</span><b>${new Date().getFullYear()}年のまとめ</b><span class="ys">この1年の出会いとスポットを振り返る</span><span class="ya" aria-hidden="true">›</span></button>
   <div class="sec">最近の交換<button class="seclink" id="allrec">すべて見る ›</button></div>
-  <div class="list">${log.slice().sort((a,b)=>b.d.localeCompare(a.d)).slice(0,4).map(l=>{const p=person(l.pid);return `<button class="li press" data-p="${p.id}">${stamp(p,{size:44,ev:l.ev,sz:l.sz,fr:l.fr,kira:l.kira,rare:l.rare,v:l.v,im:l.im,rg:l.rg})}<div class="t"><b>${esc(p.name)} ${l.kira?'<span class="tag kira">EX</span>':l.rare?'<span class="tag rare">レア</span>':''}</b><span>${esc(placeOf(l))}</span></div><span class="d">${fmtD(l.d)}</span></button>`}).join('')}</div>`;
+  <div class="list">${log.slice().sort((a,b)=>b.d.localeCompare(a.d)).slice(0,4).map(l=>{const p=person(l.pid);return `<button class="li press" data-p="${p.id}">${stamp(p,{size:44,ev:l.ev,sz:l.sz,fr:l.fr,kira:l.kira,rare:l.rare,v:l.v,im:l.im,rg:l.rg})}<div class="t"><b>${supM(p)}${esc(p.name)} ${l.kira?'<span class="tag kira">EX</span>':l.rare?'<span class="tag rare">レア</span>':''}</b><span>${esc(placeOf(l))}</span></div><span class="d">${fmtD(l.d)}</span></button>`}).join('')}</div>`;
  },
  ex(){
   const on=nearOn();
@@ -1496,7 +1524,7 @@ const views={
     ${on?`<button class="li press partyb" id="ptHost">${PEOPLEI}<div class="t"><b>みんなで交換</b><span>3人以上で同時に振って、一度に交換</span></div><span class="d">›</span></button>`:''}
   </div>
   ${on?`<div class="sec">${inEvent()?'このイベントの参加者':'近くにいる人'} <span class="chip">${nearby.length}人</span></div>
-    <div class="grid">${nearby.map(id=>{const p=person(id),n=daysWith(id);return `<button class="cell press" data-n="${id}">${favMark(id)}${stamp(p)}<span class="n">${esc(p.name)}</span><span class="s">${esc(p.car)}${n?` · ♥${n}`:''}</span></button>`}).join('')}</div>
+    <div class="grid">${nearby.map(id=>{const p=person(id),n=daysWith(id);return `<button class="cell press" data-n="${id}">${favMark(id)}${stamp(p)}<span class="n">${supM(p)}${esc(p.name)}</span><span class="s">${esc(p.car)}${n?` · ♥${n}`:''}</span></button>`}).join('')}</div>
     <p class="note" style="text-align:center;margin-top:14px">距離の数字は出しません。車の写真で相手を見つけてタップします。</p>`
   :''}
   ${openSec()}`;
@@ -1567,7 +1595,7 @@ function colGrid(){
   if(!ids.length)return `<p class="note" style="text-align:center;margin-top:18px">${q?'見つかりません。':colSort==='fav'?'まだお気に入りがいません。相手のプロフィールの「☆ お気に入りに追加」で登録できます。':'まだ交換した人がいません。'}</p>`;
   return `${q?`<p class="note" style="margin:0 4px 8px">${ids.length}人</p>`:''}<div class="grid">${ids.map(id=>{const p=person(id),n=daysWith(id),b=best(id),kc=log.filter(l=>l.pid===id&&l.kira).length;
     const sub=colSort==='recent'?`<span class="s">${fmtD(lastMet(id))}</span>`:colSort==='car'?`<span class="s">${esc(carLabel(p))}</span>`:colSort==='rare'?`<span class="s">${kc?`EX×${kc} · `:''}${new Set(log.filter(l=>l.pid===id).map(l=>(l.im||l.v||1)+(l.ev||l.sz||'-')+(l.kira?'k':l.rare?'r':''))).size}種類</span>`:`<span class="hearts">♥${n} ${rank(n)}</span>`;
-    return `<button class="cell press" data-p="${id}">${favMark(id)}${stamp(p,{ev:b.ev,sz:b.sz,fr:b.fr||p.frame,kira:b.kira,rare:b.rare,v:b.v,im:b.im,rg:b.rg})}<span class="n">${esc(p.name)}</span>${clsMini(id)}${sub}</button>`}).join('')}</div>`;
+    return `<button class="cell press" data-p="${id}">${favMark(id)}${stamp(p,{ev:b.ev,sz:b.sz,fr:b.fr||p.frame,kira:b.kira,rare:b.rare,v:b.v,im:b.im,rg:b.rg})}<span class="n">${supM(p)}${esc(p.name)}</span>${clsMini(id)}${sub}</button>`}).join('')}</div>`;
 }
 const PINI='<svg viewBox="0 0 24 24" width="11" height="11" fill="#fff"><path d="M12 2.5l2.8 6 6.6.7-5 4.5 1.4 6.5L12 17l-5.8 3.2 1.4-6.5-5-4.5 6.6-.7z"/></svg>';
 // 場所が決まっているバッジは、対象のスポットと「済／まだ」を詳細に出す（2026-10-06 鈴木さん「あとどこなのか分かりづらい」）
@@ -1816,7 +1844,7 @@ function openMaker(m){
   bindClose();
   $$('[data-zc]').forEach(b=>b.onclick=()=>{const o=z[m+'|'+b.dataset.zc];if(o.length===1){detail(o[0]);return}
     openSheet(`<b style="font-size:18px;display:block;text-align:center">${esc(m)} ${esc(b.dataset.zc)}</b><p class="note" style="text-align:center">${o.length}人のオーナーと会いました</p>
-     <div class="list">${o.map(id=>{const p=person(id);return `<button class="li press" data-op="${id}">${stamp(p,{size:44})}<div class="t"><b>${esc(p.name)}</b><span>${esc(p.pref)} · ♥${daysWith(id)}</span></div></button>`}).join('')}</div>
+     <div class="list">${o.map(id=>{const p=person(id);return `<button class="li press" data-op="${id}">${stamp(p,{size:44})}<div class="t"><b>${supM(p)}${esc(p.name)}</b><span>${esc(p.pref)} · ♥${daysWith(id)}</span></div></button>`}).join('')}</div>
      <button class="btn sub press" style="margin-top:14px" data-close>閉じる</button>`);
     bindClose();$$('[data-op]').forEach(x=>x.onclick=()=>detail(x.dataset.op))});
 }
@@ -2024,7 +2052,7 @@ function confirmBlock(id,back){
 function openBlocked(){
   const L=[...blocked].map(person).filter(Boolean);
   openSheet(`<b style="font-size:20px;display:block;text-align:center">ブロックした人</b>
-   ${L.length?`<div class="list" style="margin-top:12px">${L.map(p=>`<div class="li">${stamp(p,{size:40})}<div class="t"><b>${esc(p.name)}</b><span>${esc(carLabel(p))}</span></div><button class="btn sm sub press" data-unb="${p.id}">解除</button></div>`).join('')}</div>`
+   ${L.length?`<div class="list" style="margin-top:12px">${L.map(p=>`<div class="li">${stamp(p,{size:40})}<div class="t"><b>${supM(p)}${esc(p.name)}</b><span>${esc(carLabel(p))}</span></div><button class="btn sm sub press" data-unb="${p.id}">解除</button></div>`).join('')}</div>`
      :'<p class="note" style="text-align:center;margin:18px 0">ブロックした人はいません。<br>相手のプロフィールの下から、ブロックや通報ができます。</p>'}
    <button class="btn sub press" style="margin-top:14px" id="bback">設定に戻る</button>`);
   bindClose();
@@ -2044,6 +2072,7 @@ function openDelete(){
   $('#dyes').onclick=async()=>{$('#dyes').disabled=true;try{await C.deleteAccount();try{await window.__phoClear()}catch(e){}toast('アカウントを削除しました');setTimeout(()=>location.reload(),1500)}catch(e){$('#dyes').disabled=false;toast('削除できませんでした。もう一度お試しください')}};
 }
 const DOCS={
+tokusho:['特定商取引法に基づく表記',`<ul><li><b>販売事業者</b>：SERAPHIX（セラフィクス）</li><li><b>運営責任者</b>：鈴木 隆宏</li><li><b>所在地・電話番号</b>：請求があったときは遅滞なく開示します。下記のメールアドレスへご連絡ください</li><li><b>メールアドレス</b>：info@seraphix-jp.com</li><li><b>販売価格</b>：サポーター 月額300円（税込）</li><li><b>支払方法・時期</b>：iPhone版は App Store の決済。初回は申し込み時、以後1か月ごとに自動で請求されます</li><li><b>提供時期</b>：決済の完了後すぐ</li><li><b>解約</b>：次の更新日の24時間前までに、App Store のサブスクリプションの設定から。解約後も期間の終わりまで有効です</li><li><b>返品・返金</b>：デジタルサービスのため返金しません（App Store の返金の規定によるものを除く）</li></ul>`],
  terms:['利用規約',`<p class="draft">下書きです。公開前に専門家の確認を受けます。</p>
   <h4>1. このアプリについて</h4><p>ペタカー!（以下「本アプリ」）は、実際に会った人とだけ車のスタンプを交換して記録するアプリです。本規約に同意した方が利用できます。未成年の方は保護者の同意を得てから利用してください。</p>
   <h4>2. アカウント</h4><p>Apple または Google のアカウントでログインします。1人1アカウントとし、他人への譲渡・貸し借りはできません。</p>
@@ -2068,7 +2097,7 @@ const DOCS={
   <p class="note">試作のため、フォームはまだありません。</p>`],
  credits:['データと素材の出典',`<ul><li>道の駅・SA/PA・サーキットのデータ：© OpenStreetMap contributors（ODbL）</li><li>住所：国土地理院（逆ジオコーダ）</li><li>鉄道駅：国土数値情報（鉄道データ・2024年）国土交通省をもとに作成</li><li>背景とサンプルの写真：Unsplash</li><li>車種図鑑の写真：Wikimedia Commons の各撮影者（CC BY・CC BY-SA など）。撮影者とライセンスの一覧は<a href="https://seraphixjp.github.io/petacar-beta/zukan-credits.html" target="_blank" rel="noopener">こちら</a></li><li>フォント：Dela Gothic One、Zen Kaku Gothic New、JetBrains Mono（SIL Open Font License）</li></ul>`]
 };
-function openDoc(k,back){const PUB={terms:'terms',privacy:'privacy',contact:'support'};if(PUB[k]){window.open('https://seraphixjp.github.io/petacar-beta/'+PUB[k]+'.html','_blank');return}
+function openDoc(k,back){const PUB={terms:'terms',privacy:'privacy',contact:'support',tokusho:'tokushoho'};if(PUB[k]){window.open('https://seraphixjp.github.io/petacar-beta/'+PUB[k]+'.html','_blank');return}
   const [t,body]=DOCS[k];
   openSheet(`<b style="font-size:20px;display:block;text-align:center;margin-bottom:10px">${t}</b><div class="doc">${body}</div>
    <button class="btn sub press" style="margin-top:16px" id="docb">設定に戻る</button>`);
@@ -2235,9 +2264,9 @@ function openTripDay(d,back){const t=tripOf(d),isT=d===today();
      const lg=t.legs.find(g=>g.to===v.id);
      return `${lg?`<div class="tleg">↓ ${kmTxt(lg.k)}</div>`:''}<div class="tl"><span class="tlt">${v.t?hm(v.t):''}</span><button class="tlm press" data-spot="${esc(v.id)}">${spotMark(x,true,38)}</button><div class="t"><b>${esc(x.n)}</b><span>${CAT[x.cat].n} · ${esc(x.pref)}</span>
        ${ph.length||isT?`<div class="tlp">${ph.map(p=>`<button class="press" data-phoo="${esc(p.id)}">${phoStamp(p,52)}</button>`).join('')}${isT&&!ph.length?`<button class="seclink press" data-shot="${esc(v.id)}" style="margin:0">${CAMI}撮る</button>`:''}</div>`:''}</div></div>`}).join('')}</div>`:''}
-   ${t.ppl.length?`<div class="sec" style="margin-top:14px">交換した人</div><div class="tppl">${t.ppl.map(p=>{const l=t.ex.find(e=>e.pid===p.id);return `<button class="cell press" data-tp="${p.id}">${stamp(p,{size:56,ev:l.ev,sz:l.sz,fr:l.fr,kira:l.kira,rare:l.rare,v:l.v,im:l.im,rg:l.rg})}<span class="n">${esc(p.name)}</span></button>`}).join('')}</div>`:''}
+   ${t.ppl.length?`<div class="sec" style="margin-top:14px">交換した人</div><div class="tppl">${t.ppl.map(p=>{const l=t.ex.find(e=>e.pid===p.id);return `<button class="cell press" data-tp="${p.id}">${stamp(p,{size:56,ev:l.ev,sz:l.sz,fr:l.fr,kira:l.kira,rare:l.rare,v:l.v,im:l.im,rg:l.rg})}<span class="n">${supM(p)}${esc(p.name)}</span></button>`}).join('')}</div>`:''}
    ${t.pass?`<div class="sec" style="margin-top:14px">すれ違った人${t.niceS+t.niceG?`<span class="chip">♥ 送った${t.niceS}・届いた${t.niceG}</span>`:''}</div><div class="list">${t.passes.map(x=>{const p=person(x.pid),sp=SP(x.spot);
-     return `<button class="li press" data-tp="${p.id}">${stamp(p,{size:40})}<div class="t"><b>${esc(p.name)}</b><span>${sp?esc(sp.n)+' · ':''}${x.dt}分ちがい</span></div><span class="nicest${x.nice&&x.got?' both':x.nice||x.got?' one':''}">${x.nice&&x.got?'♥ お互いにナイス！':x.got?'♥ ナイス！が届いた':x.nice?'♥ ナイス！を送った':''}</span></button>`}).join('')}</div>`:''}
+     return `<button class="li press" data-tp="${p.id}">${stamp(p,{size:40})}<div class="t"><b>${supM(p)}${esc(p.name)}</b><span>${sp?esc(sp.n)+' · ':''}${x.dt}分ちがい</span></div><span class="nicest${x.nice&&x.got?' both':x.nice||x.got?' one':''}">${x.nice&&x.got?'♥ お互いにナイス！':x.got?'♥ ナイス！が届いた':x.nice?'♥ ナイス！を送った':''}</span></button>`}).join('')}</div>`:''}
    <div class="row" style="margin-top:16px"><button class="btn sub press" data-close>閉じる</button><button class="btn press" id="tripImg">SNS用の画像にする</button></div>
    <button class="linkbtn" id="rtDel" style="padding:10px;display:none"><span class="danger">この日のルートを消す</span></button>`);
   bindClose(back);hydratePho();
@@ -2562,7 +2591,7 @@ function grantMany(ps,gp){const gb=gotKeys(),res=[];let anyK=false;
   const nb=gotList(myStats()).filter(b=>!gb.includes(b.k)),got=res.filter(x=>x[1]).length;
   if(got){buzz(anyK?[40,60,40,60,140]:[30,50,90]);sfx.peta(anyK)}
   return `<div class="result">${got?'<div class="peta" aria-hidden="true">ペタッ!</div>':''}<b style="font-size:20px">${got?`${got}人と交換しました`:'今日はもう交換済みでした'}</b>
-   <div class="ptgrid">${res.map(([p,l])=>`<div class="ptm">${stamp(p,l?{size:64,ev:l.ev,sz:l.sz,fr:l.fr,kira:l.kira,rare:l.rare}:{size:64})}<b>${esc(p.name)}</b><span>${!l?'今日は交換済み':l.kira?'EXが出た！':l.rare?'レアが出た！':'♥'+daysWith(p.id)}</span></div>`).join('')}</div>
+   <div class="ptgrid">${res.map(([p,l])=>`<div class="ptm">${stamp(p,l?{size:64,ev:l.ev,sz:l.sz,fr:l.fr,kira:l.kira,rare:l.rare}:{size:64})}<b>${supM(p)}${esc(p.name)}</b><span>${!l?'今日は交換済み':l.kira?'EXが出た！':l.rare?'レアが出た！':'♥'+daysWith(p.id)}</span></div>`).join('')}</div>
    ${got?'<div class="note">仲良し度とEXの抽選は、1人ずつの交換と同じです。</div>':''}${nb.length?`<div class="newbad">${medal(nb[0],30)}<span>バッジ獲得：${nb.map(b=>b.t).join('・')}</span></div>`:''}</div>`}
 function partyNg(ng){return ng.length?`<div class="group" style="margin-top:12px"><b>交換できなかった人</b>${ng.map(([id,why])=>`<div class="note">${esc((person(id)||{}).name||'')}さん：${why}</div>`).join('')}</div>`:''}
 // 全員で振る画面。振る or タップで fire が呼ばれる。戻り値は後片付け
@@ -2667,7 +2696,7 @@ function openHito(){
 function detail(id){
   const p=person(id),n=daysWith(id),h=log.filter(l=>l.pid===id).slice().reverse(),b=best(id),ps=PST[id];
   const seen=new Set(),variants=h.filter(l=>{const k=(l.im||l.v||1)+(l.ev||l.sz||'-')+(l.kira?'k':l.rare?'r':'');if(seen.has(k))return false;seen.add(k);return true});
-  openSheet(`<div class="result pcard" style="background:${bgCSS(p)}">${stamp(p,{size:120,ev:b.ev,sz:b.sz,fr:b.fr||p.frame,kira:b.kira,rare:b.rare,v:b.v,im:b.im,rg:b.rg})}<b style="font-size:20px">${p.official?OFFB:''}${esc(p.name)}</b>${clsMini(id,true)}${p.msg?`<div class="hitop">${esc(p.msg)}</div>`:''}${snsRow(p.sns)}
+  openSheet(`<div class="result pcard" style="background:${bgCSS(p)}">${stamp(p,{size:120,ev:b.ev,sz:b.sz,fr:b.fr||p.frame,kira:b.kira,rare:b.rare,v:b.v,im:b.im,rg:b.rg})}<b style="font-size:20px">${p.official?OFFB:''}${supM(p)}${esc(p.name)}</b>${clsMini(id,true)}${p.msg?`<div class="hitop">${esc(p.msg)}</div>`:''}${snsRow(p.sns)}
    <div><span class="chip">${esc(carLabel(p))}</span> <span class="chip">${esc(p.pref)}</span></div>
    <button class="favbtn press" id="favb" aria-pressed="${favs.has(id)}">${favs.has(id)?'★ お気に入り':'☆ お気に入りに追加'}</button>
    <div class="lv" style="margin-top:4px">${Array.from({length:10},(_,i)=>`<i class="${i<n?'on':''}"></i>`).join('')}</div>
@@ -2703,8 +2732,43 @@ function rewardsBlock(name,ps,pinKeys,showStats,showRewards){
 /* settings */
 function sw(key,label,sub){return `<div class="srow"><div class="t"><b>${label}</b>${sub?`<span>${sub}</span>`:''}</div><button class="switch" role="switch" data-set="${key}" aria-checked="${!!settings[key]}" aria-label="${label}"></button></div>`}
 function segRow(key,label,opts,sub){return `<div class="srow stack"><div class="t"><b>${label}</b>${sub?`<span>${sub}</span>`:''}</div><div class="seg" data-segset="${key}">${opts.map(([v,t])=>`<button data-v="${v}" aria-pressed="${String(settings[key])===String(v)}">${t}</button>`).join('')}</div></div>`}
+// ── サポーター（月額300円の自動更新） ──
+// SUPX＝課金の窓口。アプリ版（iPhone）が差し込む：{store,price(),buy(),restore(),manage()}。試作は疑似の購入、Web版は null（案内だけ）
+let SUPX=null;
+const supTill=()=>{const d=new Date(me.sup);return `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}`};
+function supRow(){const on=supOn(me);
+  return `<button class="srow press" id="supRow" style="width:100%;border:0;background:none;cursor:pointer;text-align:left"><div class="t"><b>${SUPB}ペタカー!サポーター</b><span>${on?`ご支援ありがとうございます（${supTill()}まで・自動更新）`:'月額300円で運営を応援。名前の前に青い星が付きます'}</span></div><span class="val">›</span></button>`}
+function openSup(back){const on=supOn(me),X=SUPX;let busy=false;
+  openSheet(`<div style="text-align:center"><div class="supbig">${SUPB}</div><b style="font-size:20px;display:block;margin:8px 0 4px">ペタカー!サポーター</b>
+     <div class="note" style="margin:0 8px">ペタカー!は個人で開発・運営しています。サーバー代と開発を応援していただけるとうれしいです。交換やスポットの記録など、いままでの機能は無料のまま使えます。</div></div>
+   <div class="sec">サポーターになると</div>
+   <div class="set"><div class="srow"><div class="t"><b>${SUPB}名前の前に青い星</b><span>近くの人の一覧・プロフィール・交換の記録など、名前が出るところに付きます</span></div></div>
+     <div class="srow"><div class="t"><b>サポーター限定のリワード</b><span>リボン形のバッジ（1か月・半年・1年）。解約しても獲得したバッジは残ります</span></div></div></div>
+   <div class="sec">料金</div>
+   <div class="set"><div class="srow"><div class="t"><b>ペタカー!サポーター（1か月）</b><span>1か月ごとの自動更新</span></div><span class="val" id="supPrice">月額300円</span></div></div>
+   ${on?`<div class="note" style="margin:10px 4px">${supTill()}まで有効です。自動更新の停止（解約）は${X&&X.manage?'下のボタン':'購入したストアの「サブスクリプション」'}からできます。解約しても期限までは星が付いたままです。</div>${X&&X.manage?'<button class="btn sub press" id="supMng">サブスクリプションの管理</button>':''}`
+     :X?`<button class="btn press" id="supBuy" style="margin-top:14px">サポーターになる（月額300円）</button>`
+     :`<div class="note" style="margin:12px 4px">${window.__supSoon?'サポーターの申し込みは準備中です。始まったらお知らせします。':'サポーターの申し込みは、iPhoneアプリ版（App Store）からできます。Android版・Web版は準備中です。'}</div>`}
+   ${X?'<button class="btn sub press" id="supRes" style="margin-top:8px">購入を復元</button>':''}
+   <div class="note" id="supMsg" style="margin:8px 4px;text-align:center" hidden></div>
+   <div class="note" style="font-size:11px;margin:12px 4px 0">${X?`お支払いは${esc(X.store)}のアカウントに請求されます。`:''}期間が終わる24時間前までに解約しない限り、自動で更新されます。解約はいつでもでき、日割りの返金はありません。</div>
+   <div class="suplinks"><button data-sdoc="terms">利用規約</button><button data-sdoc="privacy">プライバシーポリシー</button><button data-sdoc="tokusho">特定商取引法に基づく表記</button></div>
+   <button class="btn sub press" style="margin-top:16px" data-close>閉じる</button>`);
+  bindClose(back||(()=>render()));
+  const again=()=>openSup(back),msg=t=>{const m=$('#supMsg');if(m){m.hidden=!t;m.textContent=t||''}};
+  $$('[data-sdoc]').forEach(b=>b.onclick=()=>openDoc(b.dataset.sdoc,again));
+  if(!X)return;
+  X.price().then(p=>{const el=$('#supPrice');if(p&&el)el.textContent='月額'+p;const bb=$('#supBuy');if(p&&bb)bb.textContent=`サポーターになる（月額${p}）`}).catch(()=>{});
+  const run=(f,ok,none)=>async()=>{if(busy)return;busy=true;msg('ストアにつないでいます…');
+    try{const r=await f();if(r===true){sfx.fanfare&&sfx.fanfare();toast(ok);again()}else msg(typeof r==='string'?r:none)}
+    catch(e){msg(e&&e.userCancelled?'':'うまくいきませんでした：'+String(e&&e.message||e).slice(0,80))}busy=false};
+  const b=$('#supBuy');if(b)b.onclick=run(X.buy,'サポーターになりました。ありがとうございます！','購入を確認できませんでした。少し待ってから「購入を復元」を押してください');
+  $('#supRes').onclick=run(X.restore,'サポーターを復元しました','復元できる購入が見つかりませんでした');
+  const m=$('#supMng');if(m)m.onclick=()=>X.manage();
+}
 function provText(){const p=(C.providers&&C.providers())||[];const n=p.map(x=>x==='apple.com'?'Apple':x==='google.com'?'Google':x==='password'?'メール':'').filter(Boolean);return n.length?n.join('・')+' でログインできます':'—'}function linkRows(){const p=(C.providers&&C.providers())||[];if(p.includes('password'))return '';return [['apple','apple.com','Apple'],['google','google.com','Google']].filter(k=>!p.includes(k[1])).map(k=>`<button class="srow press" style="width:100%;border:0;background:none;cursor:pointer;text-align:left" onclick="__linkAcc('${k[0]}')"><div class="t"><b>${k[2]}でもログインできるようにする</b><span>どちらで入っても、同じ記録のアカウントになります</span></div><span class="val">›</span></button>`).join('')}window.__linkAcc=async k=>{const nm=k==='apple'?'Apple':'Google';try{await C.link(k);toast(nm+'でもログインできるようになりました');openSettings()}catch(e){const c=(e&&e.code)||'';if(/cancel|popup-closed|canceled|1001/i.test(c+' '+(e&&e.message||'')))return;toast(c==='auth/credential-already-in-use'||c==='auth/email-already-in-use'?'その'+nm+'アカウントは、別のペタカーのアカウントで使われています。サポート（info@seraphix-jp.com）へご連絡ください':c==='auth/provider-already-linked'?'もうつながっています':'つなげませんでした（'+(c||'エラー')+'）')}};function openSettings(){
   openSheet(`<b style="font-size:20px;display:block;text-align:center;margin-bottom:6px">設定</b>
+   <div class="set" style="margin-top:10px">${supRow()}</div>
    <div class="sec">表示</div>
    <div class="set">${segRow('theme','画面の色',[['auto','スマホに合わせる'],['light','白'],['dark','黒']],'「スマホに合わせる」は、スマホのダークモードの設定に合わせて切り替わります')}
      ${sw('sound','効果音','オフにすると、スポットの記録・交換・クラスアップの音が鳴らなくなります。本番ではマナーモード中は鳴らしません')}
@@ -2751,6 +2815,7 @@ function provText(){const p=(C.providers&&C.providers())||[];const n=p.map(x=>x=
   $('#preview').onclick=previewMe;$('#snsb').onclick=openSns;if($('#demoArr2'))$('#demoArr2').onclick=()=>{closeSheet();render();setTimeout(demoArrive,450)};
   $('#onbagain').onclick=()=>{closeSheet();showOnb()};
   $$('[data-doc]').forEach(b=>b.onclick=()=>openDoc(b.dataset.doc,openSettings));
+  $('#supRow').onclick=()=>openSup(openSettings);
   bindRouteRow();$('#exportb').onclick=openExport;$('#blkList').onclick=openBlocked;$('#delAcc').onclick=openDelete;
   $('#logout').onclick=()=>C.signOut();
   let armed=false;
@@ -2762,7 +2827,7 @@ function provText(){const p=(C.providers&&C.providers())||[];const n=p.map(x=>x=
 function previewMe(){
   const st=myStats(),evs=[...new Set(log.filter(l=>l.ev).map(l=>l.ev))];
   openSheet(`<div class="note" style="text-align:center;margin-bottom:10px">ほかの人には、このように表示されます</div>
-   <div class="result pcard" style="background:${bgCSS(me)}">${stamp(me,{size:120})}<b style="font-size:20px">${me.official?OFFB:''}${esc(me.name)}</b>${me.msg?`<div class="hitop">${esc(me.msg)}</div>`:''}${snsRow(mySns())}
+   <div class="result pcard" style="background:${bgCSS(me)}">${stamp(me,{size:120})}<b style="font-size:20px">${me.official?OFFB:''}${supM(me)}${esc(me.name)}</b>${me.msg?`<div class="hitop">${esc(me.msg)}</div>`:''}${snsRow(mySns())}
    <div><span class="chip">${esc(carLabel(me))}</span> <span class="chip">${esc(me.pref)}</span></div></div>
    ${rewardsBlock(me.name,st,myPins(),settings.pubStats,settings.pubRewards)}
    <div class="sec">参加したイベント</div>

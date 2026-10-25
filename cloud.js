@@ -127,7 +127,13 @@ const bar = (id, text, color) => {
   b.textContent = text; if (color) b.style.background = color;
 };
 
+// サポーターの期限（ms）。課金サーバーだけが users/{uid}.sup に書く。プロフィールの保存では、サーバーにある値をそのまま書き戻す（rules で変更禁止）
+let SUPV = 0;
+const supVal = v => typeof v === 'number' && isFinite(v) && v > 0 ? v : 0;
+// プロフィールを書くときは、どの経路（通常の保存・バックアップからの復元）でも sup をサーバーの値にそろえる
+const withSup = d => { const o = { ...d }; delete o.sup; if (SUPV) o.sup = SUPV; return o };
 function makeStore(backend, profDoc, privDoc, mine) {
+  SUPV = supVal((profDoc || {}).sup);
   const priv = { ...(privDoc || {}) };
   let prof = profDoc || null;
   const ME_SKIP = ['sns', 'vers', 'stats', 'showStats', 'showRewards', 'pubEvents', 'upd', 'dev', 'wv'];
@@ -164,7 +170,7 @@ function makeStore(backend, profDoc, privDoc, mine) {
     if (frozen || blocked.prof) return;
     const a = window.__app; if (!a) return;
     if (base.real && a.me.def) return guardTrip('prof', 'profile reset to default');
-    const me = { ...a.me }; delete me.sample; delete me.official;
+    const me = { ...a.me }; delete me.sample; delete me.official; delete me.sup;
     const s = a.settings;
     const run = async () => {
       if (frozen || blocked.prof) return;
@@ -242,7 +248,7 @@ function toPerson(id, d) {
   return { id, official: !!OFF[id], sns, msg: str(d.msg, 30), name: str(d.name, 24, '名無し'), maker: BAD_KEY(maker) ? 'その他' : maker, car: str(d.car, 40, '—'), pref: str(d.pref, 4), ring,
     img, bg: cleanBg(d.bg), ver: num(d.ver, 1, 99, 1) | 0, vers,
     frame: typeof d.frame === 'string' && /^t[1-4]:(run|trip|faith|expl|charm|luck)$/.test(d.frame) ? d.frame : '', // クラスの縁
-    stats: cleanStats(d.stats), showStats: d.showStats !== false, showRewards: d.showRewards !== false };
+    stats: cleanStats(d.stats), showStats: d.showStats !== false, showRewards: d.showRewards !== false, sup: supVal(d.sup) };
 }
 // 公式アカウント：運営がコンソールで official/{uid} を作ったときだけ付く。本人のプロフィールの値は信用しない
 let OFF = {};
@@ -356,7 +362,7 @@ async function firebaseBackend() {
   return {
     uid, demo, profDoc: profSnap.exists() ? profSnap.data() : null, privDoc: privSnap.exists() ? privSnap.data() : null,
     mine: mineSnap.exists() && Array.isArray(mineSnap.data().ids) ? mineSnap.data().ids : [],
-    setProfile: d => Promise.resolve().then(() => F.setDoc(D('users', uid), sizeCheck(fsSafe(d), 'profile'))),
+    setProfile: d => Promise.resolve().then(() => F.setDoc(D('users', uid), sizeCheck(fsSafe(withSup(d)), 'profile'))),
     setPriv: d => Promise.resolve().then(() => F.setDoc(D('users', uid, 'priv', 'state'), sizeCheck(fsSafe(d), 'state'))),
     getProfiles: ids => byIds('users', ids),
     subMyProf: cb => F.onSnapshot(D('users', uid), s => cb(s.exists() ? s.data() : null), e => console.warn('myprof', e)),
@@ -424,6 +430,7 @@ async function firebaseBackend() {
     bakPut: (slot, day, privD, profD) => Promise.all([F.setDoc(D('users', uid, 'priv', 'b' + slot), { day, at: Date.now(), data: privD }), profD ? F.setDoc(D('users', uid, 'priv', 'bp' + slot), { day, at: Date.now(), data: profD }) : null]),
     report: d => F.addDoc(Col('reports'), { ...d, by: uid, at: Date.now() }),
     refreshAuth: () => (auth.currentUser ? auth.currentUser.getIdToken(true) : Promise.reject(new Error('no user'))),
+    idToken: () => (auth.currentUser ? auth.currentUser.getIdToken() : Promise.reject(new Error('no user'))),
     providers: () => (auth.currentUser ? auth.currentUser.providerData.map(p => p.providerId) : []),
     // いまのアカウントに Apple／Google をつなぐ（どちらで入っても同じアカウントになる）
     link: async kind => { const u = auth.currentUser; if (NATIVE) await A.linkWithCredential(u, await nativeCred(A, kind)); else await A.linkWithPopup(u, kind === 'apple' ? appleProvider : provider); await u.reload().catch(() => { }) },
@@ -455,7 +462,7 @@ function mockBackend(uid) {
   return {
     uid, demo: !!params.get('demo'), profDoc: M.docs.get('users/' + uid) || null, privDoc: M.docs.get('users/' + uid + '/priv/state') || null,
     mine: ((M.docs.get('users/' + uid + '/priv/imgs') || {}).ids || []).slice(),
-    setProfile: d => put('users/' + uid, d), setPriv: d => put('users/' + uid + '/priv/state', d),
+    setProfile: d => put('users/' + uid, withSup(d)), setPriv: d => put('users/' + uid + '/priv/state', d),
     getProfiles: ids => { M.reads = (M.reads || 0) + ids.length; const m = {}; ids.forEach(id => { const d = M.docs.get('users/' + id); if (d) m[id] = JSON.parse(JSON.stringify(d)) }); return Promise.resolve(m) },
     subMyProf: cb => sub(() => cb(JSON.parse(JSON.stringify(M.docs.get('users/' + uid) || null)))),
     getImgs: ids => { M.imgReads = (M.imgReads || 0) + ids.length; const m = {}; ids.forEach(id => { const d = M.docs.get('img/' + id); if (d) m[id] = { ...d } }); return Promise.resolve(m) },
@@ -569,7 +576,7 @@ else if (be) {
     uid: be.uid, demo: !!be.demo, store, people,
     onPeople: f => peopleCbs.push(f), isOfficial: id => !!OFF[id],
     img: imgOf, need,
-    live, ex: { ...be.ex, sub: cb => be.ex.sub(m => { need(Object.values(m).flatMap(x => [x.a, x.b])); cb(m) }) }, party: be.party, here: be.here, pass: be.pass, nice: be.nice, shops: be.shops, report: be.report, signOut: be.signOut, providers: be.providers, link: be.link,
+    live, ex: { ...be.ex, sub: cb => be.ex.sub(m => { need(Object.values(m).flatMap(x => [x.a, x.b])); cb(m) }) }, party: be.party, here: be.here, pass: be.pass, nice: be.nice, shops: be.shops, report: be.report, signOut: be.signOut, providers: be.providers, link: be.link, idToken: be.idToken, sup: () => SUPV,
     deleteAccount: async () => { store.cancelAll(); const was = frozen; frozen = 'deleting'; try { await be.deleteAccount() } catch (e) { frozen = was; throw e } },
   };
   let started = false, gotPeople = false, gotCfg = false, wait = '', cfg = {}, maintShown = false;
@@ -632,5 +639,8 @@ else if (be) {
   be.subMine(d => { if (d && d._dev !== DEV && !(d._dev === p0._dev && d._at === p0._at)) stale() });
 
   be.official(m => { OFF = m; setPeople(pMap(), be.uid) });
-  be.subMyProf(d => { if (d && d.dev !== DEV && !(d.dev === f0.dev && d.wv === f0.wv && d.upd === f0.upd)) stale() });
+  be.subMyProf(d => {
+    // サーバーがサポーターの期限を書いたら、画面の自分にも反映する（ほかの項目は変わらないので stale にはしない）
+    const v = supVal(d && d.sup); if (v !== SUPV) { SUPV = v; const a = window.__app; if (a && a.me) { a.me.sup = v; a.rerender && a.rerender() } window.dispatchEvent(new CustomEvent('petacar-sup', { detail: v })) }
+    if (d && d.dev !== DEV && !(d.dev === f0.dev && d.wv === f0.wv && d.upd === f0.upd)) stale() });
 }
