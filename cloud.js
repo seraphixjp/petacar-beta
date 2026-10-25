@@ -315,7 +315,7 @@ async function firebaseBackend() {
       const ua = navigator.userAgent, inApp = /\bLine\/|FBAN|FBAV|Instagram|; wv\)/i.test(ua);
       if (/\bLine\//i.test(ua) && !/openExternalBrowser=1/.test(location.search)) {
         location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'openExternalBrowser=1'); return }
-      showGate(`<h1>ペタカー! ベータ</h1><p>AppleアカウントかGoogleアカウントでログインしてください。記録はアカウントごとに保存されるので、次からも同じアカウントでログインしてください。</p>
+      showGate(`<h1>ペタカー!</h1><p>AppleアカウントかGoogleアカウントでログインしてください。記録はアカウントごとに保存されるので、次からも同じアカウントでログインしてください。</p>
         ${inApp ? '<p class="gerr">アプリの中のブラウザではログインできません。下のボタンでURLをコピーして、ChromeやSafariに貼り付けて開いてください。</p>' : ''}
         <button class="gbtn apple" id="alogin">Appleでサインイン</button><button class="gbtn sub" id="glogin">Googleでログイン</button><p class="gerr" id="gerr" hidden></p>${AGREE}
         <p class="ghelp">ログインのあと白い画面で止まるときは、メールやLINEのリンクから開いている可能性があります。URLをコピーして、Chrome（iPhoneはSafari）で直接開いてください。</p>
@@ -333,8 +333,8 @@ async function firebaseBackend() {
       document.getElementById('alogin').onclick = () => webLogin(appleProvider);
     });
   });
-  window.__stage = '招待リストを確認中';
-  step('招待リストを確認しています…');
+  window.__stage = 'アカウントを確認中';
+  step('アカウントを確認しています…');
   const email = (user.email || '').toLowerCase();
   let allowErr = null;
   let demo = false;
@@ -346,7 +346,7 @@ async function firebaseBackend() {
   if (allowErr && allowErr.code !== 'permission-denied' && !open) throw allowErr;
   const allowed = listed || open;
   if (!allowed) {
-    showGate(`<h1>まだ招待されていません</h1><p><b>${esc(email)}</b> はテストの参加者リストに入っていません。参加をご希望の場合は、このアドレスをサポート（<a href="mailto:info@seraphix-jp.com" style="color:var(--accent)">info@seraphix-jp.com</a>）へお送りください。</p><button class="gbtn sub" id="gout">別のアカウントでログイン</button>`);
+    showGate(`<h1>このアカウントではご利用いただけません</h1><p><b>${esc(email)}</b> は、ペタカー!のアカウントとして登録されていません。ご不明な点は、このアドレスを添えてサポート（<a href="mailto:info@seraphix-jp.com" style="color:var(--accent)">info@seraphix-jp.com</a>）へお送りください。</p><button class="gbtn sub" id="gout">別のアカウントでログイン</button>`);
     document.getElementById('gout').onclick = () => A.signOut(auth).then(() => location.reload());
     return null;
   }
