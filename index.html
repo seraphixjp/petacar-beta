@@ -344,6 +344,8 @@ span.supb{display:inline-block!important;font-size:inherit!important;width:1.1em
 .smcard .t{flex:1;min-width:0}.smcard .t b{display:block;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.smcard .t span{display:block;font-size:12px;color:var(--muted);margin-top:2px}
 .smcard .btn{width:auto;flex:none;padding:10px 14px;font-size:13px}
 .smmsg{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:400;color:var(--muted);font-size:13px;text-align:center}
+.smcl{display:flex!important;align-items:center;justify-content:center;border-radius:50%;background:rgba(255,255,255,.92);border:1.5px solid rgba(0,0,0,.18);box-shadow:0 1px 4px rgba(0,0,0,.25);color:#3c4043;font:700 12px/1 var(--sans)}
+.smapc .smtile{filter:saturate(.3) brightness(1.08) contrast(.85)}
 .smapc .leaflet-control-attribution{font-size:9px}
 .smapc .leaflet-control-zoom{display:none}
 :root[data-theme="dark"] .smapc .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.9) contrast(.9)}
@@ -566,7 +568,7 @@ setTimeout(function () {
   </nav>
   <div id="smap"></div>
   <div id="sheet"></div>
-  <div id="toast"></div><div id="pnote"></div><div id="lvup"></div>
+  <div id="toast" role="status" aria-live="polite" aria-atomic="true"></div><div id="pnote"></div><div id="lvup"></div>
 </div>
 
 <script src="frame-art.js?v=4bfe95b1bcdd"></script>
@@ -1119,6 +1121,7 @@ function openPref(pf){
    Leaflet＋国土地理院の淡色地図。種類の絞り込みはスポット一覧と共通（spotCat）。鉄道駅は「鉄道駅」を選んだときだけ出す。
    行ったところは種類の色で塗りつぶし、まだのところは白抜き。現在地は表示に使うだけで保存しない ===== */
 let smOnly=false; // 地図で「行ったところだけ」を表示中（アプリを開いている間だけ覚える）
+let smMk=[];
 let LF=null,smMap=null,smLayer=null,smMe=null,smSel=null,smWatch=null;
 const smR=(on,z)=>z<=7?(on?5:2.4):z<=9?(on?7:3.6):(on?8.5:5); // 広い範囲では点を小さくして混み合いを減らす
 function loadLeaflet(){
@@ -1127,10 +1130,13 @@ function loadLeaflet(){
   LF=new Promise((ok,ng)=>{
     const css=document.createElement('link');css.rel='stylesheet';css.href='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';document.head.appendChild(css);
     const js=document.createElement('script');js.src='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
-    js.onload=()=>ok(window.L);js.onerror=()=>{LF=null;ng(new Error('leaflet'))};document.head.appendChild(js)});
+    js.onload=()=>{const c2=document.createElement('link');c2.rel='stylesheet';c2.href='https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.min.css';document.head.appendChild(c2);
+      const j2=document.createElement('script');j2.src='https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.min.js';j2.onload=j2.onerror=()=>ok(window.L);document.head.appendChild(j2)};js.onerror=()=>{LF=null;ng(new Error('leaflet'))};document.head.appendChild(js)});
   return LF;
 }
 const smList=()=>SPOTS.filter(x=>x.la!=null&&(spotCat==='all'?x.cat!=='st':x.cat===spotCat));
+/* 地図の下地：地理院の淡色地図を薄めて、スポットの点と数字の丸を目立たせる */
+function smBase(L){L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png',{maxZoom:18,maxNativeZoom:18,className:'smtile',attribution:'<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">地理院タイル</a>'}).addTo(smMap)}
 function openSpotMap(focusId){
   const cats=[['all','すべて'],...Object.entries(CAT).map(([k,c])=>[k,c.n])];
   $('#smap').innerHTML=`<div class="smap" role="dialog" aria-modal="true" aria-label="スポットの地図">
@@ -1148,10 +1154,10 @@ function openSpotMap(focusId){
     if(!$('#smapc'))return;
     $('#smapc').innerHTML='';
     smMap=L.map('smapc',{zoomControl:false,preferCanvas:true,minZoom:5,maxZoom:18,worldCopyJump:false,maxBounds:[[18,118],[50,160]]});
-    L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png',{maxZoom:18,maxNativeZoom:18,attribution:'<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">地理院タイル</a>'}).addTo(smMap);
+    smBase(L);
     smMap.attributionControl.setPrefix(false);
     smMap.on('click',()=>smCard(null));
-    smMap.on('zoomend',()=>{const z=smMap.getZoom();if(smLayer)smLayer.eachLayer(m=>{m.setRadius(smR(m.options.on,z));m.setStyle({weight:m.options.on?(z<=7?2:2.5):1})})});
+    smMap.on('zoomend',()=>{const z=smMap.getZoom();smMk.forEach(m=>{m.setRadius(smR(m.options.on,z));m.setStyle({weight:m.options.on?(z<=7?2:2.5):1})})});
     const f=focusId&&SP(focusId);
     if(f&&f.la!=null)smMap.setView([f.la,f.lo],13);
     else if(here)smMap.setView([here.la,here.lo],10);
@@ -1166,10 +1172,14 @@ function smDraw(fit){
   if(!smMap)return;
   if(smLayer)smLayer.remove();
   const L=window.L,list=smList(),rd=L.canvas({padding:.3,tolerance:6}),vis=spotSet();
-  smLayer=L.layerGroup().addTo(smMap);const z=smMap.getZoom();
+  smLayer=L.layerGroup().addTo(smMap);const z=smMap.getZoom();smMk=[];
+  // まだ行っていない点は、引いて見ると数字の丸にまとめる（Googleマップのお店のように）。行ったところはまとめずに上に出す
+  const cl=L.markerClusterGroup?L.markerClusterGroup({showCoverageOnHover:false,spiderfyOnMaxZoom:false,disableClusteringAtZoom:12,maxClusterRadius:70,chunkedLoading:true,
+    iconCreateFunction:g=>{const n=g.getChildCount(),d=n<10?28:n<100?34:n<1000?40:46;return L.divIcon({html:`<span>${n}</span>`,className:'smcl',iconSize:[d,d]})}}):null;
+  if(cl)smLayer.addLayer(cl);
   const add=x=>{const on=vis.has(x.id),c=CAT[x.cat].c;
-    L.circleMarker([x.la,x.lo],{renderer:rd,radius:smR(on,z),weight:on?(z<=7?2:2.5):1,on,color:on?'#fff':c,fillColor:c,fillOpacity:on?1:.22,opacity:on?1:.55})
-     .on('click',e=>{L.DomEvent.stopPropagation(e);smCard(x.id)}).addTo(smLayer)};
+    const m=L.circleMarker([x.la,x.lo],{renderer:rd,radius:smR(on,z),weight:on?(z<=7?2:2.5):1,on,color:on?'#fff':c,fillColor:c,fillOpacity:on?1:.22,opacity:on?1:.55})
+     .on('click',e=>{L.DomEvent.stopPropagation(e);smCard(x.id)});smMk.push(m);(on||!cl?smLayer:cl).addLayer(m)};
   if(!smOnly)list.filter(x=>!vis.has(x.id)).forEach(add);list.filter(x=>vis.has(x.id)).forEach(add); // 行ったところを上に
   const n=list.filter(x=>vis.has(x.id)).length;
   $('#smleg').innerHTML=`<span><i style="background:var(--accent);box-shadow:0 0 0 2px #fff"></i>行った ${n}</span><span><i style="background:color-mix(in srgb,var(--accent) 22%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 55%,transparent);width:7px;height:7px"></i>まだ ${list.length-n}</span><button class="smonly press" id="smOnly" aria-pressed="${smOnly}">行ったところだけ</button>`;
@@ -2764,7 +2774,7 @@ function openHito(){
   $$('[data-h]').forEach(b=>b.onclick=()=>{i.value=b.dataset.h;cnt();i.focus()});
   const save=v=>{v=v.replace(/\s+/g,' ').trim();v=[...v].slice(0,HITO_MAX).join('');if(v)me.msg=v;else delete me.msg;if(!me.sample)store.set('me2',me);closeSheet();render();toast(v?'ひとことを保存しました':'ひとことを消しました')};
   $('#hok').onclick=()=>save(i.value);if($('#hdel'))$('#hdel').onclick=()=>save('');
-  i.onkeydown=e=>{if(e.key==='Enter')save(i.value)}}
+  i.onkeydown=e=>{if(e.key==='Enter'&&!e.isComposing&&e.keyCode!==229){e.preventDefault();save(i.value)}}}
 function detail(id){
   const p=person(id),n=daysWith(id),h=log.filter(l=>l.pid===id).slice().reverse(),b=best(id),ps=PST[id];
   const seen=new Set(),variants=h.filter(l=>{const k=(l.im||l.v||1)+(l.ev||l.sz||'-')+(l.kira?'k':l.rare?'r':'');if(seen.has(k))return false;seen.add(k);return true});
@@ -2820,12 +2830,13 @@ function openSup(back){const on=supOn(me),X=SUPX;let busy=false;
      <div class="srow"><div class="t"><b>交換の特別な演出</b><span>サポーターが関わる交換では、「ペタッ」が青く光って星が飛びます。交換した相手の画面にも出ます</span></div></div>
      <div class="srow"><div class="t"><b>サポーター限定のリワード</b><span>リボン形のバッジ（1か月・半年・1年）。解約しても獲得したバッジは残ります</span></div></div></div>
    <div class="sec">料金</div>
-   <div class="set"><div class="srow"><div class="t"><b>ペタカー!サポーター（1か月）</b><span>1か月ごとの自動更新</span></div><span class="val" id="supPrice">月額300円</span></div></div>
+   <div class="set"><div class="srow"><div class="t"><b>ペタカー!サポーター（1か月）</b><span>1か月ごとの自動更新</span></div><span class="val" id="supPrice">${X?'料金を確認しています…':'月額300円'}</span></div></div>
    ${on?`<div class="note" style="margin:10px 4px">${supTill()}まで有効です。自動更新の停止（解約）は${X&&X.manage?'下のボタン':'購入したストアの「サブスクリプション」'}からできます。解約しても期限までは星が付いたままです。</div>${X&&X.manage?'<button class="btn sub press" id="supMng">サブスクリプションの管理</button>':''}`
-     :X?`<button class="btn press" id="supBuy" style="margin-top:14px">サポーターになる（月額300円）</button>`
+     :X?`<button class="btn press" id="supBuy" style="margin-top:14px" disabled>料金を確認しています…</button>`
      :`<div class="note" style="margin:12px 4px">${window.__supSoon||isNative()?'現在、サポーターのお申し込みは受け付けていません。':'サポーターのお申し込みは、対応するiPhone版アプリ内から行います。Android版・Web版ではお申し込みいただけません。'}</div>`}
    ${X?'<button class="btn sub press" id="supRes" style="margin-top:8px">購入を復元</button>':''}
-   <div class="note" id="supMsg" style="margin:8px 4px;text-align:center" hidden></div>
+   <button class="btn sub press" id="supPriceRetry" style="margin-top:8px" hidden>料金を再取得</button>
+   <div class="note" role="status" id="supMsg" style="margin:8px 4px;text-align:center" hidden></div>
    <div class="note" style="font-size:11px;margin:12px 4px 0">${X?`お支払いは${esc(X.store)}のアカウントに請求されます。`:''}期間が終わる24時間前までに解約しない限り、自動で更新されます。解約はいつでもでき、日割りの返金はありません。</div>
    <div class="suplinks"><button data-sdoc="terms">利用規約</button><button data-sdoc="privacy">プライバシーポリシー</button><button data-sdoc="tokusho">特定商取引法に基づく表記</button></div>
    <button class="btn sub press" style="margin-top:16px" data-close>閉じる</button>`);
@@ -2833,10 +2844,17 @@ function openSup(back){const on=supOn(me),X=SUPX;let busy=false;
   const again=()=>openSup(back),msg=t=>{const m=$('#supMsg');if(m){m.hidden=!t;m.textContent=t||''}};
   $$('[data-sdoc]').forEach(b=>b.onclick=()=>openDoc(b.dataset.sdoc,again));
   if(!X)return;
-  X.price().then(p=>{const el=$('#supPrice');if(p&&el)el.textContent='月額'+p;const bb=$('#supBuy');if(p&&bb)bb.textContent=`サポーターになる（月額${p}）`}).catch(()=>{});
-  const run=(f,ok,none)=>async()=>{if(busy)return;busy=true;msg('ストアに接続しています…');
-    try{const r=await f();if(r===true){sfx.fanfare&&sfx.fanfare();toast(ok);again()}else msg(typeof r==='string'?r:none)}
-    catch(e){msg(e&&e.userCancelled?'':'ストアでの処理を完了できませんでした。通信環境を確認して、もう一度お試しください。購入済みの場合は「購入を復元」をお試しください。')}busy=false};
+  const sheet=$('#sh'),current=()=>$('#sh')===sheet;let priced=false;
+  const priceButton=$('#supBuy'),retryPrice=$('#supPriceRetry');
+  const loadPrice=async()=>{if(!current())return;priced=false;retryPrice.hidden=true;
+    const el=$('#supPrice');el.textContent='料金を確認しています…';if(priceButton){priceButton.disabled=true;priceButton.textContent='料金を確認しています…'}
+    try{const p=await X.price();if(!current())return;if(typeof p!=='string'||!p.trim())throw new Error('price unavailable');priced=true;el.textContent='月額'+p;
+      if(priceButton){priceButton.disabled=busy;priceButton.textContent=`サポーターになる（月額${p}）`}msg('')}
+    catch(e){if(!current())return;el.textContent='料金を取得できませんでした';if(priceButton)priceButton.textContent='料金を確認してから申し込む';retryPrice.hidden=false;msg('通信環境を確認して「料金を再取得」をお試しください。')}};
+  retryPrice.onclick=loadPrice;loadPrice();
+  const run=(f,ok,none)=>async()=>{if(busy||!current()||(f===X.buy&&!priced))return;busy=true;const controls=[$('#supBuy'),$('#supRes'),retryPrice].filter(Boolean);controls.forEach(el=>el.disabled=true);msg('ストアに接続しています…');
+    try{const r=await f();if(!current())return;if(r===true){sfx.fanfare&&sfx.fanfare();toast(ok);again()}else msg(typeof r==='string'?r:none)}
+    catch(e){if(!current())return;msg(e&&e.userCancelled?'':'ストアでの処理を完了できませんでした。通信環境を確認して、もう一度お試しください。購入済みの場合は「購入を復元」をお試しください。')}finally{busy=false;if(current())controls.forEach(el=>el.disabled=el===priceButton&&!priced)}};
   const b=$('#supBuy');if(b)b.onclick=run(X.buy,'サポーターになりました。ありがとうございます！','購入を確認できませんでした。時間をおいて「購入を復元」をお試しください');
   $('#supRes').onclick=run(X.restore,'サポーターを復元しました','復元できる購入が見つかりませんでした');
   const m=$('#supMng');if(m)m.onclick=()=>X.manage();
@@ -2998,16 +3016,21 @@ function openCrop(){
 }
 
 /* sheet, toast */
-function openSheet(html){$('#sheet').innerHTML=`<div class="sheet" id="sh"><div role="dialog" aria-modal="true"><div class="grab" aria-hidden="true"></div>${html}</div></div>`;sheetAt=Date.now();sheetAfter=null;
+let sheetFocusReturn=null;
+function openSheet(html){if(!$('#sh'))sheetFocusReturn=document.activeElement;$('#sheet').innerHTML=`<div class="sheet" id="sh"><div role="dialog" aria-modal="true"><div class="grab" aria-hidden="true"></div>${html}</div></div>`;sheetAt=Date.now();sheetAfter=null;
   $('#sh').onclick=e=>{if(e.target.id==='sh'&&Date.now()-sheetAt>600)dismissSheet()};
   const d=$('#sh>div'),g=d.querySelector('.grab');let y0=null,dy=0;
+  d.tabIndex=-1;const title=d.querySelector('h1,h2,h3,b');if(title){if(!title.id)title.id='sheet-title';d.setAttribute('aria-labelledby',title.id)}
+  requestAnimationFrame(()=>{if(d.isConnected)d.focus({preventScroll:true})});
+  d.onkeydown=e=>{if(e.key!=='Tab')return;const items=[...d.querySelectorAll('button,a[href],input,select,textarea,[tabindex]')].filter(el=>!el.disabled&&el.tabIndex>=0&&el.getClientRects().length);
+    if(!items.length){e.preventDefault();d.focus();return}const first=items[0],last=items[items.length-1];if(e.shiftKey&&(document.activeElement===first||document.activeElement===d)){e.preventDefault();last.focus()}else if(!e.shiftKey&&(document.activeElement===last||document.activeElement===d)){e.preventDefault();first.focus()}};
   g.onpointerdown=e=>{y0=e.clientY;dy=0;g.setPointerCapture(e.pointerId);d.style.transition='none'};
   g.onpointermove=e=>{if(y0===null)return;dy=Math.max(0,e.clientY-y0);d.style.transform=`translateY(${dy}px)`};
   g.onpointerup=g.onpointercancel=()=>{if(y0===null)return;y0=null;d.style.transition='transform .2s';if(dy>90)dismissSheet();else d.style.transform=''}}
 function dismissSheet(){const a=sheetAfter;closeSheet();a&&a()}
 function closeSheet(){clearInterval(qrTimer);const el=$('#sh');
-  if(el){const gh=el.cloneNode(true);gh.removeAttribute('id');gh.querySelectorAll('[id]').forEach(n=>n.removeAttribute('id'));gh.classList.add('out');$('#shell').appendChild(gh);setTimeout(()=>gh.remove(),220)}
-  $('#sheet').innerHTML=''}
+  if(el){const gh=el.cloneNode(true);gh.removeAttribute('id');gh.setAttribute('aria-hidden','true');gh.inert=true;gh.querySelectorAll('[id]').forEach(n=>n.removeAttribute('id'));gh.classList.add('out');$('#shell').appendChild(gh);setTimeout(()=>gh.remove(),220)}
+  $('#sheet').innerHTML='';if(sheetFocusReturn&&sheetFocusReturn.isConnected)sheetFocusReturn.focus({preventScroll:true});sheetFocusReturn=null}
 function bindClose(after){sheetAfter=after||null;$$('[data-close]').forEach(b=>b.onclick=()=>{if(Date.now()-sheetAt<500)return;closeSheet();after&&after();if(b.dataset.go){tab=b.dataset.go;render()}})}
 let tt=null;function toast(m){$('#toast').innerHTML=`<div class="toast">${esc(m)}</div>`;clearTimeout(tt);tt=setTimeout(()=>$('#toast').innerHTML='',2200)}
 
