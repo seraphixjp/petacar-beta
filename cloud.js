@@ -42,7 +42,7 @@ function bindReviewLogin(A, auth, onUser) {
     };
   };
 }
-function showError(where, e) { console.error(where, e); showGate(`<h1>うまく開けませんでした</h1><p>${esc(where)}</p><p class="gerr">${esc((e && (e.code || e.message)) || e)}</p><p>お手数ですが、この画面のスクリーンショットをサポート（<a href="mailto:info@seraphix-jp.com" style="color:var(--accent)">info@seraphix-jp.com</a>）へお送りください。</p><button class="gbtn" onclick="location.reload()">開き直す</button>`) }
+function showError(where, e) { console.error(where, e); showGate(`<h1>アプリを読み込めませんでした</h1><p>${esc(where)}</p><details class="ghelp"><summary>エラーの詳細</summary><p class="gerr">${esc((e && (e.code || e.message)) || e)}</p></details><p>お手数ですが、この画面のスクリーンショットをサポート（<a href="mailto:info@seraphix-jp.com" style="color:var(--accent)">info@seraphix-jp.com</a>）へお送りください。</p><button class="gbtn" onclick="location.reload()">開き直す</button>`) }
 addEventListener('error', e => { if (gate.hidden) { const b = document.createElement('div'); b.className = 'errbar'; b.textContent = 'エラー: ' + (e.message || '') + ' @' + (e.lineno || ''); document.body.appendChild(b) } });
 addEventListener('unhandledrejection', e => { if (gate.hidden) { const b = document.createElement('div'); b.className = 'errbar'; b.textContent = 'エラー: ' + ((e.reason && (e.reason.code || e.reason.message)) || e.reason); document.body.appendChild(b) } });
 // .now() は書き込み待ちがあるときだけ走る（何も変えていない古い画面が、閉じるときに上書きしないように）
@@ -146,7 +146,7 @@ function makeStore(backend, profDoc, privDoc, mine) {
   const guardTrip = (kind, what) => {
     if (!blocked[kind]) console.error('save blocked:', kind, what);
     blocked[kind] = true;
-    bar('savebar', kind === 'priv' ? '記録が減る保存を止めました。アプリを開き直してください（データは守られています）' : 'プロフィールの保存を止めました。アプリを開き直してください（スタンプは守られています）');
+    bar('savebar', kind === 'priv' ? '記録の保護のため保存を停止しました。この画面のスクリーンショットを添えて、サポート（info@seraphix-jp.com）へご連絡ください。' : 'プロフィールの保護のため保存を停止しました。この画面のスクリーンショットを添えて、サポート（info@seraphix-jp.com）へご連絡ください。');
   };
   const authRetried = {};
   const retry = (f, e, what) => {
@@ -154,7 +154,7 @@ function makeStore(backend, profDoc, privDoc, mine) {
       authRetried[what] = true; setTimeout(() => { authRetried[what] = false }, 60000);
       backend.refreshAuth().then(() => f(), () => f()); return }
     if (e && (e.code === 'invalid-argument' || e.code === 'permission-denied')) { bar('savebar', '保存できませんでした（' + (what || '') + '・' + e.code + '：' + String(e.message || '').replace(/^.*?:\s*/, '').slice(0, 90) + '）。お手数ですが、この画面のスクリーンショットをサポート（info@seraphix-jp.com）へお送りください'); return }
-    bar('savebar', '保存できませんでした。通信状態を確認してください（自動でやり直します）'); setTimeout(f, 5000) };
+    bar('savebar', '保存できませんでした。通信環境を確認してください。接続が戻ると自動で再試行します。'); setTimeout(f, 5000) };
   const flushPriv = debounce(() => {
     if (frozen || blocked.priv) return;
     const n = cnt(priv);
@@ -284,7 +284,7 @@ imgsChanged = () => peopleCbs.forEach(f => { try { f() } catch (e) { console.war
 
 /* ---------- Firebase backend ---------- */
 async function firebaseBackend() {
-  window.__stage = 'Firebaseの部品を読み込み中';
+  window.__stage = '起動に必要なデータを読み込んでいます';
   const [{ initializeApp }, A, F] = await Promise.all([
     import(SDK + 'firebase-app.js'), import(SDK + 'firebase-auth.js'), import(SDK + 'firebase-firestore.js')]);
   const app = initializeApp(firebaseConfig), auth = NATIVE ? A.initializeAuth(app, { persistence: A.indexedDBLocalPersistence }) : A.getAuth(app), db = F.getFirestore(app);
@@ -298,7 +298,7 @@ async function firebaseBackend() {
         if (shown) return; shown = true;
         showGate(`<h1>ペタカー!</h1><p>実際に会った人とだけ、車のスタンプを交換できます。</p>
           ${IOS ? '<button class="gbtn apple" id="napple">Appleでサインイン</button>' : ''}<button class="gbtn${IOS ? ' sub' : ''}" id="ngoogle">Googleでログイン</button><p class="gerr" id="gerr" hidden></p>${AGREE}`);
-        const go = kind => { window.__stage = 'Googleログイン中'; nativeCred(A, kind).then(c => { window.__stage = 'Firebaseにログイン中'; return A.signInWithCredential(auth, c) }).then(r => { if (r && r.user) finish(r.user) }).catch(e => {
+        const go = kind => { window.__stage = 'Googleログイン中'; nativeCred(A, kind).then(c => { window.__stage = 'アカウントを確認しています'; return A.signInWithCredential(auth, c) }).then(r => { if (r && r.user) finish(r.user) }).catch(e => {
           const el = document.getElementById('gerr'); el.hidden = false;
           el.textContent = /cancel/i.test((e && (e.code || e.message)) || '') ? 'ログインがキャンセルされました。' : 'ログインできませんでした（' + ((e && (e.code || e.message)) || e) + '）';
         }) };
@@ -599,7 +599,7 @@ else if (be) {
     setPeople(pMap(), be.uid);
     gotPeople = true; wait = gotCfg ? '' : '運営の設定'; start();
   })().catch(e => { clearTimeout(slow); showError('参加者の一覧を読み込めませんでした。', e) });
-  const slow = setTimeout(() => { if (!started && !frozen) showError('参加者の一覧を読み込めません（15秒たっても応答がありません）。電波の良い場所で開き直してみてください。', 'timeout（' + (wait || '?') + '）') }, 15000);
+  const slow = setTimeout(() => { if (!started && !frozen) showError('データの読み込みに時間がかかっています。通信環境を確認して、もう一度お試しください。', 'timeout（' + (wait || '?') + '）') }, 15000);
   // 運営の設定（メンテナンス）が8秒たっても届かないときは、届いていないまま開く（届いたらその時点で止める）
   setTimeout(() => { if (!gotCfg) { gotCfg = true; start() } }, 8000);
   function start() {
