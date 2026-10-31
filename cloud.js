@@ -247,7 +247,7 @@ function toPerson(id, d) {
     .map(v => v && typeof v === 'object' ? { ring: okCol(v.ring), img: okImg(v.img) || img } : { ring, img });
   return { id, official: !!OFF[id], sns, msg: str(d.msg, 30), name: str(d.name, 24, '名無し'), maker: BAD_KEY(maker) ? 'その他' : maker, car: str(d.car, 40, '—'), pref: str(d.pref, 4), ring,
     img, bg: cleanBg(d.bg), ver: num(d.ver, 1, 99, 1) | 0, vers,
-    frame: typeof d.frame === 'string' && /^t[1-4]:(run|trip|faith|expl|charm|luck)$/.test(d.frame) ? d.frame : '', // クラスの縁
+    frame: typeof d.frame === 'string' && /^(t[1-4]:(run|trip|faith|expl|charm|luck)|sp:1)$/.test(d.frame) ? d.frame : '', // クラスの縁・サポーターの縁（sp:1）
     stats: cleanStats(d.stats), showStats: d.showStats !== false, showRewards: d.showRewards !== false, sup: supVal(d.sup) };
 }
 // 公式アカウント：運営がコンソールで official/{uid} を作ったときだけ付く。本人のプロフィールの値は信用しない
@@ -300,7 +300,11 @@ async function firebaseBackend() {
           ${IOS ? '<button class="gbtn apple" id="napple">Appleでサインイン</button>' : ''}<button class="gbtn${IOS ? ' sub' : ''}" id="ngoogle">Googleでログイン</button><p class="gerr" id="gerr" hidden></p>${AGREE}`);
         const go = kind => { window.__stage = 'Googleログイン中'; nativeCred(A, kind).then(c => { window.__stage = 'アカウントを確認しています'; return A.signInWithCredential(auth, c) }).then(r => { if (r && r.user) finish(r.user) }).catch(e => {
           const el = document.getElementById('gerr'); el.hidden = false;
-          el.textContent = /cancel/i.test((e && (e.code || e.message)) || '') ? 'ログインがキャンセルされました。' : 'ログインできませんでした（' + ((e && (e.code || e.message)) || e) + '）';
+          const why = String((e && (e.code || e.message)) || e);
+          // Appleの画面がエラー1000で閉じる＝iPhoneがApple IDにサインインしていない・2ファクタ認証が無い・制限付きのApple IDなど、端末側の事情
+          el.textContent = /cancel|error 1001/i.test(why) ? 'ログインがキャンセルされました。'
+            : kind === 'apple' && /AuthorizationError|error 1000|unknown/i.test(why) ? 'Appleでサインインできませんでした。iPhoneの「設定」の一番上でApple IDにサインインしているか、2ファクタ認証がオンになっているかをご確認ください。Googleでログインしても同じように使えます。（' + why + '）'
+            : 'ログインできませんでした（' + why + '）';
         }) };
         document.getElementById('ngoogle').onclick = () => go('google');
         if (IOS) document.getElementById('napple').onclick = () => go('apple');
@@ -341,8 +345,10 @@ async function firebaseBackend() {
   // 招待制のスイッチ：config/app の open が true なら、Google・Appleでログインした人は招待リストなしで使える
   // （メール／パスワードは審査用だけなので、招待リストに入っている人に限る）
   const social = (user.providerData || []).some(p => p.providerId === 'google.com' || p.providerId === 'apple.com');
-  const open = social && await F.getDoc(F.doc(db, 'config', 'app')).then(s => s.exists() && s.data().open === true).catch(() => false);
-  const listed = email ? await F.getDoc(F.doc(db, 'allow', email)).then(s => { demo = !!(s.exists() && s.data().demo); return s.exists() }).catch(e => { allowErr = e; return false }) : false;
+  // 2つの確認は同時に問い合わせる（順番に待つと起動が遅くなる）
+  const [open, listed] = await Promise.all([
+    social ? F.getDoc(F.doc(db, 'config', 'app')).then(s => s.exists() && s.data().open === true).catch(() => false) : false,
+    email ? F.getDoc(F.doc(db, 'allow', email)).then(s => { demo = !!(s.exists() && s.data().demo); return s.exists() }).catch(e => { allowErr = e; return false }) : false]);
   if (allowErr && allowErr.code !== 'permission-denied' && !open) throw allowErr;
   const allowed = listed || open;
   if (!allowed) {

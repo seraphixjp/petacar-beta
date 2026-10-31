@@ -22,6 +22,13 @@
   const text=options.label===false?'':`<text font-family="Arial,Helvetica,sans-serif" font-size="4.1" font-weight="800" fill="${tier===1?'#fff':tier===4?'#241d42':'#422b0e'}" text-anchor="middle" textLength="${Math.min(label.length*2.05,48)}" lengthAdjust="spacingAndGlyphs"><textPath href="#${id}arc" startOffset="50%">${label}</textPath></text>`;
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-hole-x="${g.cx}" data-hole-y="${g.cy}" data-hole-r="${Math.max(g.rx,g.ry)+.7}" aria-hidden="true"><defs><clipPath id="${id}crown"><rect x="37" width="26" height="14.5"/></clipPath><filter id="${id}material" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">${filter}</filter><mask id="${id}alpha" style="mask-type:alpha">${image(src)}</mask><linearGradient id="${id}holo" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ff65c9"/><stop offset=".2" stop-color="#b497ff"/><stop offset=".4" stop-color="#78ddff"/><stop offset=".6" stop-color="#82efb7"/><stop offset=".8" stop-color="#fff19a"/><stop offset="1" stop-color="#ff9478"/></linearGradient><path id="${id}arc" d="M${g.cx-g.textRx} ${g.cy}a${g.textRx} ${g.textRy} 0 0 1 ${2*g.textRx} 0"/></defs>${body}${text}</svg>`;
  }
+ // サポーター限定の縁（sp:1）。文字は入れず、画像だけ
+ const supHole={sp1:39};
+ function supFrame(f,options={}){
+  if(!/^sp:1$/.test(f))return '';
+  const k=f.replace(':',''),r=supHole[k]||36,src=(options.base||'frames/')+'sup_'+f.slice(3)+'.webp';
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-hole-x="50" data-hole-y="50" data-hole-r="${r}" aria-hidden="true">${image(src)}</svg>`;
+ }
  function seasonFrame(key,year,options={}){
   if(!seasons[key])return '';
   const id='pfs'+(++serial),asset='season_'+key,src=(options.base||'frames/')+asset+'.webp',[title,colour]=seasons[key],g=geometry[asset]||{cx:50,cy:50,rx:32,ry:32,textRx:34,textRy:34};
@@ -71,5 +78,5 @@
   const tag=num?`<rect x="${50-width/2}" y="63" width="${width}" height="12" rx="6" fill="${ink}"/><text x="50" y="72" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="8.5" font-weight="800" fill="#fff9e9">${escape(num)}</text>`:'';
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="${size}" height="${size}" class="md md-${b.tier}" role="img" aria-label="${escape(b.t||'')}（${escape(tierNames[b.tier]?.n||'')}）">${bronze}${image(src,b.tier==='br'?`filter="url(#${id}bronze)"`:'')}${icon}${tag}</svg>`;
  }
- global.PetaFrames={materialFrame,seasonFrame,inlineImages,trophy,medal,holeOf,photoStyle};
+ global.PetaFrames={materialFrame,supFrame,seasonFrame,inlineImages,trophy,medal,holeOf,photoStyle};
 })(window);

@@ -43,7 +43,7 @@ button{font-family:inherit;color:inherit}
 @keyframes peta{from{transform:scale(2.2) rotate(-8deg);opacity:0}to{transform:scale(1) rotate(-8deg);opacity:1}}
 @keyframes press{from{transform:scale(1.25);opacity:0}to{transform:scale(1);opacity:1}}
 .autorow{display:flex;align-items:center;gap:12px;width:100%;margin-top:14px;padding:12px 14px;border-radius:16px;background:var(--surface);border:1px solid var(--line);text-align:left;color:var(--ink);font:inherit}
-.autorow.off{cursor:pointer}.autorow .t{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}.autorow .t span{font-size:12px;color:var(--muted)}.autorow .val{color:var(--muted);font-size:20px}
+.autorow.off{cursor:pointer}.autorow.warn{border-color:#e8a317;background:color-mix(in srgb,#e8a317 8%,var(--surface))}.autost{display:inline-block;margin-left:4px;padding:1px 8px;border-radius:999px;font:700 11px/1.5 var(--sans);vertical-align:1px;background:var(--fill);color:var(--muted)}.autost.ok{background:color-mix(in srgb,var(--ok) 18%,transparent);color:var(--ok)}.autost.warn{background:#e8a317;color:#fff}.autorow .t{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}.autorow .t span{font-size:12px;color:var(--muted)}.autorow .val{color:var(--muted);font-size:20px}
 .aico{width:34px;height:34px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}.aico.big{width:64px;height:64px}.aico.big svg{width:28px;height:28px}
 .perm{margin:14px 0 0;padding:14px 14px 14px 32px;background:var(--fill);border-radius:14px;font-size:13px;line-height:1.7;color:var(--ink)}
 #pnote{position:fixed;left:0;right:0;top:0;z-index:60;display:flex;justify-content:center;pointer-events:none;padding:max(8px,env(safe-area-inset-top)) 8px 0}
@@ -137,18 +137,20 @@ button{font-family:inherit;color:inherit}
 .stamp>img{position:absolute;inset:6%;width:88%;height:88%;border-radius:50%;object-fit:cover;display:block}
 .stamp.ev>img,.stamp.ev>.k{inset:11.5%;width:77%;height:77%}
 .stamp>svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}.szcard{display:flex;gap:12px;align-items:center;padding:10px 12px;margin:0 0 12px;border-radius:16px;background:linear-gradient(135deg,color-mix(in srgb,var(--c1) 22%,var(--card,transparent)),transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--c1) 45%,transparent)}.szcard .t{display:flex;flex-direction:column;gap:2px;font-size:13px;line-height:1.4}.szcard .t span{color:var(--muted);font-size:12px}.stamp.shop>img{inset:12%;width:76%;height:76%}.stamp.shopq{display:grid;place-items:center;border-radius:50%;background:var(--fill);color:var(--muted);font:800 2.2em var(--sans);box-shadow:inset 0 0 0 2px var(--line,rgba(127,127,127,.25))}.shopseal .stamp{filter:blur(5px) saturate(.4) brightness(.8);animation:none}.shopbar{height:6px;border-radius:3px;background:rgba(0,0,0,.12);overflow:hidden;margin-top:4px}.shopbar>i{display:block;height:100%;width:0;background:var(--accent);transition:width .1s linear}.shopready{font:700 11px var(--sans);color:#fff;background:var(--accent);border-radius:999px;padding:3px 9px;white-space:nowrap}
-.stamp>.k{position:absolute;inset:6%;width:88%;height:88%;border-radius:50%;overflow:hidden;pointer-events:none;
-  background:linear-gradient(115deg,transparent 28%,rgba(255,255,255,.8) 42%,rgba(255,120,220,.5) 50%,rgba(110,230,255,.5) 58%,transparent 72%);
-  background-size:280% 100%;mix-blend-mode:screen;animation:holo 2.8s linear infinite}
+.stamp>.k{position:absolute;inset:6%;width:88%;height:88%;border-radius:50%;overflow:hidden;clip-path:circle(50%);pointer-events:none;mix-blend-mode:screen}
+/* 光の帯は background-position ではなく transform で動かす（iPhoneは合成中の要素の背景位置アニメを描き直さず、帯が止まって見えた） */
+.stamp>.k::before{content:"";position:absolute;top:0;left:0;width:280%;height:100%;will-change:transform;animation:holoband 2.8s linear infinite;
+  background:linear-gradient(115deg,transparent 28%,rgba(255,255,255,.8) 42%,rgba(255,120,220,.5) 50%,rgba(110,230,255,.5) 58%,transparent 72%)}
 .stamp>.k::after{content:"";position:absolute;inset:0;animation:twinkle 1.4s ease-in-out infinite alternate;
   background:radial-gradient(circle at 22% 30%,#fff 0 1.5px,transparent 2.5px),radial-gradient(circle at 72% 22%,#fff 0 2px,transparent 3px),radial-gradient(circle at 60% 70%,#fff 0 1.5px,transparent 2.5px),radial-gradient(circle at 30% 78%,#fff 0 1px,transparent 2px),radial-gradient(circle at 84% 56%,#fff 0 1.2px,transparent 2.2px)}
-.stamp>.k.g{background:linear-gradient(115deg,transparent 30%,rgba(255,236,170,.85) 44%,rgba(255,196,60,.55) 52%,transparent 68%);background-size:280% 100%;box-shadow:inset 0 0 0 3px rgba(240,190,40,.55)}
+.stamp>.k.g{box-shadow:inset 0 0 0 3px rgba(240,190,40,.55)}.stamp>.k.g::before{background:linear-gradient(115deg,transparent 30%,rgba(255,236,170,.85) 44%,rgba(255,196,60,.55) 52%,transparent 68%)}
 .stamp>.k.g::after{background:radial-gradient(circle at 24% 30%,#fff6c8 0 1.5px,transparent 2.5px),radial-gradient(circle at 74% 26%,#ffe27a 0 2px,transparent 3px),radial-gradient(circle at 62% 72%,#fff6c8 0 1.5px,transparent 2.5px),radial-gradient(circle at 34% 76%,#ffd24a 0 1.2px,transparent 2.2px)}
 .stamp>.kb.g{background:linear-gradient(#2a1f05,#2a1f05) padding-box,linear-gradient(135deg,#fff0a0,#f0bd2b 55%,#a87608) border-box;color:#ffe08a}
 .tag.rare{background:linear-gradient(#2a1f05,#2a1f05) padding-box,linear-gradient(90deg,#fff0a0,#f0bd2b,#a87608) border-box;border:1px solid transparent;color:#ffd75e;font-family:var(--mono);letter-spacing:.06em}
 .rarehit{font-family:var(--display);font-size:24px;background:linear-gradient(90deg,#a87608,#ffe27a,#f0bd2b,#a87608);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:holo 2.4s linear infinite}
 .stamp>.kb{position:absolute;right:-2%;bottom:4%;padding:.12em .42em;border-radius:.5em;background:linear-gradient(#17131f,#17131f) padding-box,linear-gradient(135deg,#ffd76a,#ff7ad9 55%,#7ee3ff) border-box;font:800 clamp(8px,1em,14px)/1.15 var(--mono);letter-spacing:.06em;color:#ffe2a0;box-shadow:0 1px 4px rgba(0,0,0,.4);border:1.5px solid transparent}
 @keyframes holo{from{background-position:130% 0}to{background-position:-30% 0}}
+@keyframes holoband{from{transform:translateX(-83.6%)}to{transform:translateX(19.3%)}}
 @keyframes twinkle{from{opacity:.25}to{opacity:1}}
 
 /* home */
@@ -250,8 +252,8 @@ span.supb{display:inline-block!important;font-size:inherit!important;width:1.1em
 .supstars{position:absolute;left:50%;top:50%;width:0;height:0;pointer-events:none}
 .supstars i{position:absolute;left:-7px;top:-7px;width:14px;height:14px;background:#4c95ff;clip-path:polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);opacity:0;animation:supstar 1.1s cubic-bezier(.15,.8,.3,1) var(--d) both}
 @keyframes supstar{0%{opacity:0;transform:rotate(var(--a)) translateY(-40px) scale(.4)}25%{opacity:1}100%{opacity:0;transform:rotate(var(--a)) translateY(-122px) scale(1.1) rotate(180deg)}}
-@keyframes supglow{0%{opacity:0;transform:scale(.6)}35%{opacity:1}100%{opacity:.55;transform:scale(1)}}
-@media (prefers-reduced-motion:reduce){.supstars{display:none}.supfx .supwrap::before{animation:none;opacity:.55}}
+@keyframes supglow{0%{opacity:0;transform:scale(.6)}30%{opacity:1}100%{opacity:0;transform:scale(1.15)}} /* 広がって消える（最後に残ると写真の周りに青い輪がかかったままになっていた） */
+@media (prefers-reduced-motion:reduce){.supstars{display:none}.supfx .supwrap::before{display:none}}
 
 .result .stamp{animation:pop .7s cubic-bezier(.2,1.5,.4,1)}
 @keyframes pop{from{transform:scale(.2) rotate(-30deg);opacity:0}}
@@ -571,7 +573,7 @@ setTimeout(function () {
   <div id="toast" role="status" aria-live="polite" aria-atomic="true"></div><div id="pnote"></div><div id="lvup"></div>
 </div>
 
-<script src="frame-art.js?v=4bfe95b1bcdd"></script>
+<script src="frame-art.js?v=cc1829e5f122"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
 window.__startApp=()=>{(()=>{
@@ -1121,7 +1123,7 @@ function openPref(pf){
    Leaflet＋国土地理院の淡色地図。種類の絞り込みはスポット一覧と共通（spotCat）。鉄道駅は「鉄道駅」を選んだときだけ出す。
    行ったところは種類の色で塗りつぶし、まだのところは白抜き。現在地は表示に使うだけで保存しない ===== */
 let smOnly=false; // 地図で「行ったところだけ」を表示中（アプリを開いている間だけ覚える）
-let smMk=[];
+let smMk=[],smRd=null; // 地図の点はすべてこの1枚に描く（描画面が2枚になると上の面がタップを奪い、2回目から点を押しても名前が出なかった）
 let LF=null,smMap=null,smLayer=null,smMe=null,smSel=null,smWatch=null;
 const smR=(on,z)=>z<=7?(on?5:2.4):z<=9?(on?7:3.6):(on?8.5:5); // 広い範囲では点を小さくして混み合いを減らす
 function loadLeaflet(){
@@ -1135,8 +1137,33 @@ function loadLeaflet(){
   return LF;
 }
 const smList=()=>SPOTS.filter(x=>x.la!=null&&(spotCat==='all'?x.cat!=='st':x.cat===spotCat));
-/* 地図の下地：地理院の淡色地図を薄めて、スポットの点と数字の丸を目立たせる */
-function smBase(L){L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png',{maxZoom:18,maxNativeZoom:18,className:'smtile',attribution:'<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">地理院タイル</a>'}).addTo(smMap)}
+/* 地図の下地：OpenFreeMap（OpenStreetMapの地図・等高線なし・登録不要で無料）を MapLibre で描く。
+   WebGLが使えない・ライブラリや地図の設定が取れないときは、地理院の淡色地図に切り替える */
+const MLURL={js:'https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.min.js',css:'https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.min.css',lf:'https://cdn.jsdelivr.net/npm/@maplibre/maplibre-gl-leaflet@0.0.22/leaflet-maplibre-gl.min.js'};
+let MLP=null;
+function loadMapLibre(){
+  if(MLP)return MLP;
+  const lib=new Promise(ok=>{
+    try{const c=document.createElement('canvas');if(!(c.getContext('webgl2')||c.getContext('webgl'))){ok(false);return}}catch(e){ok(false);return}
+    const css=document.createElement('link');css.rel='stylesheet';css.href=MLURL.css;document.head.appendChild(css);
+    const js=document.createElement('script');js.src=MLURL.js;js.onerror=()=>ok(false);
+    js.onload=()=>{const j2=document.createElement('script');j2.src=MLURL.lf;j2.onload=()=>ok(!!(window.L&&L.maplibreGL));j2.onerror=()=>ok(false);document.head.appendChild(j2)};
+    document.head.appendChild(js)});
+  const ac=window.AbortController?new AbortController():null;const tm=setTimeout(()=>ac&&ac.abort(),8000);
+  const sty=fetch('https://tiles.openfreemap.org/styles/liberty',ac?{signal:ac.signal}:{}).then(r=>r.ok?r.json():null).catch(()=>null).then(st=>{clearTimeout(tm);
+    // 地名は日本語で（英語表記が並ばないように）。道路番号の盾など name を使わない文字はそのまま
+    if(st)st.layers.forEach(l=>{const t=l.layout&&l.layout['text-field'];if(t&&JSON.stringify(t).includes('name'))l.layout['text-field']=['coalesce',['get','name:ja'],['get','name']]});return st});
+  MLP=Promise.all([lib,sty]).then(([ok,st])=>ok&&st?st:null).then(st=>{if(!st)MLP=null;return st}); // 失敗したら次に開いたときにもう一度試す
+  return MLP;
+}
+function smBase(L){
+  const pale=()=>{if(smMap)L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png',{maxZoom:18,maxNativeZoom:18,className:'smtile',attribution:'<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">地理院タイル</a>'}).addTo(smMap)};
+  loadMapLibre().then(st=>{
+    if(!smMap)return;if(!st){pale();return}
+    try{L.maplibreGL({style:JSON.parse(JSON.stringify(st)),attributionControl:false}).addTo(smMap);
+      smMap.attributionControl.addAttribution('<a href="https://openfreemap.org" target="_blank" rel="noopener">OpenFreeMap</a> © <a href="https://www.openmaptiles.org/" target="_blank" rel="noopener">OpenMapTiles</a> © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>')}
+    catch(e){pale()}});
+}
 function openSpotMap(focusId){
   const cats=[['all','すべて'],...Object.entries(CAT).map(([k,c])=>[k,c.n])];
   $('#smap').innerHTML=`<div class="smap" role="dialog" aria-modal="true" aria-label="スポットの地図">
@@ -1154,10 +1181,10 @@ function openSpotMap(focusId){
     if(!$('#smapc'))return;
     $('#smapc').innerHTML='';
     smMap=L.map('smapc',{zoomControl:false,preferCanvas:true,minZoom:5,maxZoom:18,worldCopyJump:false,maxBounds:[[18,118],[50,160]]});
-    smBase(L);
+    smRd=L.canvas({padding:.3,tolerance:6});smBase(L);
     smMap.attributionControl.setPrefix(false);
     smMap.on('click',()=>smCard(null));
-    smMap.on('zoomend',()=>{const z=smMap.getZoom();smMk.forEach(m=>{m.setRadius(smR(m.options.on,z));m.setStyle({weight:m.options.on?(z<=7?2:2.5):1})})});
+    smMap.on('zoomend',()=>{const z=smMap.getZoom();smMk.forEach(m=>m.setRadius(smR(m.options.on,z)))});
     const f=focusId&&SP(focusId);
     if(f&&f.la!=null)smMap.setView([f.la,f.lo],13);
     else if(here)smMap.setView([here.la,here.lo],10);
@@ -1171,18 +1198,18 @@ function openSpotMap(focusId){
 function smDraw(fit){
   if(!smMap)return;
   if(smLayer)smLayer.remove();
-  const L=window.L,list=smList(),rd=L.canvas({padding:.3,tolerance:6}),vis=spotSet();
+  const L=window.L,list=smList(),rd=smRd,vis=spotSet();
   smLayer=L.layerGroup().addTo(smMap);const z=smMap.getZoom();smMk=[];
   // まだ行っていない点は、引いて見ると数字の丸にまとめる（Googleマップのお店のように）。行ったところはまとめずに上に出す
   const cl=L.markerClusterGroup?L.markerClusterGroup({showCoverageOnHover:false,spiderfyOnMaxZoom:false,disableClusteringAtZoom:12,maxClusterRadius:70,chunkedLoading:true,
     iconCreateFunction:g=>{const n=g.getChildCount(),d=n<10?28:n<100?34:n<1000?40:46;return L.divIcon({html:`<span>${n}</span>`,className:'smcl',iconSize:[d,d]})}}):null;
   if(cl)smLayer.addLayer(cl);
   const add=x=>{const on=vis.has(x.id),c=CAT[x.cat].c;
-    const m=L.circleMarker([x.la,x.lo],{renderer:rd,radius:smR(on,z),weight:on?(z<=7?2:2.5):1,on,color:on?'#fff':c,fillColor:c,fillOpacity:on?1:.22,opacity:on?1:.55})
+    const m=L.circleMarker([x.la,x.lo],{renderer:rd,radius:smR(on,z),weight:on?1.5:2,on,color:'#fff',fillColor:on?'#9aa0a6':c,fillOpacity:on?.75:1,opacity:1}) // 行ったところは灰色、まだのところを種類の色ではっきり（次に行く所が目立つように）
      .on('click',e=>{L.DomEvent.stopPropagation(e);smCard(x.id)});smMk.push(m);(on||!cl?smLayer:cl).addLayer(m)};
   if(!smOnly)list.filter(x=>!vis.has(x.id)).forEach(add);list.filter(x=>vis.has(x.id)).forEach(add); // 行ったところを上に
   const n=list.filter(x=>vis.has(x.id)).length;
-  $('#smleg').innerHTML=`<span><i style="background:var(--accent);box-shadow:0 0 0 2px #fff"></i>行った ${n}</span><span><i style="background:color-mix(in srgb,var(--accent) 22%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 55%,transparent);width:7px;height:7px"></i>まだ ${list.length-n}</span><button class="smonly press" id="smOnly" aria-pressed="${smOnly}">行ったところだけ</button>`;
+  $('#smleg').innerHTML=`<span><i style="background:#9aa0a6;box-shadow:0 0 0 2px #fff"></i>行った ${n}</span><span><i style="background:var(--accent);box-shadow:0 0 0 1.5px #fff;width:7px;height:7px"></i>まだ ${list.length-n}</span><button class="smonly press" id="smOnly" aria-pressed="${smOnly}">行ったところだけ</button>`;
   $('#smOnly').onclick=()=>{smOnly=!smOnly;smCard(null);smDraw(false)};
   if(fit&&list.length&&spotCat!=='all'&&spotCat!=='st'){const b=window.L.latLngBounds(list.map(x=>[x.la,x.lo]));if(!b.contains(smMap.getCenter())||smMap.getZoom()<6)smMap.fitBounds(b,{padding:[30,30],maxZoom:11})}
 }
@@ -1191,7 +1218,7 @@ function smCard(id){
   const el=$('#smcard');if(!el)return;
   if(!id){el.innerHTML='';return}
   const x=SP(id),n=spotDays(id);
-  smSel=window.L.circleMarker([x.la,x.lo],{radius:13,weight:3,color:CAT[x.cat].c,fill:false,interactive:false}).addTo(smMap);
+  smSel=window.L.circleMarker([x.la,x.lo],{renderer:smRd,radius:13,weight:3,color:CAT[x.cat].c,fill:false,interactive:false}).addTo(smMap);
   el.innerHTML=`<div class="smcard">${spotMark(x,n>0,44)}<div class="t"><b>${esc(x.n)}</b><span>${CAT[x.cat].n} · ${esc(x.pref)}${here?` · 約${fmtKm(dist(here,x))}`:''}</span><span>${n?`${n}回行きました`:'まだ行ったことがありません'}</span></div><button class="btn press" id="smgo">詳しく</button></div>`;
   $('#smgo').onclick=()=>openSpot(id,()=>{smDraw(false);smCard(id)});
 }
@@ -1199,8 +1226,8 @@ function smShowMe(){
   if(!smMap||!here)return;
   const ll=[here.la,here.lo];
   if(smMe){smMe.eachLayer(m=>m.setLatLng(ll));return} // 動いたら点だけ動かす（地図は動かさない）
-  smMe=window.L.layerGroup([window.L.circleMarker(ll,{radius:14,stroke:false,fillColor:'#2f7cf6',fillOpacity:.18,interactive:false}),
-    window.L.circleMarker(ll,{radius:7,weight:3,color:'#fff',fillColor:'#2f7cf6',fillOpacity:1,interactive:false})]).addTo(smMap);
+  smMe=window.L.layerGroup([window.L.circleMarker(ll,{renderer:smRd,radius:14,stroke:false,fillColor:'#2f7cf6',fillOpacity:.18,interactive:false}),
+    window.L.circleMarker(ll,{renderer:smRd,radius:7,weight:3,color:'#fff',fillColor:'#2f7cf6',fillOpacity:1,interactive:false})]).addTo(smMap);
 }
 /* 地図を開いている間だけ現在地を見て、青い点を動かす。位置の許可がまだの人には、地図を開いただけでは聞かない（現在地ボタンを押したときから） */
 function smStartWatch(){
@@ -1213,7 +1240,7 @@ function smLocate(){
   navigator.geolocation.getCurrentPosition(p=>{here={la:p.coords.latitude,lo:p.coords.longitude,label:'現在地'};spotSort='near';smShowMe();smStartWatch();if(smMap)smMap.setView([here.la,here.lo],Math.max(smMap.getZoom(),11))},
     ()=>toast('現在地を取得できませんでした'),{timeout:8000,maximumAge:60000});
 }
-function closeSpotMap(){if(smWatch!=null){navigator.geolocation.clearWatch(smWatch);smWatch=null}if(smMap){smMap.remove();smMap=null}smLayer=smMe=smSel=null;$('#smap').innerHTML='';render()}
+function closeSpotMap(){if(smWatch!=null){navigator.geolocation.clearWatch(smWatch);smWatch=null}if(smMap){smMap.remove();smMap=null}smLayer=smMe=smSel=smRd=null;$('#smap').innerHTML='';render()}
 
 /* ===== 今月のお題（月ごとに決まったお題なので、運営の作業も保存もいらない。全員同じお題）
    2026年9月までは毎月1つ。2026年10月から毎月3つ（1つ目は今までと同じ選び方なので、10月の1つ目はそのまま） ===== */
@@ -1348,7 +1375,7 @@ function seasonNote(){const k=seasonOn(today()),x=seasonOf(k);if(!x)return '';
    交換した時点の縁を記録（log.fr）に残すので、あとで相手が縁を変えてもコレクションの絵は変わらない */
 const FR_EN={run:'STREET RACER',trip:'TRAVELER',faith:'PILGRIM',expl:'EXPLORER',charm:'SOCIALITE',luck:'GAMBLER'};
 const FR_TIER=['見習い','一人前','上級','凄腕の','伝説の'];
-const frOk=f=>typeof f==='string'&&/^t[1-4]:(run|trip|faith|expl|charm|luck)$/.test(f)?f:'';
+const frOk=f=>typeof f==='string'&&/^(t[1-4]:(run|trip|faith|expl|charm|luck)|sp:1)$/.test(f)?f:'';
 const frc=x=>((x%1)+1)%1;
 function frEdge(ck,th){const P2=2*Math.PI; // 縁の外周の半径（th＝上を0とした角度）。帯の内側は38.5、文字は半径43
   if(ck==='run'){const k=frc(th*40/P2),e=.14,sm=x=>x*x*(3-2*x),u=k<e?sm(k/e):k<.55?1:k<.55+e?1-sm((k-.55)/e):0;return 48.1+1.3*u} // タイヤ
@@ -1371,24 +1398,30 @@ function frameSvgLegacy(f,ring){const t=+f[1],ck=f.slice(3),id='rp'+(++uid),d=fr
   return `<svg viewBox="0 0 100 100" aria-hidden="true"><defs>${tp}<linearGradient id="${id}h" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff6ad5"/><stop offset=".2" stop-color="#c774e8"/><stop offset=".4" stop-color="#94d0ff"/><stop offset=".6" stop-color="#8ef6c6"/><stop offset=".8" stop-color="#fff59a"/><stop offset="1" stop-color="#ff9a6a"/></linearGradient><clipPath id="${id}c"><path d="${d}"/></clipPath>${mask}</defs>
     <g clip-path="url(#${id}c)" mask="url(#${id}m)"><circle class="frholo" cx="50" cy="50" r="54" fill="url(#${id}h)"/></g><path d="${d}" fill="none" stroke="#fff" stroke-width=".8"/><circle cx="50" cy="50" r="39.1" fill="none" stroke="#fff" stroke-width=".8"/>${txt('#2a1240','LEGEND ')}
     <path transform="translate(50 1)" d="M-8 3 L-5.5-3 L-2.6 1.2 L0-4.5 L2.6 1.2 L5.5-3 L8 3z" fill="#ffe27a" stroke="#7a4b00" stroke-width=".7"/></svg>`}
-function frameSvg(f,ring){return window.PetaFrames?PetaFrames.materialFrame(f,ring):frameSvgLegacy(f,ring)}
+function frameSvg(f,ring){if(/^sp:/.test(f))return window.PetaFrames&&PetaFrames.supFrame?PetaFrames.supFrame(f):'';return window.PetaFrames?PetaFrames.materialFrame(f,ring):frameSvgLegacy(f,ring)}
 // 自分が使える縁：格は今の格まで、形はこれまでに一度でもなったクラス（settings.frCls に貯める）
 const RI_FORCE=(()=>{try{return window.__cloud?null:+new URLSearchParams(location.search).get('ri')||null}catch(e){return null}})(); // 試作だけ：?ri=4 で格の縁を確かめる
+const SUP_FORCE=(()=>{try{return !window.__cloud&&new URLSearchParams(location.search).get('sup')==='1'}catch(e){return false}})(); // 試作だけ：?sup=1 でサポーターの縁を確かめる
 const rpgF=()=>{const r=rpgOf(myStats());return RI_FORCE?{...r,ri:RI_FORCE}:r};
 function myFrameList(){const r=rpgF(),cl=[...new Set([...(settings.frCls||[]),...(r.top?[r.top]:[])])].filter(k=>FR_EN[k]);
-  const out=[''];for(let t=1;t<=r.ri;t++)cl.forEach(k=>out.push(`t${t}:${k}`));return {r,list:out}}
+  const out=[''];if(supOn(me)||SUP_FORCE)out.push('sp:1');for(let t=1;t<=r.ri;t++)cl.forEach(k=>out.push(`t${t}:${k}`));return {r,list:out}} // サポーターの縁は、サポーターの間だけ選べる（切れたらおまかせに戻る）
 // 使う縁：settings.frame が 'auto'（既定）なら今の格・クラス。選んだ縁が使えなくなっていたら auto に戻す
 const autoFrame=()=>{const r=rpgF();return r.ri>0&&r.top?`t${r.ri}:${r.top}`:''};
 function myFrame(){const {list}=myFrameList(),f=settings.frame;return f==null||f==='auto'||!list.includes(f)?autoFrame():f}
 function syncFrame(){const r=rpgOf(myStats());if(r.top&&!(settings.frCls||[]).includes(r.top)){settings.frCls=[...(settings.frCls||[]),r.top];if(!me.sample)store.set('set2',settings)}
   const f=myFrame();if((me.frame||'')!==f){me={...me,frame:f};if(!me.sample)store.set('me2',me);return true}return false}
-function frName(f){return f?`${FR_TIER[+f[1]]}${RSTATS.find(x=>x.k===f.slice(3)).cls}の縁`:'ふつうのリング'}
+function frName(f){return f==='sp:1'?'サポーターの縁':f?`${FR_TIER[+f[1]]}${RSTATS.find(x=>x.k===f.slice(3)).cls}の縁`:'ふつうのリング'}
 function openFrames(){const {list}=myFrameList(),cur=settings.frame&&settings.frame!=='auto'&&list.includes(settings.frame)?settings.frame:'auto';
   openSheet(`<b style="font-size:20px;display:block;text-align:center">縁をえらぶ</b><p class="note" style="text-align:center">クラスの格と種類で、スタンプの縁が変わります。獲得した縁はいつでも選び直せます。季節・イベントの期間中に交換したスタンプは、その期間の縁になります。</p>
    <div class="frpick"><button class="frop press" data-fr="auto" aria-pressed="${cur==='auto'}">${stamp(me,{size:64,fr:autoFrame()})}<span>おまかせ<small>今のクラス</small></span></button>${list.map(f=>`<button class="frop press" data-fr="${f}" aria-pressed="${cur===f}">${stamp(me,{size:64,fr:f})}<span>${esc(frName(f))}</span></button>`).join('')}</div>
    <div class="note" style="margin-top:8px;text-align:center">${FR_TIER.slice(1).map((n,i)=>`${n} Lv.${CLS_STEP[i+1][0]}`).join('・')} で縁の格が上がります</div>
    <button class="btn sub press" style="margin-top:12px" data-close>閉じる</button>`);
   bindClose();$$('[data-fr]').forEach(b=>b.onclick=()=>{settings.frame=b.dataset.fr;store.set('set2',settings);syncFrame();closeSheet();render();toast('縁を変えました')})}
+/* 縁の文字を円に沿って1文字ずつ並べる（textPath の textLength は iPhone が無視して、文字が半周で詰まっていた）。
+   r＝文字の中心の半径、dy＝内側へずらす量。全角は1、半角は0.6の幅として一周に割り振る */
+function ringText(txt,r,o){const ch=[...txt],w=ch.map(c=>c.charCodeAt(0)>255?1:.6),tot=w.reduce((a,b)=>a+b,0),rr=r-(o.dy||0);let acc=0;
+  return `<g font-size="${o.fs}" font-family="${o.ff}" font-weight="${o.fw}" fill="${o.fill}" text-anchor="middle">${ch.map((c,i)=>{const th=Math.PI+(acc+w[i]/2)/tot*2*Math.PI;acc+=w[i];
+    return c===' '?'':`<text transform="translate(${(50+rr*Math.cos(th)).toFixed(2)} ${(50+rr*Math.sin(th)).toFixed(2)}) rotate(${(th*180/Math.PI+90).toFixed(1)})">${esc(c)}</text>`}).join('')}</g>`}
 /* stamp renderer */
 let uid=0;
 function stamp(p,o={}){
@@ -1401,13 +1434,13 @@ function stamp(p,o={}){
     svg=`<svg viewBox="0 0 100 100" aria-hidden="true"><defs><path id="${id}" d="M50,50 m-44.5,0 a44.5,44.5 0 1,1 89,0 a44.5,44.5 0 1,1 -89,0"/><linearGradient id="${id}g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff1a8"/><stop offset=".5" stop-color="#e2a91c"/><stop offset="1" stop-color="#9a6a06"/></linearGradient></defs>
       <circle cx="50" cy="50" r="44.5" fill="none" stroke="#14110a" stroke-width="10.5"/>
       <circle cx="50" cy="50" r="49.6" fill="none" stroke="url(#${id}g)" stroke-width="1.6"/><circle cx="50" cy="50" r="39.4" fill="none" stroke="url(#${id}g)" stroke-width="1.6"/>
-      <text font-size="5.4" font-family="JetBrains Mono,monospace" font-weight="800" fill="url(#${id}g)" dy="2" textLength="276" lengthAdjust="spacing"><textPath href="#${id}">${txt}</textPath></text>
+      ${ringText(txt,44.5,{fs:5.4,ff:'JetBrains Mono,monospace',fw:800,fill:`url(#${id}g)`,dy:2})}
       <g transform="translate(80 13)"><circle r="9.5" fill="url(#${id}g)" stroke="#14110a" stroke-width="1.6"/><path d="M-4.2 .2l2.9 2.9 5.6-5.8" fill="none" stroke="#14110a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></g></svg>`;
   }else if(ev){const id='rp'+(++uid),txt=`${ev.short} ★ ${ev.short} ★ `;
     svg=`<svg viewBox="0 0 100 100" aria-hidden="true"><defs><path id="${id}" d="M50,50 m-44.5,0 a44.5,44.5 0 1,1 89,0 a44.5,44.5 0 1,1 -89,0"/></defs>
       <circle cx="50" cy="50" r="44.5" fill="none" stroke="${ev.c1}" stroke-width="10.5"/>
       <circle cx="50" cy="50" r="49.6" fill="none" stroke="${ev.c2}" stroke-width=".9"/><circle cx="50" cy="50" r="39.4" fill="none" stroke="${ev.c2}" stroke-width=".9"/>
-      <text font-size="5.6" font-family="JetBrains Mono,monospace" font-weight="700" fill="${ev.c2}" dy="2" textLength="276" lengthAdjust="spacing"><textPath href="#${id}">${esc(txt)}</textPath></text></svg>`;
+      ${ringText(txt,44.5,{fs:5.6,ff:'JetBrains Mono,monospace',fw:700,fill:ev.c2,dy:2})}</svg>`;
   }else if(szx)svg=seasonFrame(szx);
   else if(fr)svg=frameSvg(fr,p.ring);
   else svg=`<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48" fill="none" stroke="${p.ring}" stroke-width="3.6"/></svg>`;
@@ -1953,7 +1986,7 @@ function shopFrame(s){const id='rp'+(++uid),c1=okColor(s.c1),c2=okColor(s.c2),tx
   return `<svg viewBox="0 0 100 100" aria-hidden="true"><defs><path id="${id}" d="M50,50 m-43.6,0 a43.6,43.6 0 1,1 87.2,0 a43.6,43.6 0 1,1 -87.2,0"/><mask id="${id}m"><rect width="100" height="100" fill="#fff"/><circle cx="50" cy="50" r="38.2" fill="#000"/></mask></defs>
     <path d="${d}Z" fill="${c1}" mask="url(#${id}m)"/>
     <circle cx="50" cy="50" r="38.9" fill="none" stroke="${c2}" stroke-width="1.3" stroke-dasharray="1.4 1.3"/>
-    <text font-size="5.2" font-family="JetBrains Mono,monospace" font-weight="800" fill="${c2}" dy="1.9" textLength="268" lengthAdjust="spacing"><textPath href="#${id}">${esc(txt)}</textPath></text>
+    ${ringText(txt,43.6,{fs:5.2,ff:'JetBrains Mono,monospace',fw:800,fill:c2,dy:1.9})}
     <g transform="translate(50 89.5)"><rect x="-15" y="-6" width="30" height="12" rx="3" fill="${c2}" stroke="${c1}" stroke-width="1.6"/>
     <path d="M-15 -2.2h30" stroke="${c1}" stroke-width=".9" stroke-dasharray="3 3"/><text y="3.6" text-anchor="middle" font-size="5.6" font-family="JetBrains Mono,monospace" font-weight="900" fill="${c1}">${isEv(s)?'EVENT':'STORE'}</text></g></svg>`}
 const shopStamp=(s,size=84)=>`<div class="stamp shop" style="width:${size}px;font-size:${size/7}px"><img src="${esc(shopImg(s))}" alt="${esc(s.name)}の${shopStampName(s)}">${shopFrame(s)}</div>`;
@@ -2178,7 +2211,7 @@ function phoFrame(x,d){const id='rp'+(++uid),c=x?CAT[x.cat]:{c:'#e8551c'},nm=(x?
   return `<svg viewBox="0 0 100 100" aria-hidden="true"><defs><path id="${id}" d="M50,50 m-44.5,0 a44.5,44.5 0 1,1 89,0 a44.5,44.5 0 1,1 -89,0"/></defs>
     <circle cx="50" cy="50" r="44.5" fill="none" stroke="${c.c}" stroke-width="10.5"/>
     <circle cx="50" cy="50" r="49.6" fill="none" stroke="#fff" stroke-width=".9" opacity=".8"/><circle cx="50" cy="50" r="39.4" fill="none" stroke="#fff" stroke-width=".9" opacity=".8"/>
-    <text font-size="${fs.toFixed(2)}" font-family="'Zen Kaku Gothic New',sans-serif" font-weight="800" fill="#fff" dy="${(fs*.36).toFixed(2)}" textLength="276" lengthAdjust="spacing"><textPath href="#${id}">${esc(txt)}</textPath></text>
+    ${ringText(txt,44.5,{fs:fs.toFixed(2),ff:"'Zen Kaku Gothic New',sans-serif",fw:800,fill:'#fff',dy:fs*.36})}
     <g transform="translate(80 15)"><circle r="9" fill="#fff" stroke="${c.c}" stroke-width="1.8"/><g transform="translate(-6 -6) scale(.5)" fill="none" stroke="${c.c}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">${ICONS[x?c.ic:'pin']||''}</g></g></svg>`}
 const phoStamp=(p,size=84)=>{const x=SP(p.spot);return `<div class="stamp ev pho nopho" style="width:${size}px;font-size:${size/7}px"><img data-pho="${esc(p.id)}" alt="${esc(x?x.n:'')}のフォトスタンプ">${phoFrame(x,p.d)}</div>`};
 // 写真を撮って（選んで）丸く切り抜く。記録した日だけ作れる
@@ -2391,12 +2424,14 @@ async function stampCanvas(html,S){const doc=new DOMParser().parseFromString(htm
   if(pic){const k=Math.max(2*r/pic.width,2*r/pic.height);g.drawImage(pic,cx-pic.width*k/2,cy-pic.height*k/2,pic.width*k,pic.height*k)}else{g.fillStyle='#2a3440';g.fillRect(0,0,S,S)}g.restore();
   if(sv){const fr=await svgToImg(sv.outerHTML.replace('<svg ',`<svg width="${S}" height="${S}" `));if(fr)g.drawImage(fr,0,0,S,S)}
   return cv}
-/* --- 画像を端末に保存：Androidアプリは写真（Pictures/PetaCar）へ直接、iPhoneアプリは共有メニューの「画像を保存」、Web版はダウンロード --- */
+/* --- 画像を端末に保存：アプリ版は写真へ直接（AndroidはPictures/PetaCar、iPhoneは「写真」）、だめなら共有メニュー、Web版はダウンロード --- */
 const b64Of=b=>new Promise(ok=>{const r=new FileReader();r.onload=()=>ok(String(r.result).split(',')[1]);r.readAsDataURL(b)});
 const isNative=()=>!!(window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform());
 async function saveImage(blob,name){
-  if(isNative()&&Capacitor.getPlatform&&Capacitor.getPlatform()==='android'){try{await Capacitor.registerPlugin('PhotoSave').save({data:await b64Of(blob),name});toast('写真に保存しました（ギャラリーの「PetaCar」）');return}catch(e){console.warn('PhotoSave',e)}}
-  if(isNative())return saveFiles([[blob,name]],''); // iPhone・古いAndroid：共有メニューから「画像を保存」
+  if(isNative()){const ios=Capacitor.getPlatform&&Capacitor.getPlatform()==='ios';
+    try{await Capacitor.registerPlugin('PhotoSave').save({data:await b64Of(blob),name});toast(ios?'「写真」に保存しました':'写真に保存しました（ギャラリーの「PetaCar」）');return}
+    catch(e){console.warn('PhotoSave',e);if(ios&&e&&e.code==='DENIED')toast('写真への保存が許可されていません。設定アプリの「ペタカー!」→「写真」で許可できます')}}
+  if(isNative())return saveFiles([[blob,name]],''); // 写真に保存できないとき（許可なし・古いアプリ）：共有メニューから「画像を保存」
   const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);toast('画像を保存しました')}
 async function shareImageFile(blob,name,text){const t=text+'\n'+SHARE_URL;
   try{if(isNative()){const FS=Capacitor.registerPlugin('Filesystem'),SHR=Capacitor.registerPlugin('Share'),w=await FS.writeFile({path:name,data:await b64Of(blob),directory:'CACHE'});await SHR.share({title:'ペタカー!',text:t,files:[w.uri]});return}
@@ -2563,7 +2598,7 @@ function openExport(){const ph=pholog.length;
   $('#exBook').onclick=async()=>{const o=$('#exOut');o.innerHTML='<p class="note" style="text-align:center;margin-top:10px">共有画像を作成しています…</p>';
     try{const P=await bookPages(),bl=await Promise.all(P.map(c=>new Promise(ok=>c.toBlob(ok,'image/png'))));
       o.innerHTML=`<div class="bookprev">${bl.map(b=>`<img src="${URL.createObjectURL(b)}" alt="スタンプ帳">`).join('')}</div><button class="btn press" id="exBookSave" style="margin-top:10px">${bl.length>1?`${bl.length}枚まとめて保存`:'保存する'}</button>`;
-      $('#exBookSave').onclick=async()=>{if(isNative()&&Capacitor.getPlatform&&Capacitor.getPlatform()==='android'){for(let i=0;i<bl.length;i++)await saveImage(bl[i],`petacar-stampbook-${today()}-${i+1}.png`);return}saveFiles(bl.map((b,i)=>[b,`petacar-stampbook-${today()}-${i+1}.png`]),'ペタカー! のスタンプ帳')}}
+      $('#exBookSave').onclick=async()=>{if(isNative()){for(let i=0;i<bl.length;i++)await saveImage(bl[i],`petacar-stampbook-${today()}-${i+1}.png`);return}saveFiles(bl.map((b,i)=>[b,`petacar-stampbook-${today()}-${i+1}.png`]),'ペタカー! のスタンプ帳')}}
     catch(e){console.warn(e);o.innerHTML='<p class="gerr">画像を作成できませんでした。一度閉じてから、もう一度お試しください。</p>'}};
   $('#exData').onclick=async()=>{try{const d=await backupData(),b=new Blob([JSON.stringify(d)],{type:'application/json'});saveFiles([[b,`petacar-backup-${today()}.json`]],'ペタカー! の記録')}catch(e){console.warn(e);toast('書き出せませんでした')}};
   $('#imFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const d=JSON.parse(await f.text());if(!d||d.app!=='petacar'||!Array.isArray(d.photos))throw 0;
@@ -2892,7 +2927,7 @@ function provText(){const p=(C.providers&&C.providers())||[];const n=p.map(x=>x=
      <button class="srow press" style="width:100%;border:0;background:none;cursor:pointer;text-align:left" data-doc="guide"><div class="t"><b>コミュニティガイドライン</b><span>安全に交換するためのルール</span></div><span class="val">›</span></button>
      <button class="srow press" style="width:100%;border:0;background:none;cursor:pointer;text-align:left" data-doc="contact"><div class="t"><b>お問い合わせ・不具合の報告</b></div><span class="val">›</span></button>
      <button class="srow press" style="width:100%;border:0;background:none;cursor:pointer;text-align:left" data-doc="credits"><div class="t"><b>データと素材の出典</b></div><span class="val">›</span></button>
-     <div class="srow"><div class="t"><b>バージョン</b></div><span class="val" style="font-family:var(--mono)">Web版・10/26更新</span></div></div>
+     <div class="srow"><div class="t"><b>バージョン</b></div><span class="val" style="font-family:var(--mono)">Web版・10/31更新</span></div></div>
    <div class="sec">アカウント</div>
    <div class="set"><div class="srow"><div class="t"><b>ログイン方法</b><span>${provText()}</span></div></div>${linkRows()}
      <button class="srow press" style="width:100%;border:0;background:none;cursor:pointer;text-align:left" id="logout"><div class="t"><b>ログアウト</b></div></button>
@@ -2907,7 +2942,7 @@ function provText(){const p=(C.providers&&C.providers())||[];const n=p.map(x=>x=
   $('#preview').onclick=previewMe;$('#snsb').onclick=openSns;if($('#demoArr2'))$('#demoArr2').onclick=()=>{closeSheet();render();setTimeout(demoArrive,450)};
   $('#onbagain').onclick=()=>{closeSheet();showOnb()};
   $$('[data-doc]').forEach(b=>b.onclick=()=>openDoc(b.dataset.doc,openSettings));
-  $('#supRow').onclick=()=>openSup(openSettings);
+  if($('#supRow'))$('#supRow').onclick=()=>openSup(openSettings); // Android版は行を出さないので無いことがある
   bindRouteRow();$('#exportb').onclick=openExport;$('#blkList').onclick=openBlocked;$('#delAcc').onclick=openDelete;
   $('#logout').onclick=()=>C.signOut();
   let armed=false;
