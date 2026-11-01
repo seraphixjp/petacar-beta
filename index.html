@@ -1589,6 +1589,7 @@ const views={
   ${supTop()}${newsTop()}${openRow()}
   <div class="stats"><div class="stat"><b>${log.length}</b><span>交換回数</span></div><div class="stat"><b>${ppl.length}</b><span>会った人</span></div><div class="stat"><b>${kc}</b><span>EX</span></div></div>
   <button class="btn sub press shareb" id="shareb" style="margin-top:10px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px;margin-right:6px"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>プロフィールをSNSでシェア</button>
+  ${nearMeCard()}
   ${passCard()}
   ${questCard()}
   ${tripCard()}
@@ -1625,6 +1626,7 @@ const views={
   const vis=spotSet();
   return `<div class="group zhead"><div class="big">${[...vis].filter(id=>!id.startsWith('rw:')).length}<small>/${SPOTS.filter(x=>x.cat!=='st').length}</small></div><div class="zt2"><b>行ったスポット</b><button class="seclink" id="mapb">制覇マップ ›</button></div>
     <div class="catrow">${Object.entries(CAT).map(([k,c])=>`<span class="chip">${c.n} ${SPOTS.filter(x=>x.cat===k&&vis.has(x.id)).length}/${SPOTS.filter(x=>x.cat===k).length}</span>`).join('')}</div></div>
+  <button class="btn sub press" id="spmapb" style="margin-top:12px">${MAPI}地図でスポットを見る</button>
   ${busySpots().length?`<div class="sec">近くでいま人がいるスポット<span class="chip">${busyScope()} · 2時間以内</span></div><div class="list">${busySpots().map(([x,n,d])=>`<button class="li press" data-spot="${esc(x.id)}">${spotMark(x,spotDays(x.id)>0)}<div class="t"><b>${esc(x.n)}</b><span>${CAT[x.cat].n} · ${esc(x.ad||x.pref)}</span></div><span class="nowc big">${n}人</span>${d!=null?`<span class="d">${fmtKm(d)}</span>`:''}</button>`).join('')}</div>`:''}
   <div class="sec">近くのスポット${here?`<span class="chip">${esc(here.label)}から</span><button class="seclink" id="locate">更新</button>`:''}</div>
   ${here?`<div class="list">${nearest(5).map(([x,d])=>`<button class="li press" data-spot="${esc(x.id)}">${spotMark(x,spotDays(x.id)>0)}<div class="t"><b>${esc(x.n)}${nowTag(x.id)}</b><span>${CAT[x.cat].n} · ${esc(x.ad||x.pref)}</span></div><span class="d">${fmtKm(d)}</span></button>`).join('')}</div>`
@@ -1632,7 +1634,6 @@ const views={
     <p class="note" style="text-align:center;margin:8px 0 0">位置は近い順に並べるためだけに使い、保存しません。</p>`}
   ${webAutoRow()}
   ${shopSection()}
-  <button class="btn sub press" id="spmapb" style="margin-top:18px">${MAPI}地図でスポットを見る</button>
   <input type="search" class="srch" id="spq" value="${esc(spotQ)}" placeholder="スポット名で探す（例：大黒、甘楽）" autocomplete="off" aria-label="スポットを検索" style="margin-top:18px">
   <div class="sortbar" role="group" aria-label="種類">${[['all','すべて'],...Object.entries(CAT).map(([k,c])=>[k,c.n])].map(([k,t])=>`<button class="sortchip press" data-cat="${k}" aria-pressed="${spotCat===k}">${t}</button>`).join('')}</div>
   <div style="margin-bottom:10px"><select id="sppref" aria-label="都道府県"><option value="">全国の都道府県</option>${PREFS.map(x=>`<option ${x===spotPref?'selected':''}>${x}</option>`).join('')}</select></div>
@@ -1752,6 +1753,10 @@ const fmtKm=k=>k<1?Math.round(k*1000)+'m':k<10?k.toFixed(1)+'km':Math.round(k)+'
 const nearest=n=>SPOTS.filter(x=>x.la!=null&&x.cat!=='st').map(x=>[x,dist(here,x)]).sort((a,b)=>a[1]-b[1]).slice(0,n);
 const gmap=x=>'https://www.google.com/maps/search/?api=1&query='+(x.la!=null?x.la+','+x.lo:encodeURIComponent(x.n+' '+(x.ad||x.pref)));
 const gnav=x=>`https://www.google.com/maps/dir/?api=1&destination=${x.la},${x.lo}&travelmode=driving`;
+// マイスタンプの「近くのスポット」：現在地が分かっていれば近い2か所、まだならスポット一覧と同じ「探す」ボタン
+function nearMeCard(){
+  if(!here)return `<div class="sec">近くのスポット</div><button class="btn sub press" id="locate2">${MAPI}現在地から近くのスポットを探す</button>`;
+  return `<div class="sec">近くのスポット<button class="seclink" id="nearAll">すべて見る ›</button></div><div class="list nearme">${nearest(2).map(([x,d])=>`<button class="li press" data-spot="${esc(x.id)}">${spotMark(x,spotDays(x.id)>0)}<div class="t"><b>${esc(x.n)}${nowTag(x.id)}</b><span>${CAT[x.cat].n} · ${esc(x.ad||x.pref)}</span></div><span class="d">${fmtKm(d)}</span></button>`).join('')}</div>`}
 function locate(){
   const demo=m=>toast(m);
   if(!navigator.geolocation){demo('この端末では現在地を利用できません');return}
@@ -2654,7 +2659,7 @@ function render(){
   if($('#ttlb'))$('#ttlb').onclick=openTitles;if($('#frb'))$('#frb').onclick=openFrames;if($('#rpghelp'))$('#rpghelp').onclick=openRpgHelp;checkLevelUp();checkSets();hydratePho();
   $('.tab[data-t=rw]').classList.toggle('dot',tab!=='rw'&&unseen().length>0);
   $$('[data-p]').forEach(b=>b.onclick=()=>detail(b.dataset.p));
-  if(tab==='me'){if($('#supTop'))$('#supTop').onclick=()=>openSup();$$('[data-nice]').forEach(b=>b.onclick=()=>sendNice(b.dataset.nice));if($('#shareb'))$('#shareb').onclick=openShare;$('#mk').onclick=openCrop;if($('#mkFirst'))$('#mkFirst').onclick=openCrop;if($('#qcard'))$('#qcard').onclick=openQuests;$('#hito').onclick=openHito;if($('#nmb'))$('#nmb').onclick=openName;$('#carb').onclick=()=>openGarage(render);if($('#grb'))$('#grb').onclick=()=>openGarage(render);if($('#newsTop'))$('#newsTop').onclick=()=>openNewsItem($('#newsTop').dataset.n);if($('#openRow'))$('#openRow').onclick=()=>{tab='ex';render()};$('#bgb').onclick=openBg;if($('#wrapb'))$('#wrapb').onclick=openWrap;if($('#tripb'))$('#tripb').onclick=()=>{const n=tripOf(today()).spots.length;n?openTripDay(today()):openTrip()};$('#allrec').onclick=()=>{colView='stamp';store.set('colv2',colView);colSort='recent';store.set('sort2',colSort);tab='col';render()}}
+  if(tab==='me'){$$('.nearme [data-spot]').forEach(b=>b.onclick=()=>openSpot(b.dataset.spot));if($('#locate2'))$('#locate2').onclick=()=>locate();if($('#nearAll'))$('#nearAll').onclick=()=>{tab='sp';render()};if($('#supTop'))$('#supTop').onclick=()=>openSup();$$('[data-nice]').forEach(b=>b.onclick=()=>sendNice(b.dataset.nice));if($('#shareb'))$('#shareb').onclick=openShare;$('#mk').onclick=openCrop;if($('#mkFirst'))$('#mkFirst').onclick=openCrop;if($('#qcard'))$('#qcard').onclick=openQuests;$('#hito').onclick=openHito;if($('#nmb'))$('#nmb').onclick=openName;$('#carb').onclick=()=>openGarage(render);if($('#grb'))$('#grb').onclick=()=>openGarage(render);if($('#newsTop'))$('#newsTop').onclick=()=>openNewsItem($('#newsTop').dataset.n);if($('#openRow'))$('#openRow').onclick=()=>{tab='ex';render()};$('#bgb').onclick=openBg;if($('#wrapb'))$('#wrapb').onclick=openWrap;if($('#tripb'))$('#tripb').onclick=()=>{const n=tripOf(today()).spots.length;n?openTripDay(today()):openTrip()};$('#allrec').onclick=()=>{colView='stamp';store.set('colv2',colView);colSort='recent';store.set('sort2',colSort);tab='col';render()}}
   if(tab==='col'||tab==='sp'){$$('[data-shop]').forEach(b=>b.onclick=()=>openShop(b.dataset.shop));if($('#demoShop'))$('#demoShop').onclick=demoShop}
   if(tab==='col'){$$('[data-cv]').forEach(b=>b.onclick=()=>{colView=b.dataset.cv;store.set('colv2',colView);render()});$$('[data-maker]').forEach(b=>b.onclick=()=>openMaker(b.dataset.maker));$$('#view [data-pho]').forEach(b=>b.onclick=()=>openPho(b.dataset.pho))}
   if(tab==='sp'){$$('[data-spot]').forEach(b=>b.onclick=()=>openSpot(b.dataset.spot));if($('#mapb'))$('#mapb').onclick=openMap;if($('#spmapb'))$('#spmapb').onclick=()=>openSpotMap();bindSpList();$('#locate').onclick=locate;if($('#demoArr'))$('#demoArr').onclick=demoArrive;if($('#autoOn'))$('#autoOn').onclick=()=>askAlways(render);$$('[data-ss]').forEach(b=>b.onclick=()=>{spotSort=b.dataset.ss;spotLim=40;render()});$$('[data-cat]').forEach(b=>b.onclick=()=>{spotCat=b.dataset.cat;spotLim=40;render()});
@@ -3288,6 +3293,7 @@ const inRange=(x,p)=>dist(p,x)*1000<=(x.cat==='st'?Math.max(ST_R,Math.min(p.acc|
 function onPos(p){const c=p.coords;myPos={la:c.latitude,lo:c.longitude,acc:c.accuracy,at:Date.now()};onShopPos();
   const first=!here;here={la:myPos.la,lo:myPos.lo,label:'現在地'};if(first)spotSort='near';
   if(tab==='sp'&&!$('#sh')&&(first||!lastDrawn||dist(lastDrawn,myPos)>0.2)){lastDrawn={...myPos};render()}
+  else if(tab==='me'&&!$('#sh')&&(first||!lastDrawn||dist(lastDrawn,myPos)>0.5)){lastDrawn={...myPos};render()}  // マイスタンプの近くのスポット
   if(c.accuracy>500)return;const t=today(),now=Date.now(),fast=c.speed!=null&&c.speed>8; // 約30km/hより速いときは走行中とみなし、数え直す
   const cand=SPOTS.filter(x=>x.la!=null&&!arrived.has(x.id)&&!spotlog.some(v=>v.id===x.id&&v.d===t)&&inRange(x,myPos));
   for(const id in spotIn)if(!cand.some(x=>x.id===id)){delete spotIn[id];delete spotSeen[id]}
