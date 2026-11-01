@@ -342,6 +342,8 @@ span.supb{display:inline-block!important;font-size:inherit!important;width:1.1em
 .smleg .smonly{border:1px solid var(--line);background:none;color:var(--ink);font:inherit;font-size:11.5px;font-weight:700;border-radius:999px;padding:3px 9px;cursor:pointer}.smleg .smonly[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
 .smleg i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px;vertical-align:-1px}
 html{touch-action:manipulation} /* iPhoneでボタンなどをすばやく2回押すと画面が拡大されていた（2本指の拡大はそのまま） */
+.smme{pointer-events:none}.smme i{display:block;width:16px;height:16px;margin:5px;border-radius:50%;background:#2f7cf6;border:3px solid #fff;box-sizing:border-box;box-shadow:0 1px 4px rgba(0,0,0,.35);transition:transform .4s}
+.smme.hd i{width:26px;height:26px;margin:0;border:0;border-radius:0;background:none;box-shadow:none;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 26 26'%3E%3Cpath d='M23 13 5 4.5 9 13 5 21.5z' fill='%232f7cf6' stroke='%23fff' stroke-width='2.4' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat;filter:drop-shadow(0 1px 2px rgba(0,0,0,.4))}
 .smloc.on{background:var(--accent);color:#fff}
 .smloc{position:absolute;right:10px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:500;width:44px;height:44px;border-radius:50%;border:0;background:var(--bg);color:var(--accent);box-shadow:0 2px 10px rgba(0,0,0,.25);display:grid;place-items:center;cursor:pointer}
 .smcard{position:absolute;left:10px;right:10px;bottom:calc(68px + env(safe-area-inset-bottom,0px));z-index:600;background:var(--bg);border-radius:18px;padding:12px;box-shadow:0 6px 24px rgba(0,0,0,.3);display:flex;gap:12px;align-items:center;animation:fade .15s}
@@ -1126,7 +1128,7 @@ function openPref(pf){
    行ったところは種類の色で塗りつぶし、まだのところは白抜き。現在地は表示に使うだけで保存しない ===== */
 let smOnly=false; // 地図で「行ったところだけ」を表示中（アプリを開いている間だけ覚える）
 let smMk=[],smRd=null; // 地図の点はすべてこの1枚に描く（描画面が2枚になると上の面がタップを奪い、2回目から点を押しても名前が出なかった）
-let LF=null,smMap=null,smLayer=null,smMe=null,smSel=null,smWatch=null,smFollow=true; // smFollow：現在地に合わせて地図を動かし続ける（指で動かしたら止め、現在地ボタンで戻す）
+let LF=null,smMap=null,smLayer=null,smMe=null,smSel=null,smWatch=null,smFollow=true,smHead=null,smPrev=null; // smFollow：現在地に合わせて地図を動かし続ける（指で動かしたら止め、現在地ボタンで戻す）
 const smR=(on,z)=>z<=7?(on?5:2.4):z<=9?(on?7:3.6):(on?8.5:5); // 広い範囲では点を小さくして混み合いを減らす
 function loadLeaflet(){
   if(window.L&&L.map)return Promise.resolve(window.L);
@@ -1231,14 +1233,25 @@ function smShowMe(){
   if(!smMap||!here)return;
   const ll=[here.la,here.lo];
   if(smFollow)smMap.panTo(ll,{animate:true}); // 自分を中心に（指で地図を動かした後は止まる）
-  if(smMe){smMe.eachLayer(m=>m.setLatLng(ll));return}
-  smMe=window.L.layerGroup([window.L.circleMarker(ll,{renderer:smRd,radius:14,stroke:false,fillColor:'#2f7cf6',fillOpacity:.18,interactive:false}),
-    window.L.circleMarker(ll,{renderer:smRd,radius:7,weight:3,color:'#fff',fillColor:'#2f7cf6',fillOpacity:1,interactive:false})]).addTo(smMap);
+  if(!smMe){const L=window.L;
+    smMe=L.layerGroup([L.circleMarker(ll,{renderer:smRd,radius:14,stroke:false,fillColor:'#2f7cf6',fillOpacity:.18,interactive:false}),
+      L.marker(ll,{icon:L.divIcon({className:'smme',html:'<i></i>',iconSize:[26,26],iconAnchor:[13,13]}),interactive:false,keyboard:false,zIndexOffset:1000})]).addTo(smMap)}
+  else smMe.eachLayer(m=>m.setLatLng(ll));
+  // 向きが分かれば▶を進む方向へ、止まっていて分からなければ丸のまま
+  smMe.eachLayer(m=>{const e=m.getElement&&m.getElement();if(!e||!e.classList.contains('smme'))return;e.classList.toggle('hd',smHead!=null);const i=e.firstChild;if(i)i.style.transform=smHead!=null?`rotate(${smHead-90}deg)`:''});
 }
+/* 進む向き（北から時計回りの度）：GPSの向き（動いているときだけ届く）か、前の位置から15m以上動いた向き。止まっても最後の向きは残す */
+function smSetHead(c){
+  const p={la:c.latitude,lo:c.longitude};
+  if(c.heading!=null&&!isNaN(c.heading)&&(c.speed==null||c.speed>1)){smHead=c.heading;smPrev=p;return}
+  if(!smPrev){smPrev=p;return}
+  const d=dist(smPrev,p)*1000;if(d<15)return;
+  const r=Math.PI/180,y=Math.sin((p.lo-smPrev.lo)*r)*Math.cos(p.la*r),x=Math.cos(smPrev.la*r)*Math.sin(p.la*r)-Math.sin(smPrev.la*r)*Math.cos(p.la*r)*Math.cos((p.lo-smPrev.lo)*r);
+  smHead=(Math.atan2(y,x)/r+360)%360;smPrev=p}
 /* 地図を開いている間だけ現在地を見て、青い点を動かす。位置の許可がまだの人には、地図を開いただけでは聞かない（現在地ボタンを押したときから） */
 function smStartWatch(){
   if(smWatch!=null||!navigator.geolocation)return;
-  smWatch=navigator.geolocation.watchPosition(p=>{if(!smMap)return;here={la:p.coords.latitude,lo:p.coords.longitude,label:'現在地'};smShowMe()},()=>{},{enableHighAccuracy:true,maximumAge:5000,timeout:30000});
+  smWatch=navigator.geolocation.watchPosition(p=>{if(!smMap)return;smSetHead(p.coords);here={la:p.coords.latitude,lo:p.coords.longitude,label:'現在地'};smShowMe()},()=>{},{enableHighAccuracy:true,maximumAge:5000,timeout:30000});
 }
 function smSetFollow(on){smFollow=on;const b=$('#smloc');if(b){b.classList.toggle('on',on);b.setAttribute('aria-pressed',on)}}
 function smLocate(quiet){
@@ -1248,7 +1261,7 @@ function smLocate(quiet){
   navigator.geolocation.getCurrentPosition(p=>{here={la:p.coords.latitude,lo:p.coords.longitude,label:'現在地'};spotSort='near';if(smMap&&smFollow)smMap.setView([here.la,here.lo],Math.max(smMap.getZoom(),13));smShowMe();smStartWatch()},
     ()=>{if(quiet!==true)toast('現在地を取得できませんでした')},{timeout:8000,maximumAge:60000});
 }
-function closeSpotMap(){if(smWatch!=null){navigator.geolocation.clearWatch(smWatch);smWatch=null}if(smMap){smMap.remove();smMap=null}smLayer=smMe=smSel=smRd=null;$('#smap').innerHTML='';render()}
+function closeSpotMap(){if(smWatch!=null){navigator.geolocation.clearWatch(smWatch);smWatch=null}if(smMap){smMap.remove();smMap=null}smLayer=smMe=smSel=smRd=null;smHead=smPrev=null;$('#smap').innerHTML='';render()}
 
 /* ===== 今月のお題（月ごとに決まったお題なので、運営の作業も保存もいらない。全員同じお題）
    2026年9月までは毎月1つ。2026年10月から毎月3つ（1つ目は今までと同じ選び方なので、10月の1つ目はそのまま） ===== */
