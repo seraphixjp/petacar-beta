@@ -2040,21 +2040,22 @@ function demoShop(){const x=SHOPS.find(s=>!shopToday(s.id));if(!x){toast('今日
     if(f>=1){clearInterval(iv);$('#pnote').innerHTML='';shopPrompt(x)}},100)}
 /* ガレージ：複数台を登録して「今日の車」で交換する */
 const CARI='<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 16l1.6-5.2A2 2 0 0 1 8.5 9.4h7a2 2 0 0 1 1.9 1.4L19 16"/><rect x="3" y="15" width="18" height="4.5" rx="1.6"/><circle cx="7" cy="19.5" r="1.4"/><circle cx="17" cy="19.5" r="1.4"/></svg>';
-const GMAX=5;
+const GMAX_FREE=2,GMAX_SUP=5;  // 3台目からはサポーター特典。解約しても登録済みの車は消さない（追加だけできなくなる）
+const gMax=()=>supOn(me)||SUP_FORCE?GMAX_SUP:GMAX_FREE;
 // 今の車のスタンプをガレージに戻す／別の車のスタンプを出す
 const stashCur=()=>me.garage.map(c=>c.id===me.cur?{...c,img:me.def||me.nost?null:me.img,ring:me.ring,ver:me.ver||1}:c);
 const useCar=(G,c)=>({...me,garage:G,cur:c.id,maker:c.maker,car:c.car,img:c.img||avatar(c.ring||me.ring),ring:c.ring||me.ring,ver:c.ver||1,nost:!c.img,def:!G.some(x=>x.img),sample:false});
 const carStamp=c=>c.id===me.cur?me:{...me,img:c.img||avatar(c.ring||me.ring),ring:c.ring||me.ring};
 function openGarage(back){
-  const G=me.garage;
+  const G=me.garage,GMAX=gMax(),supUp=GMAX<GMAX_SUP;
   openSheet(`<b style="font-size:20px;display:block;text-align:center">ガレージ</b>
-   <p class="note" style="text-align:center;margin:4px 0 12px">車ごとにスタンプを作れます。交換すると、相手の手元には「今日の車」のスタンプが残ります。${GMAX}台まで登録できます。</p>
+   <p class="note" style="text-align:center;margin:4px 0 12px">車ごとにスタンプを作れます。交換すると、相手の手元には「今日の車」のスタンプが残ります。${GMAX}台まで登録できます${supUp?`（サポーターは${GMAX_SUP}台まで）`:''}。</p>
    <div class="list garage">${G.map(c=>{const on=c.id===me.cur;return `<div class="li gli${on?' on':''}"><button class="gsel press" data-g="${c.id}" aria-pressed="${on}"><span class="gck" aria-hidden="true">${on?'✓':''}</span>${stamp(carStamp(c),{size:40})}<div class="t"><b>${esc(carLabel(c))}</b><span>${on?'今日の車':'タップで今日の車にする'}${(on?!me.nost&&!me.def:c.img)?'':' · スタンプ未作成'}</span></div></button><button class="gdel press" data-mk="${c.id}">${(on?!me.nost&&!me.def:c.img)?'作り直す':'作る'}</button>${G.length>1?`<button class="gdel press" data-del="${c.id}" aria-label="${esc(carLabel(c))}を削除">削除</button>`:''}</div>`}).join('')}</div>
    ${G.length<GMAX?`<button class="btn sub press" id="gadd" style="margin-top:12px">＋ 車を追加</button>
    <div id="gform" class="group" hidden style="margin-top:12px">
      <div class="row"><label class="f">メーカー<select id="gmk">${MAKERS.map(x=>`<option>${x}</option>`).join('')}</select></label><label class="f">車種<select id="gcar"></select></label></div>
      <label class="f" id="goW" style="margin-top:8px" hidden>車種を入力<input type="text" id="go" maxlength="24" placeholder="例）ロータス エリーゼ"></label>
-     <button class="btn press" id="gok" style="margin-top:10px">ガレージに入れる</button></div>`:`<p class="note" style="text-align:center">${GMAX}台まで登録しています</p>`}
+     <button class="btn press" id="gok" style="margin-top:10px">ガレージに入れる</button></div>`:supUp?`<p class="note" style="text-align:center">${GMAX}台まで登録しています。3台目からはサポーターの特典です</p><button class="btn sub press" id="gsup" style="margin-top:8px">${SUPB}サポーターについて</button>`:`<p class="note" style="text-align:center">${GMAX}台まで登録しています</p>`}
    <p class="note" style="margin-top:12px">作り直すと版が上がります。前のスタンプをもらった人の手元には、前のスタンプが残ります。</p>
    <button class="btn sub press" style="margin-top:10px" data-close>閉じる</button>`);
   bindClose(back);
@@ -2064,6 +2065,7 @@ function openGarage(back){
   $$('[data-mk]').forEach(b=>b.onclick=()=>{pick(G.find(x=>x.id===b.dataset.mk));closeSheet();setTimeout(()=>{render();openCrop()},280)});
   $$('[data-del]').forEach(b=>b.onclick=()=>{const id=b.dataset.del,c=G.find(x=>x.id===id);if(b.dataset.arm!=='1'){b.dataset.arm='1';b.textContent='本当に削除';b.classList.add('arm');return}
     const rest=stashCur().filter(x=>x.id!==id);me=id===me.cur?useCar(rest,rest[0]):{...me,garage:rest,def:!rest.some(x=>x.img)&&!!me.def,sample:false};save();toast(`${carLabel(c)}を削除しました`);reopen()});
+  const gs=$('#gsup');if(gs)gs.onclick=()=>{closeSheet();setTimeout(()=>openSup(()=>openGarage(back)),260)};
   const add=$('#gadd');if(!add)return;
   const fill=()=>{const L=CARS[$('#gmk').value]||[];$('#gcar').innerHTML=L.map(x=>`<option>${esc(x)}</option>`).join('')+'<option value="__other">その他（入力する）</option>';if(!L.length)$('#gcar').value='__other';$('#goW').hidden=$('#gcar').value!=='__other'};
   add.onclick=()=>{add.hidden=true;$('#gform').hidden=false;$('#gmk').value=me.maker;fill()};
@@ -2078,7 +2080,7 @@ const NTAG={info:['お知らせ','var(--accent)'],event:['イベント','#2f6fd6
 const NEWS=[
  {id:'r1',d:'2026-11-01',tag:'info',pin:true,t:'ペタカー! 正式版を公開しました',b:'ペタカー!をご利用いただき、ありがとうございます。iPhone版をApp Storeで公開しました。Android版は公開の準備を進めています。\n\nベータ版から使っていただいている方の記録は、そのまま引き継がれています。\n\nはじめての方は、マイスタンプで愛車の写真からスタンプを作成してください。会った人とは「交換をはじめる」→相手を選ぶ→2人で同時にスマホを振る、の手順でスタンプを交換できます。\n\nご意見や不具合のご報告は、設定の「お問い合わせ・不具合の報告」からお寄せください。'},
  {id:'r2',d:'2026-11-01',tag:'update',t:'地図が見やすくなりました',b:'スポットの地図を新しくしました。道や地名が読みやすくなっています。\n\n・まだ行っていないスポットは種類の色、行ったスポットは灰色で出ます。\n・地図を開くと、自分の位置が真ん中に来て、移動に合わせて地図もついてきます。地図を指で動かすと止まり、右下のボタンでまた自分の位置に戻ります。\n・丸をタップするとスポットの名前が出て、「詳しく」からナビも開けます。'},
- {id:'r3',d:'2026-10-26',tag:'update',t:'サポーターを始めました（iPhone版）',b:'ペタカー!の運営を応援していただけるサポーター（月額）を始めました。設定の「サポーター」から申し込めます。\n\nサポーターになると、名前の横に星が付き、サポーター限定の縁でスタンプを交換できます。いただいたお金は、サーバー代と新しい機能の開発に使います。'},
+ {id:'r3',d:'2026-10-26',tag:'update',t:'サポーターを始めました（iPhone版）',b:'ペタカー!の運営を応援していただけるサポーター（月額）を始めました。設定の「サポーター」から申し込めます。\n\nサポーターになると、名前の横に星が付き、サポーター限定の縁でスタンプを交換できます。ガレージにも5台まで車を登録できます（サポーターでない方は2台まで）。いただいたお金は、サーバー代と新しい機能の開発に使います。'},
  {id:'r4',d:'2026-11-01',tag:'update',t:'iPhone版の使い勝手を良くしました',b:'・スタンプやスタンプ帳の画像を、写真アプリに直接保存できるようになりました。\n・設定の自動記録の欄に、いま動いているか・止まっている理由が出るようになりました。\n・金のバッジのデザインを新しくしました。'},
  {id:'b9',d:'2026-10-09',tag:'update',t:'旅のしおりにドライブの記録・移動距離・ナイスが入りました',b:'旅のしおりが新しくなりました。\n\n・ドライブの記録（オンにした人だけ）：アプリを開いている間の位置を2分または500mごとに記録し、その日のルートを地図に表示します。記録はスマホの中だけに保存され、運営にもほかの人にも送られません。旅のしおりか設定の「ドライブを記録する」でオンにできます。\n・移動距離：ルートがあればルートから、なければスポットどうしの直線距離の目安を出します。\n・すれ違った人とナイス！：その日すれ違った人と、送った・届いたナイス！が並びます。\n・SNS用の画像にも地図が入ります。出発と到着のまわり（約1km）は自動で消すので、自宅の場所は出ません。'},
  {id:'b8',d:'2026-10-09',tag:'update',t:'一人でも楽しめる機能を追加しました',b:'会えない日も楽しめるように、4つの機能を追加しました。\n\n・フォトスタンプ：スポットを記録した日に、その場で撮った写真をスタンプにできます。スポットの画面の「フォトスタンプを作る」から。写真はスマホの中だけに保存されます。\n・旅のしおり：マイスタンプの「旅のしおり」に、行ったスポットと交換した人が1日ずつ残ります。SNS用の画像にもできます。\n・セット：リワードの「セット」に、決まったスポットや車種を集めるセットが16個あります。揃えるとEXP+100とバッジ。\n・データの持ち出し：設定の「データの持ち出し」から、スタンプ帳の画像と記録のファイルを保存できます。'},
@@ -2873,6 +2875,8 @@ function openSup(back){const on=supOn(me),X=SUPX;let busy=false;
    <div class="set"><div class="srow"><div class="t"><b>${SUPB}名前の前に青い星</b><span>近くの人の一覧・プロフィール・交換の記録など、名前が出るところに付きます</span></div></div>
      <div class="srow"><div class="t"><b>ルートの振り返り</b><span>走ったルートを、7日より前の分も月ごと・年ごとの地図で見られます。GPXファイルでの保存にも対応</span></div></div>
      <div class="srow"><div class="t"><b>交換の特別な演出</b><span>サポーターが関わる交換では、「ペタッ」が青く光って星が飛びます。交換した相手の画面にも出ます</span></div></div>
+     <div class="srow"><div class="t"><b>サポーター限定の縁</b><span>交換するスタンプに、サポーターだけの縁を付けられます</span></div></div>
+     <div class="srow"><div class="t"><b>ガレージに5台まで</b><span>サポーターでない方は2台までです。解約しても、登録済みの車はそのまま残ります</span></div></div>
      <div class="srow"><div class="t"><b>サポーター限定のリワード</b><span>リボン形のバッジ（1か月・半年・1年）。解約しても獲得したバッジは残ります</span></div></div></div>
    <div class="sec">料金</div>
    <div class="set"><div class="srow"><div class="t"><b>ペタカー!サポーター（1か月）</b><span>1か月ごとの自動更新</span></div><span class="val" id="supPrice">${X?'料金を確認しています…':'月額300円'}</span></div></div>
