@@ -1592,7 +1592,7 @@ const views={
   ${passCard()}
   ${questCard()}
   ${tripCard()}
-  <button class="yrcard press" id="wrapb" style="margin-top:10px"><span class="yk">PETACAR ${new Date().getFullYear()}</span><b>${new Date().getFullYear()}年のまとめ</b><span class="ys">この1年の出会いとスポットを振り返る</span><span class="ya" aria-hidden="true">›</span></button>
+  ${wrapY()?`<button class="yrcard press" id="wrapb" style="margin-top:10px"><span class="yk">PETACAR ${wrapY()}</span><b>${wrapY()}年のまとめ</b><span class="ys">この1年の出会いとスポットを振り返る</span><span class="ya" aria-hidden="true">›</span></button>`:''}
   <div class="sec">最近の交換<button class="seclink" id="allrec">すべて見る ›</button></div>
   <div class="list">${log.slice().sort((a,b)=>b.d.localeCompare(a.d)).slice(0,4).map(l=>{const p=person(l.pid);return `<button class="li press" data-p="${p.id}">${stamp(p,{size:44,ev:l.ev,sz:l.sz,fr:l.fr,kira:l.kira,rare:l.rare,v:l.v,im:l.im,rg:l.rg})}<div class="t"><b>${supM(p)}${esc(p.name)} ${l.kira?'<span class="tag kira">EX</span>':l.rare?'<span class="tag rare">レア</span>':''}</b><span>${esc(placeOf(l))}</span></div><span class="d">${fmtD(l.d)}</span></button>`}).join('')}</div>`;
  },
@@ -1787,8 +1787,10 @@ function yearStats(Y){
   return {Y,ex:L.length,ppl:ppl.length,newP:ppl.filter(id=>firstMet(id).startsWith(Y)).length,buddy:buddy&&{p:person(buddy[0]),n:buddy[1]},topM,
     sp:S.length,eki:S.filter(x=>x.cat==='eki').length,tg:S.filter(x=>x.cat==='tg').length,cir:S.filter(x=>x.cat==='cir').length,pa:S.filter(x=>x.cat==='pa').length,
     cars:cars.length,kira:L.filter(l=>l.kira).length,evs:new Set(L.filter(l=>l.ev).map(l=>l.ev)).size,rare}}
+// 年のまとめは12月と1月だけ出す（1月は前の年の分）。試作は ?wrap=1 でいつでも見られる
+function wrapY(){const d=new Date(),m=d.getMonth();if(m===11)return d.getFullYear();if(m===0)return d.getFullYear()-1;try{if(!window.__cloud&&new URLSearchParams(location.search).get('wrap')==='1')return d.getFullYear()}catch(e){}return 0}
 function openWrap(){
-  const w=yearStats(String(new Date().getFullYear()));
+  const w=yearStats(String(wrapY()||new Date().getFullYear()));
   openSheet(`<div class="wrap" id="wrapcard"><div class="yr">PETACAR ${w.Y}</div><h3>${esc(me.name)}さんの${w.Y}年</h3>
     <div class="bigs"><div><b>${w.ex}</b><span>交換</span></div><div><b>${w.ppl}</b><span>会った人</span></div><div><b>${w.sp}</b><span>スポット</span></div></div>
     ${w.buddy?`<div class="buddy">${stamp(w.buddy.p,{size:56})}<div><span style="font-size:11px;opacity:.8">一番会った相棒</span><b style="display:block;font-size:16px">${esc(w.buddy.p.name)}さん</b><span style="font-size:12px">${w.buddy.n}日 会いました</span></div></div>`:''}
@@ -2652,7 +2654,7 @@ function render(){
   if($('#ttlb'))$('#ttlb').onclick=openTitles;if($('#frb'))$('#frb').onclick=openFrames;if($('#rpghelp'))$('#rpghelp').onclick=openRpgHelp;checkLevelUp();checkSets();hydratePho();
   $('.tab[data-t=rw]').classList.toggle('dot',tab!=='rw'&&unseen().length>0);
   $$('[data-p]').forEach(b=>b.onclick=()=>detail(b.dataset.p));
-  if(tab==='me'){if($('#supTop'))$('#supTop').onclick=()=>openSup();$$('[data-nice]').forEach(b=>b.onclick=()=>sendNice(b.dataset.nice));if($('#shareb'))$('#shareb').onclick=openShare;$('#mk').onclick=openCrop;if($('#mkFirst'))$('#mkFirst').onclick=openCrop;if($('#qcard'))$('#qcard').onclick=openQuests;$('#hito').onclick=openHito;if($('#nmb'))$('#nmb').onclick=openName;$('#carb').onclick=()=>openGarage(render);if($('#grb'))$('#grb').onclick=()=>openGarage(render);if($('#newsTop'))$('#newsTop').onclick=()=>openNewsItem($('#newsTop').dataset.n);if($('#openRow'))$('#openRow').onclick=()=>{tab='ex';render()};$('#bgb').onclick=openBg;$('#wrapb').onclick=openWrap;if($('#tripb'))$('#tripb').onclick=()=>{const n=tripOf(today()).spots.length;n?openTripDay(today()):openTrip()};$('#allrec').onclick=()=>{colView='stamp';store.set('colv2',colView);colSort='recent';store.set('sort2',colSort);tab='col';render()}}
+  if(tab==='me'){if($('#supTop'))$('#supTop').onclick=()=>openSup();$$('[data-nice]').forEach(b=>b.onclick=()=>sendNice(b.dataset.nice));if($('#shareb'))$('#shareb').onclick=openShare;$('#mk').onclick=openCrop;if($('#mkFirst'))$('#mkFirst').onclick=openCrop;if($('#qcard'))$('#qcard').onclick=openQuests;$('#hito').onclick=openHito;if($('#nmb'))$('#nmb').onclick=openName;$('#carb').onclick=()=>openGarage(render);if($('#grb'))$('#grb').onclick=()=>openGarage(render);if($('#newsTop'))$('#newsTop').onclick=()=>openNewsItem($('#newsTop').dataset.n);if($('#openRow'))$('#openRow').onclick=()=>{tab='ex';render()};$('#bgb').onclick=openBg;if($('#wrapb'))$('#wrapb').onclick=openWrap;if($('#tripb'))$('#tripb').onclick=()=>{const n=tripOf(today()).spots.length;n?openTripDay(today()):openTrip()};$('#allrec').onclick=()=>{colView='stamp';store.set('colv2',colView);colSort='recent';store.set('sort2',colSort);tab='col';render()}}
   if(tab==='col'||tab==='sp'){$$('[data-shop]').forEach(b=>b.onclick=()=>openShop(b.dataset.shop));if($('#demoShop'))$('#demoShop').onclick=demoShop}
   if(tab==='col'){$$('[data-cv]').forEach(b=>b.onclick=()=>{colView=b.dataset.cv;store.set('colv2',colView);render()});$$('[data-maker]').forEach(b=>b.onclick=()=>openMaker(b.dataset.maker));$$('#view [data-pho]').forEach(b=>b.onclick=()=>openPho(b.dataset.pho))}
   if(tab==='sp'){$$('[data-spot]').forEach(b=>b.onclick=()=>openSpot(b.dataset.spot));if($('#mapb'))$('#mapb').onclick=openMap;if($('#spmapb'))$('#spmapb').onclick=()=>openSpotMap();bindSpList();$('#locate').onclick=locate;if($('#demoArr'))$('#demoArr').onclick=demoArrive;if($('#autoOn'))$('#autoOn').onclick=()=>askAlways(render);$$('[data-ss]').forEach(b=>b.onclick=()=>{spotSort=b.dataset.ss;spotLim=40;render()});$$('[data-cat]').forEach(b=>b.onclick=()=>{spotCat=b.dataset.cat;spotLim=40;render()});
