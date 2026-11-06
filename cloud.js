@@ -13,7 +13,7 @@ async function nativeCred(A, kind) {
   const r = await FA.signInWithGoogle({ skipNativeAuth: true }); return A.GoogleAuthProvider.credential(r.credential.idToken);
 }
 const gate = document.getElementById('gate');
-const LOCAL_KEYS = ['colv2', 'sort2'];                 // per-device view preferences
+const LOCAL_KEYS = ['colv2', 'sort2', 'rtPend'];                 // per-device view preferences
 const PROFILE_SYNC = ['me2', 'log2', 'spot2', 'pins2', 'set2']; // keys that change what others see
 const people = (window.__people = window.__people || []);
 const peopleCbs = [];
@@ -113,6 +113,7 @@ async function toRef(v, uid, mine) {
 
 // Firestore が受け付けない値（undefined・NaN・Infinity）を書く前に取り除く。配列の中の undefined は null になる
 const fsSafe = o => JSON.parse(JSON.stringify(o, (k, v) => typeof v === 'number' && !isFinite(v) ? null : v));
+const mailRid = () => Array.from(crypto.getRandomValues(new Uint8Array(6)), b => b.toString(16).padStart(2, '0')).join(''); // 手紙のID末尾（通数の制限はなし）
 const MAX_DOC = 1000000; // 1文書の上限（約1MB）の手前
 const sizeCheck = (o, what) => { const n = JSON.stringify(o).length; if (n > MAX_DOC) { const e = new Error(what + ' too large: ' + n); e.code = 'invalid-argument'; throw e } return o };
 
@@ -434,6 +435,33 @@ async function firebaseBackend() {
     // バックアップ：曜日ごとの7枠（b0〜b6）と、復元の直前の状態（bpre）。自分しか読めない場所に置く
     bakGet: (slot, withProf) => Promise.all([F.getDoc(D('users', uid, 'priv', 'b' + slot)), withProf ? F.getDoc(D('users', uid, 'priv', 'bp' + slot)) : null]).then(([a, b]) => a.exists() ? { ...a.data(), prof: b && b.exists() ? b.data().data : null } : null),
     bakPut: (slot, day, privD, profD) => Promise.all([F.setDoc(D('users', uid, 'priv', 'b' + slot), { day, at: Date.now(), data: privD }), profD ? F.setDoc(D('users', uid, 'priv', 'bp' + slot), { day, at: Date.now(), data: profD }) : null]),
+    // 引き継ぎ・手紙・クラウドバックアップ（写真は受け渡しの間だけ、または本人が選んだときだけサーバーに置く）
+    relay: (() => {
+      const ts = ms => F.Timestamp.fromMillis(ms), denied = e => e && e.code === 'permission-denied';
+      const mb = id => D('mail', id, 'mailbody', 'b');
+      return {
+        xfer: {
+          put: async (sid, parts, prog) => { const exp = ts(Date.now() + 86400000); await F.setDoc(D('xfer', sid), { by: uid, n: parts.length, at: Date.now(), exp }); for (let i = 0; i < parts.length; i++) { prog && prog(i, parts.length); await F.setDoc(D('xfer', sid, 'xferp', String(i)), { by: uid, d: parts[i], exp }) } },
+          exists: sid => F.getDoc(D('xfer', sid)).then(x => x.exists(), e => !denied(e)),
+          get: async (sid, prog) => { const m = await F.getDoc(D('xfer', sid)); if (!m.exists()) throw new Error('no xfer'); const n = m.data().n; let o = ''; for (let i = 0; i < n; i++) { prog && prog(i + 1, n); o += (await F.getDoc(D('xfer', sid, 'xferp', String(i)))).data().d } return o },
+          del: async sid => { const m = await F.getDoc(D('xfer', sid)).catch(() => null), n = m && m.exists() ? m.data().n : 0; for (let i = 0; i < n; i++) await F.deleteDoc(D('xfer', sid, 'xferp', String(i))).catch(() => { }); await F.deleteDoc(D('xfer', sid)) },
+        },
+        mail: {
+          setBox: v => F.setDoc(D('users', uid, 'priv', 'mb'), v),
+          send: (to, m, body) => { const id = uid + '_' + to + '_' + mailRid(), exp = ts(Date.now() + 7 * 86400000), b = F.writeBatch(db); b.set(D('mail', id), { from: uid, to, day: m.day, at: Date.now(), deliverAt: m.deliverAt, exp }); b.set(mb(id), { ...body, exp }); return b.commit() },
+          sub: cb => F.onSnapshot(F.query(Col('mail'), F.where('to', '==', uid), F.limit(30)), qs => { if (qs.size) cb(qs.docs.map(d => ({ ...d.data(), id: d.id }))) }, e => console.warn('mail', e)),
+          body: id => F.getDoc(mb(id)).then(x => x.exists() ? x.data() : null),
+          del: id => { const b = F.writeBatch(db); b.delete(mb(id)); b.delete(D('mail', id)); return b.commit() },
+        },
+        cb: {
+          idx: () => F.getDoc(D('users', uid, 'cb', '_idx')).then(x => x.exists() && Array.isArray(x.data().ids) ? x.data().ids : []),
+          put: (id, d) => F.setDoc(D('users', uid, 'cb', id), d),
+          addIdx: ids => F.setDoc(D('users', uid, 'cb', '_idx'), { ids: F.arrayUnion(...ids) }, { merge: true }),
+          get: id => F.getDoc(D('users', uid, 'cb', id)).then(x => x.exists() ? x.data() : null),
+          delAll: async () => { const qs = await F.getDocs(Col('users', uid, 'cb')); for (const d of qs.docs) await F.deleteDoc(d.ref) },
+        },
+      };
+    })(),
     report: d => F.addDoc(Col('reports'), { ...d, by: uid, at: Date.now() }),
     refreshAuth: () => (auth.currentUser ? auth.currentUser.getIdToken(true) : Promise.reject(new Error('no user'))),
     idToken: () => (auth.currentUser ? auth.currentUser.getIdToken() : Promise.reject(new Error('no user'))),
@@ -443,6 +471,12 @@ async function firebaseBackend() {
     signOut: () => (NATIVE ? FA.signOut().catch(() => { }) : Promise.resolve()).then(() => A.signOut(auth)).then(() => location.reload()),
     deleteAccount: async () => {
       const baks = ['pre', 0, 1, 2, 3, 4, 5, 6].flatMap(k => ['b' + k, 'bp' + k]).map(k => F.deleteDoc(D('users', uid, 'priv', k)));
+      // 手紙（自分宛て・未配達の自分発）・受信設定・クラウドの写真
+      const mq = await Promise.all(['to', 'from'].map(k => F.getDocs(F.query(Col('mail'), F.where(k, '==', uid))).catch(() => null)));
+      for (const qs of mq.filter(Boolean)) for (const d of qs.docs) { const b = F.writeBatch(db); b.delete(D('mail', d.id, 'mailbody', 'b')); b.delete(d.ref); await b.commit().catch(() => { }) }
+      const cbq = await F.getDocs(Col('users', uid, 'cb')).catch(() => null);
+      if (cbq) for (const d of cbq.docs) await F.deleteDoc(d.ref).catch(() => { });
+      await F.deleteDoc(D('users', uid, 'priv', 'mb')).catch(() => { });
       const ms = await F.getDoc(D('users', uid, 'priv', 'imgs')).catch(() => null);
       const imgs = (ms && ms.exists() && Array.isArray(ms.data().ids) ? ms.data().ids : []).map(id => F.deleteDoc(D('img', id)).catch(() => { }));
       // 交換の申し込みの記録（自分が入っているもの）も消す。自分の side も先に消す
@@ -513,6 +547,32 @@ function mockBackend(uid) {
     subMine: cb => sub(() => cb(JSON.parse(JSON.stringify(M.docs.get('users/' + uid + '/priv/state') || null)))),
     bakGet: slot => { const a = M.docs.get('users/' + uid + '/priv/b' + slot), b = M.docs.get('users/' + uid + '/priv/bp' + slot); return Promise.resolve(a ? JSON.parse(JSON.stringify({ ...a, prof: b ? b.data : null })) : null) },
     bakPut: (slot, day, privD, profD) => { put('users/' + uid + '/priv/b' + slot, { day, at: Date.now(), data: privD }); if (profD) put('users/' + uid + '/priv/bp' + slot, { day, at: Date.now(), data: profD }); return Promise.resolve() },
+    relay: (() => {
+      const rm = k => { M.docs.delete(k); notify() };
+      const deny = () => Object.assign(new Error('denied'), { code: 'permission-denied' });
+      return {
+        xfer: {
+          put: async (sid, parts, prog) => { await put('xfer/' + sid, { by: uid, n: parts.length }); for (let i = 0; i < parts.length; i++) { prog && prog(i, parts.length); await put('xfer/' + sid + '/xferp/' + i, { by: uid, d: parts[i] }) } },
+          exists: async sid => { const x = M.docs.get('xfer/' + sid); return !!x && x.by === uid },
+          get: async (sid, prog) => { const m = M.docs.get('xfer/' + sid); if (!m || m.by !== uid) throw deny(); let o = ''; for (let i = 0; i < m.n; i++) { prog && prog(i + 1, m.n); o += M.docs.get('xfer/' + sid + '/xferp/' + i).d } return o },
+          del: async sid => { const m = M.docs.get('xfer/' + sid); if (m) for (let i = 0; i < m.n; i++) rm('xfer/' + sid + '/xferp/' + i); rm('xfer/' + sid) },
+        },
+        mail: {
+          setBox: v => put('users/' + uid + '/priv/mb', v),
+          send: async (to, m, body) => { const id = uid + '_' + to + '_' + mailRid(), box = M.docs.get('users/' + to + '/priv/mb'); if (M.docs.has('mail/' + id) || (box && (box.off || (box.block || []).includes(uid)))) throw deny(); await put('mail/' + id, { from: uid, to, day: m.day, at: Date.now(), deliverAt: m.deliverAt }); await put('mail/' + id + '/mailbody/b', body) },
+          sub: cb => sub(() => { const a = Object.entries(coll('mail', v => v.to === uid)).map(([id, v]) => ({ ...v, id })); if (a.length) cb(a) }),
+          body: async id => { const x = M.docs.get('mail/' + id); if (!x || x.to !== uid) throw deny(); return M.docs.get('mail/' + id + '/mailbody/b') || null },
+          del: async id => { rm('mail/' + id + '/mailbody/b'); rm('mail/' + id) },
+        },
+        cb: {
+          idx: async () => (M.docs.get('users/' + uid + '/cb/_idx') || { ids: [] }).ids.slice(),
+          put: (id, d) => { const u = M.docs.get('users/' + uid) || {}; if (!(u.sup > Date.now())) return Promise.reject(deny()); return put('users/' + uid + '/cb/' + id, d) },
+          addIdx: ids => { const k = 'users/' + uid + '/cb/_idx', o = M.docs.get(k) || { ids: [] }; return put(k, { ids: [...new Set([...o.ids, ...ids])] }) },
+          get: async id => M.docs.get('users/' + uid + '/cb/' + id) || null,
+          delAll: async () => { for (const k of [...M.docs.keys()]) if (k.startsWith('users/' + uid + '/cb/')) rm(k) },
+        },
+      };
+    })(),
     report: d => put('reports/r' + Date.now(), { ...d, by: uid }),
     providers: () => ['google.com'],
     link: () => Promise.resolve(),
@@ -582,7 +642,7 @@ else if (be) {
     uid: be.uid, demo: !!be.demo, store, people,
     onPeople: f => peopleCbs.push(f), isOfficial: id => !!OFF[id],
     img: imgOf, need,
-    live, ex: { ...be.ex, sub: cb => be.ex.sub(m => { need(Object.values(m).flatMap(x => [x.a, x.b])); cb(m) }) }, party: be.party, here: be.here, pass: be.pass, nice: be.nice, shops: be.shops, report: be.report, signOut: be.signOut, providers: be.providers, link: be.link, idToken: be.idToken, sup: () => SUPV,
+    live, ex: { ...be.ex, sub: cb => be.ex.sub(m => { need(Object.values(m).flatMap(x => [x.a, x.b])); cb(m) }) }, party: be.party, here: be.here, pass: be.pass, nice: be.nice, shops: be.shops, relay: be.relay, report: be.report, signOut: be.signOut, providers: be.providers, link: be.link, idToken: be.idToken, sup: () => SUPV,
     deleteAccount: async () => { store.cancelAll(); const was = frozen; frozen = 'deleting'; try { await be.deleteAccount() } catch (e) { frozen = was; throw e } },
   };
   let started = false, gotPeople = false, gotCfg = false, wait = '', cfg = {}, maintShown = false;
