@@ -2308,7 +2308,7 @@ const phoView=()=>{const L=pholog.slice().sort((a,b)=>(b.t||0)-(a.t||0));
 // スポットの画面に出す行：今日記録済みなら撮れる・これまでのフォトスタンプ
 function phoSpotRow(id){const L=phoOfSpot(id),rec=spotlog.some(v=>v.id===id&&v.d===today());if(!L.length&&!rec)return '<p class="note" style="margin:10px 4px 0">このスポットを記録すると、その日だけフォトスタを撮れます</p>';
   return `<div class="phorow">${L.slice(-4).map(p=>`<button class="press" data-phoo="${esc(p.id)}" aria-label="${fmtD(p.d)}のフォトスタンプ">${phoStamp(p,56)}</button>`).join('')}
-   ${rec?`<button class="btn press" id="phMake" style="flex:1;min-width:150px">${CAMI}フォトスタを撮る</button>`:''}</div>`}
+   ${rec?`<button class="btn press" id="phMake" style="flex:1;min-width:150px">${CAMI}フォトスタンプを撮る</button>`:''}</div>`}
 const CAMI='<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px;margin-right:6px"><path d="M4 8h3l2-2.5h6L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>';
 function bindPhoSpot(id){const b=$('#phMake');if(b)b.onclick=()=>{closeSheet();setTimeout(()=>openPhoto(id,()=>openSpot(id)),260)};
   $$('[data-phoo]').forEach(e=>e.onclick=()=>{closeSheet();setTimeout(()=>openPho(e.dataset.phoo,()=>openSpot(id)),260)});hydratePho()}
@@ -3526,7 +3526,7 @@ function xferRecvUi(){
       if($('#xfMsg')){$('#xfMsg').innerHTML=`<b>写真${r.np}枚・手紙${r.nm}通・ドライブ${r.nr}日分を移しました</b>`;$('#xfGo').hidden=true;$('#xfBack').textContent='閉じる';$('#xfBack').onclick=()=>closeSheet()}}
     catch(e){console.warn('xfer',e);if($('#xfMsg')){$('#xfMsg').textContent=e&&e.code==='unavailable'?'通信できませんでした。もう一度お試しください':'受け取れませんでした。コードの間違い、期限切れ、または前のスマホと別のアカウントの可能性があります';$('#xfGo').disabled=false}}}}
 
-/* --- フォトスタを撮る入口（2026-11-05 鈴木さん「動線が分かりづらい」） --- */
+/* --- フォトスタンプを撮る入口（2026-11-05 鈴木さん「動線が分かりづらい」） --- */
 const todaySpots=()=>{const t=today(),seen=new Set(),o=[];spotlog.filter(v=>v.d===t).slice().reverse().forEach(v=>{const x=SP(v.id);if(x&&x.cat!=='st'&&!seen.has(v.id)){seen.add(v.id);o.push(x)}});return o};
 const shotYet=id=>pholog.some(p=>p.spot===id&&p.d===today());
 function photoEntry(){const L=todaySpots().slice(0,6);
@@ -3542,7 +3542,7 @@ function openShotList(){const L=todaySpots();if(!L.length)return;
    <button class="btn sub press" style="margin-top:12px" data-close>閉じる</button>`);
   bindClose();
   $$('#sh [data-shotl]').forEach(b=>b.onclick=()=>{const n=pholog.length;openPhoto(b.dataset.shotl,()=>{if(pholog.length===n)openShotList()})})} // キャンセルならリストへ戻る。作り終えたら戻さない
-const nearMeCard0=nearMeCard;nearMeCard=()=>nearMeCard0()+(todaySpots().length?`<button class="btn press" id="homeShot" style="margin-top:10px">${CAMI}フォトスタを撮る</button>`:'');
+const nearMeCard0=nearMeCard;nearMeCard=()=>nearMeCard0()+(todaySpots().length?`<button class="btn press" id="homeShot" style="margin-top:10px">${CAMI}フォトスタンプを撮る</button>`:'');
 /* --- コレクションの「フォトスタ」：もらった手紙のうち、コレクションしたもの（交換数やバッジには数えない） --- */
 function keptView(){const L=mails.filter(m=>m.kept&&!blocked.has(m.from)).slice().reverse();if(!L.length)return '';
   return `<div class="sec">もらったフォトスタ<span class="chip">${L.length}枚</span></div><div class="grid">${L.map(m=>{const p=person(m.from),x=SP(m.spot);return `<button class="cell press" data-keptml="${esc(m.id)}">${mailStamp(m,84)}<span class="n">${esc(x?x.n.replace(/^道の駅\s*/,''):'スポット')}</span><span class="s">${esc(p?p.name:'退会したユーザー')}</span></button>`}).join('')}</div>`}
