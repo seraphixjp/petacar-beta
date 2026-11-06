@@ -13,7 +13,7 @@ async function nativeCred(A, kind) {
   const r = await FA.signInWithGoogle({ skipNativeAuth: true }); return A.GoogleAuthProvider.credential(r.credential.idToken);
 }
 const gate = document.getElementById('gate');
-const LOCAL_KEYS = ['colv2', 'sort2'];                 // per-device view preferences
+const LOCAL_KEYS = ['colv2', 'sort2', 'rtPend'];                 // per-device view preferences
 const PROFILE_SYNC = ['me2', 'log2', 'spot2', 'pins2', 'set2']; // keys that change what others see
 const people = (window.__people = window.__people || []);
 const peopleCbs = [];
@@ -113,6 +113,7 @@ async function toRef(v, uid, mine) {
 
 // Firestore が受け付けない値（undefined・NaN・Infinity）を書く前に取り除く。配列の中の undefined は null になる
 const fsSafe = o => JSON.parse(JSON.stringify(o, (k, v) => typeof v === 'number' && !isFinite(v) ? null : v));
+const mailRid = () => Array.from(crypto.getRandomValues(new Uint8Array(6)), b => b.toString(16).padStart(2, '0')).join(''); // 手紙のID末尾（通数の制限はなし）
 const MAX_DOC = 1000000; // 1文書の上限（約1MB）の手前
 const sizeCheck = (o, what) => { const n = JSON.stringify(o).length; if (n > MAX_DOC) { const e = new Error(what + ' too large: ' + n); e.code = 'invalid-argument'; throw e } return o };
 
@@ -447,7 +448,7 @@ async function firebaseBackend() {
         },
         mail: {
           setBox: v => F.setDoc(D('users', uid, 'priv', 'mb'), v),
-          send: (to, m, body) => { const id = uid + '_' + to + '_' + m.day, exp = ts(Date.now() + 7 * 86400000), b = F.writeBatch(db); b.set(D('mail', id), { from: uid, to, day: m.day, at: Date.now(), deliverAt: m.deliverAt, exp }); b.set(mb(id), { ...body, exp }); return b.commit() },
+          send: (to, m, body) => { const id = uid + '_' + to + '_' + mailRid(), exp = ts(Date.now() + 7 * 86400000), b = F.writeBatch(db); b.set(D('mail', id), { from: uid, to, day: m.day, at: Date.now(), deliverAt: m.deliverAt, exp }); b.set(mb(id), { ...body, exp }); return b.commit() },
           sub: cb => F.onSnapshot(F.query(Col('mail'), F.where('to', '==', uid), F.limit(30)), qs => { if (qs.size) cb(qs.docs.map(d => ({ ...d.data(), id: d.id }))) }, e => console.warn('mail', e)),
           body: id => F.getDoc(mb(id)).then(x => x.exists() ? x.data() : null),
           del: id => { const b = F.writeBatch(db); b.delete(mb(id)); b.delete(D('mail', id)); return b.commit() },
@@ -558,7 +559,7 @@ function mockBackend(uid) {
         },
         mail: {
           setBox: v => put('users/' + uid + '/priv/mb', v),
-          send: async (to, m, body) => { const id = uid + '_' + to + '_' + m.day, box = M.docs.get('users/' + to + '/priv/mb'); if (M.docs.has('mail/' + id) || (box && (box.off || (box.block || []).includes(uid)))) throw deny(); await put('mail/' + id, { from: uid, to, day: m.day, at: Date.now(), deliverAt: m.deliverAt }); await put('mail/' + id + '/mailbody/b', body) },
+          send: async (to, m, body) => { const id = uid + '_' + to + '_' + mailRid(), box = M.docs.get('users/' + to + '/priv/mb'); if (M.docs.has('mail/' + id) || (box && (box.off || (box.block || []).includes(uid)))) throw deny(); await put('mail/' + id, { from: uid, to, day: m.day, at: Date.now(), deliverAt: m.deliverAt }); await put('mail/' + id + '/mailbody/b', body) },
           sub: cb => sub(() => { const a = Object.entries(coll('mail', v => v.to === uid)).map(([id, v]) => ({ ...v, id })); if (a.length) cb(a) }),
           body: async id => { const x = M.docs.get('mail/' + id); if (!x || x.to !== uid) throw deny(); return M.docs.get('mail/' + id + '/mailbody/b') || null },
           del: async id => { rm('mail/' + id + '/mailbody/b'); rm('mail/' + id) },
