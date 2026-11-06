@@ -707,7 +707,7 @@ const refOf=p=>{const s=String(p&&p.img||'');return s&&!s.startsWith('data:')?s:
 function bgCSS(o){const bg=o.bg||{kind:'preset',id:'night'},src=bg.kind==='photo'&&typeof bg.src==='string'?IMG(bg.src):null;
   if(src&&/^data:image\/[a-z]+;base64,[A-Za-z0-9+/=]+$/.test(src)){const d=okNum(bg.dim,0,1,.35);return `linear-gradient(180deg,rgba(0,0,0,${d*.6}),rgba(0,0,0,${Math.min(.9,d+.25)})),url(${src}) center ${okNum(bg.y,0,100,50)}%/cover`}
   return (Object.hasOwn(BGS,bg.id)?BGS[bg.id]:BGS.ring).css(okColor(o.ring))}
-const ghostOf=id=>({id,name:'退会したユーザー',maker:'その他',car:'—',pref:'',ring:'#8a8f96',img:avatar('#8a8f96'),vers:[],stats:{pins:[]},showStats:false,showRewards:false,ghost:true});
+let ghostImg=null;const ghostOf=id=>({id,name:'退会したユーザー',maker:'その他',car:'—',pref:'',ring:'#8a8f96',img:(ghostImg=ghostImg||avatar('#8a8f96')),vers:[],stats:{pins:[]},showStats:false,showRewards:false,ghost:true});
 const person=id=>POOL.find(p=>p.id===id)||ghostOf(id);
 Object.entries({p1:'night',p2:'track',p3:'bay',p4:'trail',p5:'sunset',p6:'fuji',p7:'pa',p8:'carbon'}).forEach(([id,b])=>person(id).bg={kind:'preset',id:b});
 /* sample stats for other people (prototype only) */
@@ -2102,6 +2102,7 @@ const BELL='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-wi
 const NTAG={info:['お知らせ','var(--accent)'],event:['イベント','#2f6fd6'],update:['アップデート','#1d8a4b'],mainte:['メンテナンス','#6b7480']};
 const NEWS=[
  {id:'r1',d:'2026-11-01',tag:'info',pin:true,t:'ペタカー! 正式版を公開しました',b:'ペタカー!をご利用いただき、ありがとうございます。iPhone版をApp Storeで公開しました。Android版は公開の準備を進めています。\n\nベータ版から使っていただいている方の記録は、そのまま引き継がれています。\n\nはじめての方は、マイスタンプで愛車の写真からスタンプを作成してください。会った人とは「交換をはじめる」→相手を選ぶ→2人で同時にスマホを振る、の手順でスタンプを交換できます。\n\nご意見や不具合のご報告は、設定の「お問い合わせ・不具合の報告」からお寄せください。'},
+ {id:'r6',d:'2026-11-06',tag:'update',t:'サポーターの特典が増えました（iPhone版）',b:'iPhone版のスタンプとフォトスタンプの保存枚数に上限ができました。サポーターでない方はスタンプ300枚・フォトスタンプ100枚まで、サポーターはスタンプ1,500枚・フォトスタンプ2,000枚までです。\n\nすでに上限を超えている方の分は消えません。新しく増やせなくなるだけで、持っている人とはこれまでどおり交換できます。'},
  {id:'r5',d:'2026-11-05',tag:'update',t:'手紙と機種変更の引き継ぎができるようになりました',b:'・手紙：フォトスタンプを、交換したことがある人に送れるようになりました。受け取りたくないときは、設定でオフにできます。\n・機種変更の引き継ぎ：設定の「データの持ち出し」から、写真をコードで新しいスマホへ移せます。\n・クラウドバックアップ：サポーターの方は、フォトスタンプを預けて、スマホをなくしても戻せるようになりました（希望する方だけ）。'},
  {id:'r2',d:'2026-11-01',tag:'update',t:'地図が見やすくなりました',b:'スポットの地図を新しくしました。道や地名が読みやすくなっています。\n\n・まだ行っていないスポットは種類の色、行ったスポットは灰色で出ます。\n・地図を開くと、自分の位置が真ん中に来て、移動に合わせて地図もついてきます。地図を指で動かすと止まり、右下のボタンでまた自分の位置に戻ります。\n・丸をタップするとスポットの名前が出て、「詳しく」からナビも開けます。'},
  {id:'r3',d:'2026-10-26',tag:'update',t:'サポーターを始めました（iPhone版）',b:'ペタカー!の運営を応援していただけるサポーター（月額）を始めました。設定の「サポーター」から申し込めます。\n\nサポーターになると、名前の横に星が付き、サポーター限定の縁でスタンプを交換できます。ガレージにも5台まで車を登録できます（サポーターでない方は2台まで）。いただいたお金は、サーバー代と新しい機能の開発に使います。'},
@@ -2232,7 +2233,7 @@ const PDB=(()=>{let p=null;
     rget:k=>tx('rt','readonly',s=>s.get(k)),rput:(k,v)=>tx('rt','readwrite',s=>s.put(v,k)),rdel:k=>tx('rt','readwrite',s=>s.delete(k)),rkeys:()=>tx('rt','readonly',s=>s.getAllKeys())}})();
 window.__phoClear=()=>PDB.clear().catch(()=>{});
 let pholog=(store.get('pho1',[])||[]).filter(x=>x&&typeof x.id==='string');
-const savePho=()=>store.set('pho1',pholog.slice(-500));
+const savePho=()=>store.set('pho1',pholog.slice(-2000));
 const phoCache={};
 async function phoSrc(id){if(id in phoCache)return phoCache[id];let v=null;try{v=await PDB.get(id)}catch(e){}return phoCache[id]=typeof v==='string'?v:null}
 // data-pho の付いた img に、端末に保存した写真を入れる（描画のあとに呼ぶ）
@@ -2896,7 +2897,7 @@ function supRow(){const on=supOn(me);if(!on&&!SUPX&&isNative())return ''; // And
   return `<button class="srow press" id="supRow" style="width:100%;border:0;background:none;cursor:pointer;text-align:left"><div class="t"><b>${SUPB}ペタカー!サポーター</b><span>${on?`ご支援ありがとうございます（${supTill()}まで・自動更新）`:'月額300円で運営を応援。青い星とルートの振り返りが使えます'}</span></div><span class="val">›</span></button>`}
 function openSup(back){const on=supOn(me),X=SUPX;let busy=false;
   openSheet(`<div style="text-align:center"><div class="supbig">${SUPB}</div><b style="font-size:20px;display:block;margin:8px 0 4px">ペタカー!サポーター</b>
-     <div class="note" style="margin:0 8px">ペタカー!は個人で開発・運営しています。サーバー代と開発を応援していただけるとうれしいです。交換やスポットの記録など、いままでの機能は無料のまま使えます。</div></div>
+     <div class="note" style="margin:0 8px">ペタカー!は個人で開発・運営しています。サーバー代と開発を応援していただけるとうれしいです。交換やスポットの記録は無料で使えます。</div></div>
    <div class="sec">サポーターになると</div>
    <div class="set"><div class="srow"><div class="t"><b>${SUPB}名前の前に青い星</b><span>近くの人の一覧・プロフィール・交換の記録など、名前が出るところに付きます</span></div></div>
      <div class="srow"><div class="t"><b>ルートの振り返り</b><span>走ったルートを、7日より前の分も月ごと・年ごとの地図で見られます。GPXファイルでの保存にも対応</span></div></div>
@@ -2904,6 +2905,7 @@ function openSup(back){const on=supOn(me),X=SUPX;let busy=false;
      <div class="srow"><div class="t"><b>サポーター限定の縁</b><span>交換するスタンプに、サポーターだけの縁を付けられます</span></div></div>
      <div class="srow"><div class="t"><b>ガレージに5台まで</b><span>サポーターでない方は2台までです。解約しても、登録済みの車はそのまま残ります</span></div></div>
      <div class="srow"><div class="t"><b>クラウドバックアップ</b><span>自分のフォトスタンプを預けて、スマホをなくしても戻せます（希望する方だけ）</span></div></div>
+     <div class="srow"><div class="t"><b>たくさん保存できます</b><span>スタンプ1,500枚・フォトスタンプ2,000枚まで保存できます。サポーターでない方はスタンプ300枚・フォトスタンプ100枚までです（iPhone版）。解約しても、保存済みの分はそのまま残ります</span></div></div>
      <div class="srow"><div class="t"><b>サポーター限定のリワード</b><span>リボン形のバッジ（1か月・半年・1年）。解約しても獲得したバッジは残ります</span></div></div></div>
    <div class="sec">料金</div>
    <div class="set"><div class="srow"><div class="t"><b>ペタカー!サポーター（1か月）</b><span>1か月ごとの自動更新</span></div><span class="val" id="supPrice">${X?'料金を確認しています…':'月額300円'}</span></div></div>
@@ -3433,7 +3435,7 @@ setInterval(()=>presence(),30000);setTimeout(()=>presence(true),1500);
    ・手紙：交換したことがある相手にフォトスタンプを送る。すぐ届く（2026-11-05 鈴木さん）。受け取ったらサーバーから消す
    ・クラウド：サポーターが自分の写真だけを預ける。解約から90日で消える */
 const RL=C.relay;
-const MAIL_IMG_MAX=280000,XF_CHUNK=900000,CB_MAX=5000;
+const MAIL_IMG_MAX=280000,XF_CHUNK=900000,CB_MAX=2000;
 const IMG_RE=/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/,DAY_RE=/^\d{4}-\d{2}-\d{2}$/;
 
 /* --- 暗号化（引き継ぎ用） --- */
@@ -3545,6 +3547,24 @@ const nearMeCard0=nearMeCard;nearMeCard=()=>nearMeCard0()+(todaySpots().length?`
 /* --- コレクションの「フォトスタ」：もらった手紙のうち、コレクションしたもの（交換数やバッジには数えない） --- */
 function keptView(){const L=mails.filter(m=>m.kept&&!blocked.has(m.from)).slice().reverse();if(!L.length)return '';
   return `<div class="sec">もらったフォトスタ<span class="chip">${L.length}枚</span></div><div class="grid">${L.map(m=>{const p=person(m.from),x=SP(m.spot);return `<button class="cell press" data-keptml="${esc(m.id)}">${mailStamp(m,84)}<span class="n">${esc(x?x.n.replace(/^道の駅\s*/,''):'スポット')}</span><span class="s">${esc(p?p.name:'退会したユーザー')}</span></button>`}).join('')}</div>`}
+/* --- 保存の上限（2026-11-06 鈴木さん）：スタンプ300・フォトスタンプ100、サポーターはスタンプ1,500・フォトスタンプ2,000。
+   持っている分は消さない（超えていても追加だけ止める）。課金できない版（Android・Web）はサポーターと同じ枠。枠は記録の文書1つ（約1MB）に収まる数 --- */
+const STAMP_FREE=300,STAMP_SUP=1500,PHO_FREE=100,PHO_SUP=2000;
+const capTest=/[?&]mock=/.test(location.search)&&/[?&]captest=1/.test(location.search); // 模擬環境の確認用
+const capOn=()=>(!!SUPX||capTest)&&!supOn(me);
+const stampMax=()=>capOn()?STAMP_FREE:STAMP_SUP,phoMax=()=>capOn()?PHO_FREE:PHO_SUP;
+const stampCount=()=>new Set(log.map(l=>l.pid)).size;
+const stampFull=id=>stampCount()>=stampMax()&&!log.some(l=>l.pid===id); // すでに持っている人との交換は上限に関係なくできる
+function capSheet(kind){const nm=kind==='pho'?'フォトスタンプ':'スタンプ',mx=kind==='pho'?phoMax():stampMax(),up=capOn(),sm=kind==='pho'?PHO_SUP:STAMP_SUP;
+  openSheet(`<div class="result"><b style="font-size:20px">${nm}の保存がいっぱいです</b>
+     <div class="note">${nm}は${mx.toLocaleString()}枚まで保存できます。${kind==='pho'?'':'すでに持っている人とは、これまでどおり交換できます。'}今ある分はそのまま残ります。</div>
+     ${up?`<div class="note" style="margin-top:6px">サポーターになると${sm.toLocaleString()}枚まで保存できます。</div>`:''}</div>
+   ${up?`<button class="btn press" id="capSup" style="margin-top:14px">${SUPB}サポーターについて</button>`:''}
+   <button class="btn sub press" style="margin-top:10px" data-close>閉じる</button>`);
+  bindClose();if($('#capSup'))$('#capSup').onclick=()=>{closeSheet();setTimeout(()=>openSup(()=>{}),260)}}
+const openPhoto00=openPhoto;openPhoto=(id,back)=>{if(pholog.length>=phoMax()){capSheet('pho');return}return openPhoto00(id,back)};
+const request00=request;request=(id,accepted,exArg)=>{if(id!=='demo'&&stampFull(id)){capSheet('stamp');return}return request00(id,accepted,exArg)};
+const openParty00=openParty;openParty=(asHost,info)=>{if(!(info&&info.id==='demo')&&stampCount()>=stampMax()){capSheet('stamp');return}return openParty00(asHost,info)};
 /* --- 手紙を送る --- */
 const shrinkImg=src=>new Promise((ok,ng)=>{const im=new Image();im.onload=()=>{const s=Math.min(1,480/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*s);c.height=Math.round(im.height*s);c.getContext('2d').drawImage(im,0,0,c.width,c.height);ok(c.toDataURL('image/jpeg',.72))};im.onerror=ng;im.src=src});
 function openSendLetter(pid,back){const p=pholog.find(v=>v.id===pid);if(!p)return;
