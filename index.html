@@ -355,7 +355,7 @@ html{touch-action:manipulation} /* iPhoneでボタンなどをすばやく2回�
 .smapc .smtile{filter:saturate(.3) brightness(1.08) contrast(.85)}
 /* 地図はダーク設定でも白い地図のまま（2026-11-08 鈴木さん） */
 .smapc .leaflet-control-attribution{font-size:9px}
-.spdesc{margin:6px 4px 0;font-size:13.5px;line-height:1.6;color:var(--text);text-align:left}.spdesc small{display:block;margin-top:2px;font-size:10.5px;color:var(--muted)}
+.spdesc{margin:6px 4px 0;font-size:13.5px;line-height:1.6;color:var(--text);text-align:left}.spweb{display:block;width:100%;box-sizing:border-box;margin-top:10px;text-align:center}.spdesc small{display:block;margin-top:2px;font-size:10.5px;color:var(--muted)}
 .smapc .leaflet-control-zoom{display:none}
 .sheet{position:absolute;inset:0;background:rgba(5,8,12,.5);display:flex;align-items:flex-end;z-index:20;animation:fade .2s}
 .sheet>div{background:var(--bg);width:100%;max-height:94%;overflow:auto;border-radius:24px 24px 0 0;padding:8px 16px calc(18px + env(safe-area-inset-bottom,0px));animation:up .3s cubic-bezier(.2,.8,.2,1)}
@@ -2105,11 +2105,7 @@ const BELL='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-wi
 const NTAG={info:['お知らせ','var(--accent)'],event:['イベント','#2f6fd6'],update:['アップデート','#1d8a4b'],mainte:['メンテナンス','#6b7480']};
 const NEWS=[
  {id:'r1',d:'2026-11-01',tag:'info',pin:true,t:'ペタカー! 正式版を公開しました',b:'ペタカー!をご利用いただき、ありがとうございます。iPhone版をApp Storeで公開しました。Android版は公開の準備を進めています。\n\nベータ版から使っていただいている方の記録は、そのまま引き継がれています。\n\nはじめての方は、マイスタンプで愛車の写真からスタンプを作成してください。会った人とは「交換をはじめる」→相手を選ぶ→2人で同時にスマホを振る、の手順でスタンプを交換できます。\n\nご意見や不具合のご報告は、設定の「お問い合わせ・不具合の報告」からお寄せください。'},
- {id:'r7',d:'2026-11-10',tag:'update',t:'スポットに紹介文と公式サイトを追加しました',b:'・スポットの紹介：神社・城・寺・ダム・道の駅・PAなど約2,000か所に、ひとことの紹介や豆知識を付けました。Wikipedia日本語版などの公開情報をもとにしています。
-・公式サイト：公式サイトがあるスポットは、スポットの画面から開けるようになりました。
-・地図：「行っていないところだけ」に絞り込めるようになり、地図はいつでも白い地図で表示します。
-・手紙は1日3通までになりました。
-・そのほか、お気に入りの★が縁に隠れる不具合などを直しました。'},
+ {id:'r7',d:'2026-11-10',tag:'update',t:'スポットに紹介文と公式サイトを追加しました',b:'・スポットの紹介：神社・城・寺・ダム・道の駅・PAなど約2,000か所に、ひとことの紹介や豆知識を付けました。Wikipedia日本語版などの公開情報をもとにしています。\n・公式サイト：公式サイトがあるスポットは、スポットの画面から開けるようになりました。\n・地図：「行っていないところだけ」に絞り込めるようになり、地図はいつでも白い地図で表示します。\n・手紙は1日3通までになりました。\n・そのほか、お気に入りの★が縁に隠れる不具合などを直しました。'},
  {id:'r6',d:'2026-11-06',tag:'update',t:'サポーターの特典が増えました（iPhone版）',b:'iPhone版のスタンプとフォトスタンプの保存枚数に上限ができました。サポーターでない方はスタンプ300枚・フォトスタンプ100枚まで、サポーターはスタンプ1,500枚・フォトスタンプ2,000枚までです。\n\nすでに上限を超えている方の分は消えません。新しく増やせなくなるだけで、持っている人とはこれまでどおり交換できます。'},
  {id:'r5',d:'2026-11-05',tag:'update',t:'手紙と機種変更の引き継ぎができるようになりました',b:'・手紙：フォトスタンプを、交換したことがある人に送れるようになりました。受け取りたくないときは、設定でオフにできます。\n・機種変更の引き継ぎ：設定の「データの持ち出し」から、写真をコードで新しいスマホへ移せます。\n・クラウドバックアップ：サポーターの方は、フォトスタンプを預けて、スマホをなくしても戻せるようになりました（希望する方だけ）。'},
  {id:'r2',d:'2026-11-01',tag:'update',t:'地図が見やすくなりました',b:'スポットの地図を新しくしました。道や地名が読みやすくなっています。\n\n・まだ行っていないスポットは種類の色、行ったスポットは灰色で出ます。\n・地図を開くと、自分の位置が真ん中に来て、移動に合わせて地図もついてきます。地図を指で動かすと止まり、右下のボタンでまた自分の位置に戻ります。\n・丸をタップするとスポットの名前が出て、「詳しく」からナビも開けます。'},
@@ -2662,9 +2658,9 @@ function openSpot(id,back){
   const x=SP(id),c=CAT[x.cat],vs=spotlog.filter(v=>v.id===id).map(v=>v.d).sort().reverse(),done=vs[0]===today();
   openSheet(`<div class="result">${spotMark(x,vs.length>0,84)}<b style="font-size:20px">${esc(x.n)}</b><div><span class="chip">${c.n}</span> <span class="chip">${esc(x.pref)}</span></div>
     ${x.nt?`<div class="note" style="font-weight:600;color:var(--text)">${esc(x.nt)}</div>`:''}${SPOT_DESC[id]?`<p class="spdesc">${esc(SPOT_DESC[id])}<small>出典：Wikipedia日本語版などの公開情報をもとに要約</small></p>`:''}${x.st?`<div class="stoptag">停める場所：${esc(x.st)}</div>`:''}<div class="note">${esc(x.ad||x.pref)}${here&&x.la!=null?` · ${esc(here.label)}から約${fmtKm(dist(here,x))}`:''}</div>
-    ${hereN(id)?`<div class="nowline">いま${hereN(id)}人がここで記録しています<small>（2時間以内・名前は出ません）</small></div>`:''}<div class="note">${vs.length?`${vs.length}回行きました · 最後は${fmtD(vs[0])}`:'まだ行ったことがありません'}</div></div>
+    ${hereN(id)?`<div class="nowline">いま${hereN(id)}人がここで記録しています<small>（2時間以内・名前は出ません）</small></div>`:''}<div class="note">${vs.length?`${vs.length}回行きました · 最後は${fmtD(vs[0])}`:'まだ行ったことがありません'}</div>${SPOT_URL[id]&&/^https?:\/\//.test(SPOT_URL[id])?`<a class="btn sub press spweb" href="${esc(SPOT_URL[id])}" target="_blank" rel="noopener nofollow">公式サイトを開く</a>`:''}</div>
    ${x.la!=null?`<div class="maprow"><a class="btn sub press" href="${gmap(x)}" target="_blank" rel="noopener">${MAPI}Googleマップで見る</a><a class="btn press" href="${gnav(x)}" target="_blank" rel="noopener">${NAVI}ナビを開始</a></div>
-   ${SPOT_URL[id]&&/^https?:\/\//.test(SPOT_URL[id])?`<a class="btn sub press" style="margin-top:10px" href="${esc(SPOT_URL[id])}" target="_blank" rel="noopener nofollow">公式サイトを開く</a>`:''}<button class="linkbtn" id="spCopy" style="padding:10px">名前と住所をコピー</button>`:`<div class="maprow"><a class="btn sub press" href="${gmap(x)}" target="_blank" rel="noopener">${MAPI}Googleマップで探す</a></div><p class="note" style="text-align:center;margin-top:8px">このスポットはまだ位置を登録していないため、名前で検索します。</p>`}
+   `:`<div class="maprow"><a class="btn sub press" href="${gmap(x)}" target="_blank" rel="noopener">${MAPI}Googleマップで探す</a></div><p class="note" style="text-align:center;margin-top:8px">このスポットはまだ位置を登録していないため、名前で検索します。</p>`}
    ${phoSpotRow(id)}<div class="row" style="margin-top:12px"><button class="btn sub press" data-close>閉じる</button><button class="btn press" id="spIn" ${done?'disabled':''}>${done?'今日は記録済み':'ここにいる（位置で確認）'}</button></div>
    <p class="note" style="text-align:center;margin-top:10px">${PASSCAT[x.cat]?(x.cat==='tg'?'峠は通過するだけで印が押されます。':'近くを通るだけで印が押されます。停まらなくて大丈夫です。'):`スポットに着いたら「ここにいる」を押してください。位置で確かめてから印を押します。${settings.autoIn?'（自動記録オン：アプリを開いている間は、着いたら自動で押されます）':''}`}</p>`);
   bindClose(back);bindPhoSpot(id);
