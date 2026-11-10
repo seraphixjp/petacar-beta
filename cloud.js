@@ -278,7 +278,8 @@ async function need(ids, fresh) {
 }
 function setPeople(map, me) {
   people.length = 0;
-  for (const [id, d] of Object.entries(map)) if (id !== me && d && typeof d === 'object' && !d.def) { try { people.push(toPerson(id, d)) } catch (e) { console.warn('skip profile', id, e) } }
+  for (const [id, d] of Object.entries(map)) if (id !== me && d && typeof d === 'object') { // スタンプ未作成（def）の人も入れる。外すと交換した相手が「退会したユーザー」になる（2026-11-08）
+     try { people.push(toPerson(id, d)) } catch (e) { console.warn('skip profile', id, e) } }
   peopleCbs.forEach(f => { try { f() } catch (e) { console.warn(e) } });
 }
 imgsChanged = () => peopleCbs.forEach(f => { try { f() } catch (e) { console.warn(e) } });
