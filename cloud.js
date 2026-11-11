@@ -435,6 +435,8 @@ async function firebaseBackend() {
     subMine: cb => F.onSnapshot(D('users', uid, 'priv', 'state'), s => cb(s.exists() ? s.data() : null), e => console.warn('mine', e)),
     // バックアップ：曜日ごとの7枠（b0〜b6）と、復元の直前の状態（bpre）。自分しか読めない場所に置く
     bakGet: (slot, withProf) => Promise.all([F.getDoc(D('users', uid, 'priv', 'b' + slot)), withProf ? F.getDoc(D('users', uid, 'priv', 'bp' + slot)) : null]).then(([a, b]) => a.exists() ? { ...a.data(), prof: b && b.exists() ? b.data().data : null } : null),
+    // 運営が届けるフォトスタンプの写真（端末から消えた分）。コンソールで priv/phofix に {ph:{写真ID:dataURL}} を置く→アプリが書き込んで消す
+    phoFix: { get: () => F.getDoc(D('users', uid, 'priv', 'phofix')).then(s => s.exists() ? s.data() : null), done: () => F.deleteDoc(D('users', uid, 'priv', 'phofix')) },
     bakPut: (slot, day, privD, profD) => Promise.all([F.setDoc(D('users', uid, 'priv', 'b' + slot), { day, at: Date.now(), data: privD }), profD ? F.setDoc(D('users', uid, 'priv', 'bp' + slot), { day, at: Date.now(), data: profD }) : null]),
     // 引き継ぎ・手紙・クラウドバックアップ（写真は受け渡しの間だけ、または本人が選んだときだけサーバーに置く）
     relay: (() => {
@@ -471,7 +473,7 @@ async function firebaseBackend() {
     link: async kind => { const u = auth.currentUser; if (NATIVE) await A.linkWithCredential(u, await nativeCred(A, kind)); else await A.linkWithPopup(u, kind === 'apple' ? appleProvider : provider); await u.reload().catch(() => { }) },
     signOut: () => (NATIVE ? FA.signOut().catch(() => { }) : Promise.resolve()).then(() => A.signOut(auth)).then(() => location.reload()),
     deleteAccount: async () => {
-      const baks = ['pre', 0, 1, 2, 3, 4, 5, 6].flatMap(k => ['b' + k, 'bp' + k]).map(k => F.deleteDoc(D('users', uid, 'priv', k)));
+      const baks = ['pre', 0, 1, 2, 3, 4, 5, 6].flatMap(k => ['b' + k, 'bp' + k]).concat(['phofix']).map(k => F.deleteDoc(D('users', uid, 'priv', k)));
       // 手紙（自分宛て・未配達の自分発）・受信設定・クラウドの写真
       const mq = await Promise.all(['to', 'from'].map(k => F.getDocs(F.query(Col('mail'), F.where(k, '==', uid))).catch(() => null)));
       for (const qs of mq.filter(Boolean)) for (const d of qs.docs) { const b = F.writeBatch(db); b.delete(D('mail', d.id, 'mailbody', 'b')); b.delete(d.ref); await b.commit().catch(() => { }) }
@@ -547,6 +549,7 @@ function mockBackend(uid) {
     config: cb => sub(() => cb(JSON.parse(JSON.stringify(M.docs.get('config/app') || {})))),
     subMine: cb => sub(() => cb(JSON.parse(JSON.stringify(M.docs.get('users/' + uid + '/priv/state') || null)))),
     bakGet: slot => { const a = M.docs.get('users/' + uid + '/priv/b' + slot), b = M.docs.get('users/' + uid + '/priv/bp' + slot); return Promise.resolve(a ? JSON.parse(JSON.stringify({ ...a, prof: b ? b.data : null })) : null) },
+    phoFix: { get: () => Promise.resolve(JSON.parse(JSON.stringify(M.docs.get('users/' + uid + '/priv/phofix') || null))), done: () => { M.docs.delete('users/' + uid + '/priv/phofix'); return Promise.resolve() } },
     bakPut: (slot, day, privD, profD) => { put('users/' + uid + '/priv/b' + slot, { day, at: Date.now(), data: privD }); if (profD) put('users/' + uid + '/priv/bp' + slot, { day, at: Date.now(), data: profD }); return Promise.resolve() },
     relay: (() => {
       const rm = k => { M.docs.delete(k); notify() };
@@ -642,7 +645,7 @@ else if (be) {
   window.__cloud = {
     uid: be.uid, demo: !!be.demo, store, people,
     onPeople: f => peopleCbs.push(f), isOfficial: id => !!OFF[id],
-    img: imgOf, need,
+    img: imgOf, need, phoFix: be.phoFix,
     live, ex: { ...be.ex, sub: cb => be.ex.sub(m => { need(Object.values(m).flatMap(x => [x.a, x.b])); cb(m) }) }, party: be.party, here: be.here, pass: be.pass, nice: be.nice, shops: be.shops, relay: be.relay, report: be.report, signOut: be.signOut, providers: be.providers, link: be.link, idToken: be.idToken, sup: () => SUPV,
     deleteAccount: async () => { store.cancelAll(); const was = frozen; frozen = 'deleting'; try { await be.deleteAccount() } catch (e) { frozen = was; throw e } },
   };
