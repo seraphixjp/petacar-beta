@@ -521,6 +521,7 @@ textarea{width:100%;box-sizing:border-box;margin-top:6px;padding:10px 12px;borde
 .spact{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:8px;margin-top:14px}.spa{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:62px;padding:8px 4px;border-radius:14px;background:var(--fill);color:var(--ink);font:inherit;font-size:12px;font-weight:700;text-decoration:none;border:0;cursor:pointer}.spa.pri{background:var(--accent);color:#fff}.spa.on{color:#d49a00}.spa.on svg{fill:currentColor}.spa span{white-space:nowrap}.spcard{margin-top:12px;padding:4px 12px;border-radius:14px;background:var(--surface);border:1px solid var(--line)}.spr{display:grid;grid-template-columns:5.2em 1fr;gap:8px;padding:9px 0;border-top:1px solid var(--line);font-size:13px}.spr:first-child{border-top:0}.spr>span{color:var(--muted);font-weight:600}.spr b{font-weight:600}.spr small{display:block;color:var(--muted);font-weight:500;font-size:11.5px;margin-top:2px}.nowc2{color:#16a34a}.catdet{margin-top:6px}.catdet summary{cursor:pointer;font-size:12px;color:var(--muted);font-weight:600;list-style:none}.catdet summary::-webkit-details-marker{display:none}.catdet summary::after{content:' ▾'}.catdet[open] summary::after{content:' ▴'}.spnav{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}.spnav button{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;border-radius:14px;background:var(--fill);color:var(--ink);border:0;font:inherit;font-size:12px;font-weight:700;cursor:pointer}.spnav span{white-space:nowrap}
 .tourc{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}.tourc button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 4px;border-radius:14px;background:var(--surface);border:1px solid var(--line);color:var(--ink);font:inherit;cursor:pointer}.tourc b{font-size:12px;white-space:nowrap}.tourc span{font-size:11px;color:var(--muted)}.tourc svg{color:var(--accent)}
 .lthumb{position:relative;width:52px;height:52px;border-radius:12px;overflow:hidden;flex:none;background:var(--fill);display:block}.lthumb img{width:100%;height:100%;object-fit:cover;display:block}.lthumb>:not(img){position:absolute;right:2px;bottom:2px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.5))}.lthumb.ng img{display:none}.lthumb.ng>:not(img){position:absolute;inset:0;margin:auto;transform:scale(1.8)}.lthumb.cth{width:64px;height:64px}.crsli{align-items:center}.crsc{display:block;color:var(--ink)!important;font-weight:600;font-size:12.5px;opacity:.9}.crsc.big{margin:0 4px 4px;font-size:14px;text-align:center}.phcred{font-size:10.5px;text-align:center;margin-top:6px}
+.jobpick .li.off{opacity:.45}.jobpick .t small{display:block;font-weight:500;margin-top:2px}.jobpick .li[aria-pressed=true]{outline:2px solid var(--accent);outline-offset:-2px}
 [hidden]{display:none!important}
 body{margin:0}img{max-width:100%}
 html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -1096,7 +1097,7 @@ const pct=x=>Math.round(x*100)+'%';
 // サポーターだった暦月（JST）。サポーター中に開いた月だけ足していく
 const supMonths=()=>{let L=store.get('supMon',[]);if(!Array.isArray(L))L=[];if(supOn(me)){const m=new Date(Date.now()+9*3600e3).toISOString().slice(0,7);if(!L.includes(m)){L=[...L,m].slice(-240);store.set('supMon',L)}}return L.length};
 const myStats=()=>{const ppl=met();return hiMerge({supm:supMonths(),ex:log.length,ppl:ppl.length,prefs:new Set(ppl.map(i=>person(i).pref).filter(x=>PREFS.includes(x))).size,same:ppl.filter(i=>person(i).maker===me.maker&&person(i).car===me.car).length,
-  best:Math.max(0,...ppl.map(daysWith)),kira:log.filter(l=>l.kira).length,evs:new Set(log.filter(l=>l.ev).map(l=>l.ev)).size,days:new Set(log.map(l=>l.d)).size,passp:new Set(passLog.map(x=>x.pid)).size,offd:new Set(log.filter(l=>l.off||(person(l.pid)||{}).official).map(l=>l.d)).size,mk:new Set(ppl.map(i=>person(i).maker).filter(m=>m&&m!=='その他')).size,...exStats(),...zukanStats(),...spotStats(),ttl:ttlIdx(),setc:setCount(),crs:courseDone()})};
+  best:Math.max(0,...ppl.map(daysWith)),kira:log.filter(l=>l.kira).length,evs:new Set(log.filter(l=>l.ev).map(l=>l.ev)).size,days:new Set(log.map(l=>l.d)).size,passp:new Set(passLog.map(x=>x.pid)).size,offd:new Set(log.filter(l=>l.off||(person(l.pid)||{}).official).map(l=>l.d)).size,mk:new Set(ppl.map(i=>person(i).maker).filter(m=>m&&m!=='その他')).size,...exStats(),...zukanStats(),...spotStats(),ttl:ttlIdx(),job:jobIdx(),setc:setCount(),crs:courseDone()})};
 /* 交換の記録から：dayMax 1日の最多人数 / sameMk 同じメーカー / rare 金色 / myCars 自分の車 / months 暦月 / gapMax 再会までの最長 */
 function gpMaxOf(ls){const m={};ls.forEach(l=>{if(l.gp)(m[l.gp]=m[l.gp]||new Set()).add(l.pid)});return Math.max(0,...Object.values(m).map(x=>x.size))}
 function exStats(){const byD={},byP={};log.forEach(l=>{(byD[l.d]=byD[l.d]||new Set()).add(l.pid);(byP[l.pid]=byP[l.pid]||new Set()).add(l.d)});
@@ -1458,7 +1459,7 @@ function myFrameList(){const r=rpgF(),cl=[...new Set([...(settings.frCls||[]),..
 // 使う縁：settings.frame が 'auto'（既定）なら今の格・クラス。選んだ縁が使えなくなっていたら auto に戻す
 const autoFrame=()=>{const r=rpgF();return r.ri>0&&r.top?`t${r.ri}:${r.top}`:''};
 function myFrame(){const {list}=myFrameList(),f=settings.frame;return f==null||f==='auto'||!list.includes(f)?autoFrame():f}
-function syncFrame(){const r=rpgOf(myStats());if(r.top&&!(settings.frCls||[]).includes(r.top)){settings.frCls=[...(settings.frCls||[]),r.top];if(!me.sample)store.set('set2',settings)}
+function syncFrame(){const r=rpgOf(myStats());if(r.best&&!(settings.frCls||[]).includes(r.best)){settings.frCls=[...(settings.frCls||[]),r.best];if(!me.sample)store.set('set2',settings)}
   const f=myFrame();if((me.frame||'')!==f){me={...me,frame:f};if(!me.sample)store.set('me2',me);return true}return false}
 function frName(f){return f==='sp:1'?'サポーターの縁':f?`${FR_TIER[+f[1]]}${RSTATS.find(x=>x.k===f.slice(3)).cls}の縁`:'ふつうのリング'}
 function openFrames(){const {list}=myFrameList(),cur=settings.frame&&settings.frame!=='auto'&&list.includes(settings.frame)?settings.frame:'auto';
@@ -1568,10 +1569,11 @@ const RSTATS=[
   {k:'luck',n:'運',cls:'勝負師',src:[['kira','EXが出た回数',15],['rare','レアが出た回数',10],['r4','★4以上の車種',20]]}];
 RSTATS.forEach(x=>x.f=s=>x.src.reduce((a,[k,,p])=>a+(+s[k]||0)*p,0));
 function rpgOf(s){s=s||{};const e=expOf(s),L=lvOf(e),vals=RSTATS.map(x=>[x,Math.min(999,Math.round(+x.f(s)||0))]);
-  const best=vals.reduce((a,b)=>b[1]>a[1]?b:a,vals[0]);let ri=0;CLS_STEP.forEach(([x],i)=>{if(L>=x)ri=i});
+  const real=vals.reduce((a,b)=>b[1]>a[1]?b:a,vals[0]),pick=Number.isInteger(s.job)&&vals[s.job]&&vals[s.job][1]>0?vals[s.job]:null,best=pick||real;let ri=0;CLS_STEP.forEach(([x],i)=>{if(L>=x)ri=i});
   const cls=best[1]>0?CLS_STEP[ri][1]+best[0].cls:'ビギナー';
   const ti=Number.isInteger(s.ttl)&&BADGES[s.ttl]&&BADGES[s.ttl].f(s)>=BADGES[s.ttl].g?BADGES[s.ttl].t:'';
-  return {e,L,ri,cls,vals,top:best[1]>0?best[0].k:null,cur:needXP(L),next:L<LV_MAX?needXP(L+1):null,nextCls:CLS_STEP[ri+1]?CLS_STEP[ri+1][0]:null,title:ti}}
+  return {e,L,ri,cls,vals,top:best[1]>0?best[0].k:null,best:real[1]>0?real[0].k:null,cur:needXP(L),next:L<LV_MAX?needXP(L+1):null,nextCls:CLS_STEP[ri+1]?CLS_STEP[ri+1][0]:null,title:ti}}
+const jobIdx=()=>{const k=settings.job;return k&&(settings.frCls||[]).includes(k)?RSTATS.findIndex(x=>x.k===k):-1};
 const ttlIdx=()=>{const i=BADGES.findIndex(b=>b.k===settings.title);return i<0?-1:i};
 const clsChip=r=>`<span class="lvchip"><b>Lv.${r.L}</b> ${esc(r.cls)}${r.title?` <span>【${esc(r.title)}】</span>`:''}</span>`;
 function rpgWindow(st){const r=rpgOf(st),mx=Math.max(100,...r.vals.map(v=>v[1]));
@@ -1579,7 +1581,7 @@ function rpgWindow(st){const r=rpgOf(st),mx=Math.max(100,...r.vals.map(v=>v[1]))
   return `<div class="rpg" role="group" aria-label="ステータス"><div class="hd"><div class="lvn"><small>Lv.</small>${r.L}</div><div><span class="lv">クラス</span><span class="job">${esc(r.cls)}</span>${r.title?`<span class="ttl">称号【${esc(r.title)}】</span>`:''}</div></div>
    <div class="xp"><i style="width:${pct}%"></i></div><div class="xpn"><span>EXP ${r.e.toLocaleString()}</span><span>${r.next?`つぎのLvまで ${(r.next-r.e).toLocaleString()}`:'最高レベル'}</span></div>${r.nextCls?`<div class="xpn" style="margin-top:2px"><span></span><span>Lv.${r.nextCls} でクラスの格が上がります</span></div>`:''}
    <div class="sts">${r.vals.map(([x,v])=>`<span class="${x.k===r.top?'top':''}">${x.n}</span><span class="bar2"><i style="width:${v/mx*100}%"></i></span><span class="v">${v}</span>`).join('')}</div>
-   <div class="row"><button class="btn sub press" id="ttlb">称号をえらぶ</button><button class="btn sub press" id="frb">縁をえらぶ</button></div><div class="row" style="margin-top:8px"><button class="btn sub press" id="rpghelp">クラスのしくみ</button></div></div>`}
+   <div class="row"><button class="btn sub press" id="ttlb">称号をえらぶ</button><button class="btn sub press" id="frb">縁をえらぶ</button></div><div class="row" style="margin-top:8px"><button class="btn sub press" id="jobb">ジョブをえらぶ</button><button class="btn sub press" id="rpghelp">クラスのしくみ</button></div></div>`}
 function openTitles(){const st=myStats(),gl=gotList(st).sort((a,b)=>TIERS[b.tier].o-TIERS[a.tier].o);
   openSheet(`<b style="font-size:20px;display:block;text-align:center">称号をえらぶ</b><p class="note" style="text-align:center">獲得したバッジの名前を、称号としてクラスの横に付けられます。</p>
    <div class="list ttlpick" style="max-height:52vh;overflow:auto">${gl.map(b=>`<button class="li press" data-tt="${b.k}">${medal(b,34)}<div class="t"><b>${esc(b.t)}<small>${TIERS[b.tier].n}</small></b></div><span class="d">${settings.title===b.k?'使用中':''}</span></button>`).join('')||'<p class="note" style="text-align:center">まだバッジがありません。</p>'}</div>
@@ -1587,8 +1589,15 @@ function openTitles(){const st=myStats(),gl=gotList(st).sort((a,b)=>TIERS[b.tier
   bindClose();
   $$('[data-tt]').forEach(b=>b.onclick=()=>{settings.title=b.dataset.tt;saveSet();closeSheet();render();toast(`称号【${B(b.dataset.tt).t}】を付けました`)});
   const o=$('#ttloff');if(o)o.onclick=()=>{settings.title='';saveSet();closeSheet();render();toast('称号を外しました')}}
+function openJobs(){const st=myStats(),r=rpgOf({...st,job:-1}),own=new Set([...(settings.frCls||[]),...(r.best?[r.best]:[])]),pre=['見習い','一人前','上級','凄腕','伝説'][r.ri]||'見習い',cur=jobIdx()>=0?settings.job:'';
+  const v=k=>(r.vals.find(([x])=>x.k===k)||[,0])[1];
+  openSheet(`<b style="font-size:20px;display:block;text-align:center">ジョブをえらぶ</b><p class="note" style="text-align:center">一度でも一番になったジョブは、いつでも切り替えられます。格（${pre}）はレベルで決まり、どのジョブでも同じです。</p>
+   <div class="list jobpick"><button class="li press" data-job="" aria-pressed="${cur===''}"><div class="t"><b>おまかせ<small>一番高いステータス：${esc(r.best?RSTATS.find(x=>x.k===r.best).cls:'なし')}</small></b></div><span class="d">${cur===''?'使用中':''}</span></button>
+   ${RSTATS.map(x=>{const ok=own.has(x.k)&&v(x.k)>0;return `<button class="li press${ok?'':' off'}" data-job="${x.k}" ${ok?'':'disabled'} aria-pressed="${cur===x.k}"><div class="t"><b>${esc(x.cls)}<small>${x.n} ${v(x.k)}${ok?'':'・まだ一番になったことがありません'}</small></b></div><span class="d">${cur===x.k?'使用中':ok?'':'未取得'}</span></button>`}).join('')}</div>
+   <button class="btn sub press" style="margin-top:12px" data-close>閉じる</button>`);
+  bindClose();$$('[data-job]').forEach(b=>b.onclick=()=>{if(b.disabled)return;settings.job=b.dataset.job;saveSet();syncFrame();closeSheet();render();const n=rpgOf(myStats());toast(`ジョブを「${n.cls}」にしました`)})}
 function openRpgHelp(){openSheet(`<b style="font-size:20px;display:block;text-align:center">クラスのしくみ</b>
-  <div class="note" style="line-height:1.8;margin-top:8px">${RSTATS.map(x=>`<b>${x.n}</b>（${x.cls}）`).join('・')}のうち、一番高いステータスでクラスが決まります。<br>
+  <div class="note" style="line-height:1.8;margin-top:8px">${RSTATS.map(x=>`<b>${x.n}</b>（${x.cls}）`).join('・')}のうち、一番高いステータスでクラスが決まります。一度でも一番になったクラスは「ジョブをえらぶ」でいつでも切り替えられます。<br>
   EXP がたまると Lv が上がり（最高 Lv.${LV_MAX}）、Lv.10・25・45・70 で「見習い → 一人前 → 上級 → 凄腕の → 伝説の」とクラスの格が上がります。EXP は、交換1回10・はじめて会った人20・お題1つ100（3つ全部で+100）・スポット（道の駅10、峠15、サーキット20、日本一30 など）・都道府県30・図鑑5・バッジ（ブロンズ30〜レジェンド1200）でたまります。</div>
   <b style="display:block;margin-top:14px">ステータスの上げ方</b>
   <div class="note" style="margin-top:4px">スポットは、はじめて行った場所だけ数えます（同じ場所に何回行っても1回）。各ステータスは最大999です。</div>
@@ -2868,7 +2877,7 @@ function render(){
   const v=$('#view');v.innerHTML=views[tab]();
   if(lastTab!==tab){v.classList.remove('enter');void v.offsetWidth;v.classList.add('enter');$('#scroll').scrollTop=0;$('#navbar').classList.remove('on');lastTab=tab}
   bindEv();
-  if($('#ttlb'))$('#ttlb').onclick=openTitles;if($('#frb'))$('#frb').onclick=openFrames;if($('#rpghelp'))$('#rpghelp').onclick=openRpgHelp;checkLevelUp();checkSets();hydratePho();
+  if($('#ttlb'))$('#ttlb').onclick=openTitles;if($('#frb'))$('#frb').onclick=openFrames;if($('#rpghelp'))$('#rpghelp').onclick=openRpgHelp;if($('#jobb'))$('#jobb').onclick=openJobs;checkLevelUp();checkSets();hydratePho();
   $('.tab[data-t=rw]').classList.toggle('dot',tab!=='rw'&&unseen().length>0);
   $$('[data-p]').forEach(b=>b.onclick=()=>detail(b.dataset.p));
   if(tab==='me'){$$('.nearme [data-spot]').forEach(b=>b.onclick=()=>openSpot(b.dataset.spot));if($('#locate2'))$('#locate2').onclick=()=>locate();if($('#nearAll'))$('#nearAll').onclick=()=>{tab='sp';render()};if($('#tcWant'))$('#tcWant').onclick=()=>{tab='sp';render();setTimeout(()=>{const e=$('#planb');if(e)e.closest('.sec').scrollIntoView({behavior:'smooth',block:'start'});else toast('スポットの詳細で「行きたい」を押すと、ここに集まります')},120)};if($('#tcCrs'))$('#tcCrs').onclick=()=>openCourses();if($('#tcPlan'))$('#tcPlan').onclick=()=>{planSel=null;openPlan()};if($('#supTop'))$('#supTop').onclick=()=>openSup();$$('[data-nice]').forEach(b=>b.onclick=()=>sendNice(b.dataset.nice));if($('#shareb'))$('#shareb').onclick=openShare;$('#mk').onclick=openCrop;if($('#mkFirst'))$('#mkFirst').onclick=openCrop;if($('#qcard'))$('#qcard').onclick=openQuests;$('#hito').onclick=openHito;if($('#nmb'))$('#nmb').onclick=openName;$('#carb').onclick=()=>openGarage(render);if($('#grb'))$('#grb').onclick=()=>openGarage(render);if($('#newsTop'))$('#newsTop').onclick=()=>openNewsItem($('#newsTop').dataset.n);if($('#openRow'))$('#openRow').onclick=()=>{tab='ex';render()};$('#bgb').onclick=openBg;if($('#wrapb'))$('#wrapb').onclick=openWrap;if($('#tripb'))$('#tripb').onclick=()=>{const n=tripOf(today()).spots.length;n?openTripDay(today()):openTrip()};$('#allrec').onclick=()=>{colView='stamp';store.set('colv2',colView);colSort='recent';store.set('sort2',colSort);tab='col';render()}}
