@@ -2969,12 +2969,14 @@ function countUp(el){const t=el.textContent.trim();if(!/^[\d,]+$/.test(t))return
 function motionIn(v){if(calm())return;
   v.querySelectorAll('.grid,.zgrid,.list,.spnav,.mstats,.colnav').forEach(g=>{[...g.children].slice(0,16).forEach((c,i)=>{c.classList.add('stg');c.style.setProperty('--i',i)})});
   v.querySelectorAll('.bar i').forEach(i=>i.classList.add('bgr'));v.querySelectorAll('.mstats b').forEach(countUp)}
-function flyStamp(){if(calm())return;const st=document.querySelector('#res .supwrap .stamp');const to=document.querySelector('.tab[data-t=col]');if(!st||!to)return;
-  const a=st.getBoundingClientRect(),b=to.getBoundingClientRect();if(!a.width)return;
-  const c=st.cloneNode(true);c.classList.add('flyst');Object.assign(c.style,{left:a.left+'px',top:a.top+'px',width:a.width+'px',height:a.height+'px'});document.body.appendChild(c);
-  const dx=b.left+b.width/2-(a.left+a.width/2),dy=b.top+b.height/2-(a.top+a.height/2);
-  void c.offsetWidth;c.style.transform=`translate(${dx}px,${dy}px) scale(.18) rotate(-20deg)`;c.style.opacity='.4';
-  setTimeout(()=>{c.remove();to.classList.remove('bump');void to.offsetWidth;to.classList.add('bump')},720)}
+// 交換したスタンプがコレクションのタブへ飛ぶ。1対1は1枚、みんなで交換は最大8枚を少しずつずらして
+function flyStamp(){if(calm())return;const to=document.querySelector('.tab[data-t=col]');const sts=[...document.querySelectorAll('#res .supwrap .stamp,#res .ptgrid .stamp')].slice(0,8);if(!to||!sts.length)return;
+  const b=to.getBoundingClientRect();
+  sts.forEach((st,i)=>{const a=st.getBoundingClientRect();if(!a.width)return;const c=st.cloneNode(true);c.classList.add('flyst');Object.assign(c.style,{left:a.left+'px',top:a.top+'px',width:a.width+'px',height:a.height+'px',transitionDelay:(i*70)+'ms'});document.body.appendChild(c);
+    const dx=b.left+b.width/2-(a.left+a.width/2),dy=b.top+b.height/2-(a.top+a.height/2);void c.offsetWidth;c.style.transform=`translate(${dx}px,${dy}px) scale(${Math.min(.18,20/a.width*.9).toFixed(3)}) rotate(-20deg)`;c.style.opacity='.4';setTimeout(()=>c.remove(),760+i*70)});
+  setTimeout(()=>{to.classList.remove('bump');void to.offsetWidth;to.classList.add('bump')},720+(sts.length-1)*70)}
+// 結果画面の「コレクションに入れる」に飛ぶ動きをつなぐ（試作・ベータの1対1／みんなで交換で共通）
+function flyBind(){const fb=$('#res [data-close][data-go=col]');if(!fb||!$('#res .peta'))return;const oc=fb.onclick;fb.onclick=e=>{if(Date.now()-sheetAt<500)return;flyStamp();oc&&oc(e)}}
 function render(){
   clearInterval(modeTimer);
   if(tab==='rw'&&lastTab!=='rw'){newShown=unseen();seenB=gotKeys();store.set('seen2',seenB)}else if(tab!=='rw')newShown=[];
@@ -3025,7 +3027,7 @@ function grant(p,o={}){
 if(/[?&]demo=fly/.test(location.search)&&/\/test\/|localhost|127\.0\.0\.1/.test(location.href))setTimeout(function demoFly(){if(!me||$('#sh'))return setTimeout(demoFly,1000);
   openSheet(`<div id="res"><div class="result"><div class="peta" aria-hidden="true">ペタッ!</div><div class="supwrap">${stamp(me,{size:150})}</div><b style="font-size:20px">デモ：交換しました</b><div class="note">「コレクションに入れる」を押してください</div></div><button class="btn press" style="margin-top:14px" data-close data-go="col">コレクションに入れる</button></div>`);bindClose();
   const fb=$('#res [data-close]'),oc=fb.onclick;fb.onclick=e=>{if(Date.now()-sheetAt<500)return;flyStamp();oc&&oc(e);setTimeout(()=>{tab='me';render();setTimeout(demoFly,500)},2000)}},2500);
-function showResult(p){$('#res').innerHTML=grant(p);bindClose(()=>{});const fb=$('#res [data-close]');if(fb&&$('#res .peta')){const oc=fb.onclick;fb.onclick=e=>{if(Date.now()-sheetAt<500)return;flyStamp();oc&&oc(e)}}render()}
+function showResult(p){$('#res').innerHTML=grant(p);bindClose();flyBind();render()}
 
 function setCheck(id,ok,v){const li=$('#'+id);if(!li)return;li.className=ok?'ok':'ng';li.querySelector('.m').textContent=ok?'✓':'×';li.querySelector('small').textContent=v}
 
@@ -3086,7 +3088,7 @@ function openParty_demo(asHost,info){
   const draw=()=>{if(!$('#ptm'))return;$('#ptm').innerHTML=partyGrid(['me',...mem],asHost?'me':info.host,'me');const g=$('#ptgo');
     if(g){const n=mem.length+1;g.disabled=n<PARTY_MIN;g.textContent=n<PARTY_MIN?`あと${PARTY_MIN-n}人で始められます`:`${n}人で同時に振る！`}};
   const shake=()=>{T.forEach(clearTimeout);off=partyShake(mem.length+1,()=>{off();
-    $('#res').innerHTML=grantMany(mem.map(person),gp)+`<button class="btn press" style="margin-top:14px" data-close data-go="col">コレクションに入れる</button>`;bindClose();render()});bindClose(stop)};
+    $('#res').innerHTML=grantMany(mem.map(person),gp)+`<button class="btn press" style="margin-top:14px" data-close data-go="col">コレクションに入れる</button>`;bindClose();flyBind();render()});bindClose(stop)};
   others.forEach((id,i)=>T.push(setTimeout(()=>{mem.push(id);draw()},1200+i*1300)));
   wait();if(!asHost)T.push(setTimeout(shake,1200+others.length*1300+1500));
 }
@@ -3496,7 +3498,7 @@ function request(id,accepted,exArg){
     if(dm>lim){fail('c3',`約${Math.round(dm)}m`,`2人の位置が約${Math.round(dm)}m離れていました。その場で会っている人とだけ交換できます。`);return}
     finished=true;stop();C.ex.update(exId,{state:'done'}).catch(()=>{});
     const res=grant(p); // 記録は画面を閉じても残るよう、演出より先に付ける
-    setTimeout(()=>{setCheck('c3',true,'近く');setTimeout(()=>{if($('#res')){$('#res').innerHTML=res;bindClose()}render()},450)},400)};
+    setTimeout(()=>{setCheck('c3',true,'近く');setTimeout(()=>{if($('#res')){$('#res').innerHTML=res;bindClose();flyBind()}render()},450)},400)};
   const fire=how=>{if(finished||gone||!exId)return;const mine=sides[C.uid];if(mine&&mine.r===round)return;
     const g=v=>Math.round(v*2000)/2000; // 約50mのマス目に丸めて渡す（判定には十分）
     const body={t:Date.now(),r:round,how};if(myPos&&Date.now()-myPos.at<180000)Object.assign(body,{la:g(myPos.la),lo:g(myPos.lo),acc:Math.round(myPos.acc)+35});
@@ -3587,7 +3589,7 @@ function openParty(asHost,info){
     $('#res').innerHTML=(fr.length?grantMany(fr.map(person),pid):`<div class="group"><b>${doneWith.size?'新しく交換できた人はいませんでした':'交換できませんでした'}</b></div>`)+partyNg(left)
       +(asHost&&left.length?`<div class="row" style="margin-top:14px"><button class="btn sub press" data-close>終える</button><button class="btn press" id="ptre">もう一度振る</button></div>`
         :`<button class="btn press" style="margin-top:14px" data-close data-go="col">${left.length?'閉じる':'コレクションに入れる'}</button>`);
-    bindClose(quit);render();
+    bindClose(quit);flyBind();render();
     const re=$('#ptre');if(re)re.onclick=()=>{re.disabled=true;C.party.update(pid,{state:'go',r:(doc.r||0)+1,go:Date.now()}).catch(()=>{re.disabled=false;toast('合図を送れませんでした')})}};
   const round=r=>{myR=r;off();
     off=partyShake(doc.members.length,how=>{off();const g=v=>Math.round(v*2000)/2000,body={t:Date.now(),r,how};
