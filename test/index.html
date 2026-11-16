@@ -1572,14 +1572,15 @@ const RSTATS=[
   {k:'charm',n:'人望',cls:'社交家',src:[['ppl','会った人',6],['best','一番仲良しの人と会った日数',10]]},
   {k:'luck',n:'運',cls:'勝負師',src:[['kira','EXが出た回数',15],['rare','レアが出た回数',10],['r4','★4以上の車種',20]]}];
 RSTATS.forEach(x=>x.f=s=>x.src.reduce((a,[k,,p])=>a+(+s[k]||0)*p,0));
-const JOB_K=5,jobLvOf=p=>lvOf(p*JOB_K),tierOf=p=>{const L=jobLvOf(p);let ri=0;CLS_STEP.forEach(([x],i)=>{if(L>=x)ri=i});return ri};
-const jobNeed=ri=>CLS_STEP[ri]?Math.ceil(needXP(CLS_STEP[ri][0])/JOB_K):null; // その格に必要なステータスの点
+const JOB_K={run:35.9,trip:9.9,faith:20.2,expl:14,charm:27.2,luck:32.7}; // ジョブの経験値＝点×倍率（スポットの数の差をならす）
+const jobLvOf=(p,k)=>lvOf(p*(JOB_K[k]||5)),tierOf=(p,k)=>{const L=jobLvOf(p,k);let ri=0;CLS_STEP.forEach(([x],i)=>{if(L>=x)ri=i});return ri};
+const jobNeed=(ri,k)=>CLS_STEP[ri]?Math.ceil(needXP(CLS_STEP[ri][0])/(JOB_K[k]||5)):null; // その格に必要なステータスの点
 function rpgOf(s){s=s||{};const e=expOf(s),L=lvOf(e),raw=RSTATS.map(x=>Math.round(+x.f(s)||0)),vals=RSTATS.map((x,i)=>[x,Math.min(999,raw[i])]);
-  const jobs=RSTATS.map((x,i)=>({k:x.k,p:raw[i],L:jobLvOf(raw[i]),ri:tierOf(raw[i]),cls:CLS_STEP[tierOf(raw[i])][1]+x.cls}));
+  const jobs=RSTATS.map((x,i)=>({k:x.k,p:raw[i],L:jobLvOf(raw[i],x.k),ri:tierOf(raw[i],x.k),cls:CLS_STEP[tierOf(raw[i],x.k)][1]+x.cls}));
   let bi=0;raw.forEach((v,i)=>{if(v>raw[bi])bi=i});const pi=Number.isInteger(s.job)&&raw[s.job]>0?s.job:bi,j=jobs[pi],ok=raw[pi]>0;
   const ri=ok?j.ri:0,cls=ok?j.cls:'ビギナー';
   const ti=Number.isInteger(s.ttl)&&BADGES[s.ttl]&&BADGES[s.ttl].f(s)>=BADGES[s.ttl].g?BADGES[s.ttl].t:'';
-  const nx=ok&&CLS_STEP[ri+1]?jobNeed(ri+1):null;
+  const nx=ok&&CLS_STEP[ri+1]?jobNeed(ri+1,j.k):null;
   return {e,L,ri,cls,vals,jobs,top:ok?j.k:null,best:raw[bi]>0?jobs[bi].k:null,cur:needXP(L),next:L<LV_MAX?needXP(L+1):null,nextCls:nx?CLS_STEP[ri+1][1]||'一人前':null,nextPts:nx?Math.max(1,nx-raw[pi]):null,jobN:ok?RSTATS[pi].n:'',title:ti}}
 const charaSrc=(k,ri)=>k?`chara/${k}${Math.max(0,Math.min(4,ri|0))}.webp`:'';
 const charaImg=(r,cls='rpgchara')=>r.top?`<img class="${cls}" src="${charaSrc(r.top,r.ri)}" alt="${esc(r.cls)}" loading="lazy" onerror="this.remove()">`:'';
@@ -1604,12 +1605,13 @@ function openJobs(){const st=myStats(),r=rpgOf({...st,job:-1}),cur=jobIdx()>=0?s
   const how={run:'峠・サーキットなどに行く',trip:'道の駅・PAなどに行く',faith:'神社・寺に行く',expl:'名橋・ダム・名城などに行く',charm:'交換で人に会う',luck:'EXやレアを出す'};
   openSheet(`<b style="font-size:20px;display:block;text-align:center">ジョブをえらぶ</b><p class="note" style="text-align:center">そのジョブのスポットに1か所でも行くと転職できます。格（見習い→一人前→上級→凄腕→伝説）は、そのジョブの経験値で上がります。</p>
    <div class="list jobpick"><button class="li press" data-job="" aria-pressed="${cur===''}"><div class="t"><b>おまかせ<small>一番高いジョブ：${esc(r.best?r.jobs.find(x=>x.k===r.best).cls:'なし')}</small></b></div><span class="d">${cur===''?'使用中':''}</span></button>
-   ${RSTATS.map((x,i)=>{const j=r.jobs[i],ok=j.p>0,nx=CLS_STEP[j.ri+1]?jobNeed(j.ri+1):null;return `<button class="li press${ok?'':' off'}" data-job="${x.k}" ${ok?'':'disabled'} aria-pressed="${cur===x.k}"><span class="jobimg">${ok?`<img src="${charaSrc(x.k,j.ri)}" alt="" loading="lazy">`:'?'}</span><div class="t"><b>${esc(ok?j.cls:x.cls)}<small>${ok?`ジョブLv.${j.L}・${x.n} ${j.p}${nx?`・つぎの格まであと${nx-j.p}`:''}`:`${how[x.k]}と転職できます`}</small></b></div><span class="d">${cur===x.k?'使用中':ok?'':'未取得'}</span></button>`}).join('')}</div>
+   ${RSTATS.map((x,i)=>{const j=r.jobs[i],ok=j.p>0,nx=CLS_STEP[j.ri+1]?jobNeed(j.ri+1,x.k):null;return `<button class="li press${ok?'':' off'}" data-job="${x.k}" ${ok?'':'disabled'} aria-pressed="${cur===x.k}"><span class="jobimg">${ok?`<img src="${charaSrc(x.k,j.ri)}" alt="" loading="lazy">`:'?'}</span><div class="t"><b>${esc(ok?j.cls:x.cls)}<small>${ok?`ジョブLv.${j.L}・${x.n} ${j.p}${nx?`・つぎの格まであと${nx-j.p}`:''}`:`${how[x.k]}と転職できます`}</small></b></div><span class="d">${cur===x.k?'使用中':ok?'':'未取得'}</span></button>`}).join('')}</div>
    <button class="btn sub press" style="margin-top:12px" data-close>閉じる</button>`);
   bindClose();$$('[data-job]').forEach(b=>b.onclick=()=>{if(b.disabled)return;settings.job=b.dataset.job;saveSet();syncFrame();closeSheet();render();const n=rpgOf(myStats());toast(`ジョブを「${n.cls}」にしました`)})}
 function openRpgHelp(){openSheet(`<b style="font-size:20px;display:block;text-align:center">クラスのしくみ</b>
   <div class="note" style="line-height:1.8;margin-top:8px">${RSTATS.map(x=>`<b>${x.n}</b>（${x.cls}）`).join('・')}のうち、一番高いステータスでクラスが決まります（「ジョブをえらぶ」で自由に転職できます）。そのジョブのスポットに1か所でも行くと、そのジョブの見習いに転職できます。<br>
-  ジョブの格は、そのジョブの経験値（ステータスの点×${JOB_K}）でジョブLvが上がり、ジョブLv.10・25・45・70 で「見習い → 一人前 → 上級 → 凄腕の → 伝説の」と上がります。<br>
+  ジョブの格は、そのジョブの経験値でジョブLvが上がり、ジョブLv.10・25・45・70 で「見習い → 一人前 → 上級 → 凄腕の → 伝説の」と上がります。経験値はステータスの点に、ジョブごとの倍率（スポットが少ないジョブほど大きい）をかけたものです。<br>
+  ${RSTATS.map(x=>`${x.cls}：一人前 ${jobNeed(1,x.k)}・上級 ${jobNeed(2,x.k).toLocaleString()}・凄腕 ${jobNeed(3,x.k).toLocaleString()}・伝説 ${jobNeed(4,x.k).toLocaleString()}`).join('<br>')}<br>
   全体の Lv は EXP で上がります（最高 Lv.${LV_MAX}）。EXP は、交換1回10・はじめて会った人20・お題1つ100（3つ全部で+100）・スポット（道の駅10、峠15、サーキット20、日本一30 など）・都道府県30・図鑑5・バッジ（ブロンズ30〜レジェンド1200）でたまります。</div>
   <b style="display:block;margin-top:14px">ステータスの上げ方</b>
   <div class="note" style="margin-top:4px">スポットは、はじめて行った場所だけ数えます（同じ場所に何回行っても1回）。ステータスのグラフは999までですが、ジョブの経験値には上限はありません。</div>
