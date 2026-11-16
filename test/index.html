@@ -525,6 +525,7 @@ textarea{width:100%;box-sizing:border-box;margin-top:6px;padding:10px 12px;borde
 .rpgstage{position:relative;height:230px;margin:-4px -4px 10px;border-radius:16px;overflow:hidden;background:radial-gradient(ellipse 60% 55% at 50% 62%,color-mix(in srgb,var(--accent) 22%,transparent),transparent 70%),var(--fill);display:flex;align-items:flex-end;justify-content:center}.rpgstage::after{content:'';position:absolute;left:50%;bottom:10px;width:46%;height:12px;transform:translateX(-50%);border-radius:50%;background:rgba(0,0,0,.18);filter:blur(3px)}.rpgchara{position:relative;z-index:1;height:216px;width:auto;margin-bottom:6px;filter:drop-shadow(0 4px 6px rgba(0,0,0,.18))}.lvchara{display:block;height:170px;width:auto;margin:0 auto 8px;filter:drop-shadow(0 4px 6px rgba(0,0,0,.2))}.jobimg{flex:none;width:44px;height:58px;border-radius:10px;background:var(--fill);overflow:hidden;display:grid;place-items:center;color:var(--muted);font-weight:800}.jobimg img{width:100%;height:100%;object-fit:cover;object-position:50% 6%;transform:scale(1.35);transform-origin:50% 0}
 .rpgstage{position:relative;height:250px;margin:-4px -4px 6px;border-radius:16px;overflow:hidden;background-size:cover;background-position:center;background-color:var(--fill);display:block}.rpgstage::after{content:'';position:absolute;left:auto;transform:none;right:calc(6% + 30px);bottom:6px;width:130px;height:16px;border-radius:50%;background:rgba(40,40,50,.28);filter:blur(3px)}.rpgchara{position:absolute;z-index:1;right:6%;bottom:6px;height:232px;width:auto;margin:0;filter:drop-shadow(0 4px 8px rgba(0,0,0,.35))}.rpg .hd.onimg{position:absolute;z-index:2;left:16px;top:14px;right:44%;align-items:flex-start;flex-direction:column;gap:4px;color:#1d232c;text-shadow:0 0 3px #fff,0 0 6px #fff,0 0 10px rgba(255,255,255,.9)}.rpg .hd.onimg .lvn{color:var(--accent);font-size:40px}.rpg .hd.onimg .lvn small{color:var(--accent)}.rpg .hd.onimg .lv{color:#5b6472}.rpg .hd.onimg .job{font-size:21px;line-height:1.25}.rpg .hd.onimg .ttl{color:#c2410c}
 .mstats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;margin-top:8px;color:rgba(255,255,255,.85)}.mstats span{display:flex;flex-direction:column;align-items:center;gap:2px;background:rgba(0,0,0,.42);border-radius:14px;padding:8px 4px;font-size:11.5px;font-weight:700;backdrop-filter:blur(6px)}.mstats b{font:800 24px/1.1 var(--mono);font-variant-numeric:tabular-nums;color:#fff}
+.rkm i{display:block;font-style:normal;white-space:nowrap}.rkm{display:block;margin-top:4px;font-size:12px;font-weight:600;color:#5b6472}.rkm b{font:700 13px var(--mono);font-variant-numeric:tabular-nums;color:#1d232c}.rpg>.hd .rkm{color:var(--muted)}.rpg>.hd .rkm b{color:var(--ink)}
 [hidden]{display:none!important}
 body{margin:0}img{max-width:100%}
 html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -1571,20 +1572,25 @@ const RSTATS=[
   {k:'charm',n:'人望',cls:'社交家',src:[['ppl','会った人',6],['best','一番仲良しの人と会った日数',10]]},
   {k:'luck',n:'運',cls:'勝負師',src:[['kira','EXが出た回数',15],['rare','レアが出た回数',10],['r4','★4以上の車種',20]]}];
 RSTATS.forEach(x=>x.f=s=>x.src.reduce((a,[k,,p])=>a+(+s[k]||0)*p,0));
-function rpgOf(s){s=s||{};const e=expOf(s),L=lvOf(e),vals=RSTATS.map(x=>[x,Math.min(999,Math.round(+x.f(s)||0))]);
-  const real=vals.reduce((a,b)=>b[1]>a[1]?b:a,vals[0]),pick=Number.isInteger(s.job)&&vals[s.job]&&vals[s.job][1]>0?vals[s.job]:null,best=pick||real;let ri=0;CLS_STEP.forEach(([x],i)=>{if(L>=x)ri=i});
-  const cls=best[1]>0?CLS_STEP[ri][1]+best[0].cls:'ビギナー';
+const JOB_K=5,jobLvOf=p=>lvOf(p*JOB_K),tierOf=p=>{const L=jobLvOf(p);let ri=0;CLS_STEP.forEach(([x],i)=>{if(L>=x)ri=i});return ri};
+const jobNeed=ri=>CLS_STEP[ri]?Math.ceil(needXP(CLS_STEP[ri][0])/JOB_K):null; // その格に必要なステータスの点
+function rpgOf(s){s=s||{};const e=expOf(s),L=lvOf(e),raw=RSTATS.map(x=>Math.round(+x.f(s)||0)),vals=RSTATS.map((x,i)=>[x,Math.min(999,raw[i])]);
+  const jobs=RSTATS.map((x,i)=>({k:x.k,p:raw[i],L:jobLvOf(raw[i]),ri:tierOf(raw[i]),cls:CLS_STEP[tierOf(raw[i])][1]+x.cls}));
+  let bi=0;raw.forEach((v,i)=>{if(v>raw[bi])bi=i});const pi=Number.isInteger(s.job)&&raw[s.job]>0?s.job:bi,j=jobs[pi],ok=raw[pi]>0;
+  const ri=ok?j.ri:0,cls=ok?j.cls:'ビギナー';
   const ti=Number.isInteger(s.ttl)&&BADGES[s.ttl]&&BADGES[s.ttl].f(s)>=BADGES[s.ttl].g?BADGES[s.ttl].t:'';
-  return {e,L,ri,cls,vals,top:best[1]>0?best[0].k:null,best:real[1]>0?real[0].k:null,cur:needXP(L),next:L<LV_MAX?needXP(L+1):null,nextCls:CLS_STEP[ri+1]?CLS_STEP[ri+1][0]:null,title:ti}}
+  const nx=ok&&CLS_STEP[ri+1]?jobNeed(ri+1):null;
+  return {e,L,ri,cls,vals,jobs,top:ok?j.k:null,best:raw[bi]>0?jobs[bi].k:null,cur:needXP(L),next:L<LV_MAX?needXP(L+1):null,nextCls:nx?CLS_STEP[ri+1][1]||'一人前':null,nextPts:nx?Math.max(1,nx-raw[pi]):null,jobN:ok?RSTATS[pi].n:'',title:ti}}
 const charaSrc=(k,ri)=>k?`chara/${k}${Math.max(0,Math.min(4,ri|0))}.webp`:'';
 const charaImg=(r,cls='rpgchara')=>r.top?`<img class="${cls}" src="${charaSrc(r.top,r.ri)}" alt="${esc(r.cls)}" loading="lazy" onerror="this.remove()">`:'';
-const jobIdx=()=>{const k=settings.job;return k&&(settings.frCls||[]).includes(k)?RSTATS.findIndex(x=>x.k===k):-1};
+const jobIdx=()=>{const k=settings.job;return k?RSTATS.findIndex(x=>x.k===k):-1};
 const ttlIdx=()=>{const i=BADGES.findIndex(b=>b.k===settings.title);return i<0?-1:i};
 const clsChip=r=>`<span class="lvchip"><b>Lv.${r.L}</b> ${esc(r.cls)}${r.title?` <span>【${esc(r.title)}】</span>`:''}</span>`;
+const KMROW=()=>`<span class="rkm"><i>総移動距離 <b id="rpgKm">${kmFmt(kmSum())}</b> km</i><i>スポット <b>${spotSet().size.toLocaleString()}</b> か所</i></span>`;
 function rpgWindow(st){const r=rpgOf(st),mx=Math.max(100,...r.vals.map(v=>v[1]));
   const pct=r.next?Math.min(100,(r.e-r.cur)/(r.next-r.cur)*100):100;
-  return `<div class="rpg" role="group" aria-label="ステータス">${r.top?`<div class="rpgstage" style="background-image:linear-gradient(90deg,rgba(255,255,255,.55),rgba(255,255,255,.18) 45%,rgba(255,255,255,0) 65%),url(chara/bg_${r.top}.jpg)"><div class="hd onimg"><div class="lvn"><small>Lv.</small>${r.L}</div><div><span class="lv">クラス</span><span class="job">${esc(r.cls)}</span>${r.title?`<span class="ttl">称号【${esc(r.title)}】</span>`:''}</div></div>${charaImg(r)}</div>`:`<div class="hd"><div class="lvn"><small>Lv.</small>${r.L}</div><div><span class="lv">クラス</span><span class="job">${esc(r.cls)}</span>${r.title?`<span class="ttl">称号【${esc(r.title)}】</span>`:''}</div></div>`}
-   <div class="xp"><i style="width:${pct}%"></i></div><div class="xpn"><span>EXP ${r.e.toLocaleString()}</span><span>${r.next?`つぎのLvまで ${(r.next-r.e).toLocaleString()}`:'最高レベル'}</span></div>${r.nextCls?`<div class="xpn" style="margin-top:2px"><span></span><span>Lv.${r.nextCls} でクラスの格が上がります</span></div>`:''}
+  return `<div class="rpg" role="group" aria-label="ステータス">${r.top?`<div class="rpgstage" style="background-image:linear-gradient(90deg,rgba(255,255,255,.55),rgba(255,255,255,.18) 45%,rgba(255,255,255,0) 65%),url(chara/bg_${r.top}.jpg)"><div class="hd onimg"><div class="lvn"><small>Lv.</small>${r.L}</div><div><span class="lv">クラス</span><span class="job">${esc(r.cls)}</span>${r.title?`<span class="ttl">称号【${esc(r.title)}】</span>`:''}${KMROW()}</div></div>${charaImg(r)}</div>`:`<div class="hd"><div class="lvn"><small>Lv.</small>${r.L}</div><div><span class="lv">クラス</span><span class="job">${esc(r.cls)}</span>${r.title?`<span class="ttl">称号【${esc(r.title)}】</span>`:''}${KMROW()}</div></div>`}
+   <div class="xp"><i style="width:${pct}%"></i></div><div class="xpn"><span>EXP ${r.e.toLocaleString()}</span><span>${r.next?`つぎのLvまで ${(r.next-r.e).toLocaleString()}`:'最高レベル'}</span></div>${r.nextCls?`<div class="xpn" style="margin-top:2px"><span></span><span>${esc(r.jobN)}があと ${r.nextPts} で「${esc(r.nextCls)}」に上がります</span></div>`:''}
    <div class="sts">${r.vals.map(([x,v])=>`<span class="${x.k===r.top?'top':''}">${x.n}</span><span class="bar2"><i style="width:${v/mx*100}%"></i></span><span class="v">${v}</span>`).join('')}</div>
    <div class="row"><button class="btn sub press" id="ttlb">称号をえらぶ</button><button class="btn sub press" id="frb">縁をえらぶ</button></div><div class="row" style="margin-top:8px"><button class="btn sub press" id="jobb">ジョブをえらぶ</button><button class="btn sub press" id="rpghelp">クラスのしくみ</button></div></div>`}
 function openTitles(){const st=myStats(),gl=gotList(st).sort((a,b)=>TIERS[b.tier].o-TIERS[a.tier].o);
@@ -1594,18 +1600,19 @@ function openTitles(){const st=myStats(),gl=gotList(st).sort((a,b)=>TIERS[b.tier
   bindClose();
   $$('[data-tt]').forEach(b=>b.onclick=()=>{settings.title=b.dataset.tt;saveSet();closeSheet();render();toast(`称号【${B(b.dataset.tt).t}】を付けました`)});
   const o=$('#ttloff');if(o)o.onclick=()=>{settings.title='';saveSet();closeSheet();render();toast('称号を外しました')}}
-function openJobs(){const st=myStats(),r=rpgOf({...st,job:-1}),own=new Set([...(settings.frCls||[]),...(r.best?[r.best]:[])]),pre=['見習い','一人前','上級','凄腕','伝説'][r.ri]||'見習い',cur=jobIdx()>=0?settings.job:'';
-  const v=k=>(r.vals.find(([x])=>x.k===k)||[,0])[1];
-  openSheet(`<b style="font-size:20px;display:block;text-align:center">ジョブをえらぶ</b><p class="note" style="text-align:center">一度でも一番になったジョブは、いつでも切り替えられます。格（${pre}）はレベルで決まり、どのジョブでも同じです。</p>
-   <div class="list jobpick"><button class="li press" data-job="" aria-pressed="${cur===''}"><div class="t"><b>おまかせ<small>一番高いステータス：${esc(r.best?RSTATS.find(x=>x.k===r.best).cls:'なし')}</small></b></div><span class="d">${cur===''?'使用中':''}</span></button>
-   ${RSTATS.map(x=>{const ok=own.has(x.k)&&v(x.k)>0;return `<button class="li press${ok?'':' off'}" data-job="${x.k}" ${ok?'':'disabled'} aria-pressed="${cur===x.k}"><span class="jobimg">${ok?`<img src="${charaSrc(x.k,r.ri)}" alt="" loading="lazy">`:'?'}</span><div class="t"><b>${esc(x.cls)}<small>${x.n} ${v(x.k)}${ok?'':'・まだ一番になったことがありません'}</small></b></div><span class="d">${cur===x.k?'使用中':ok?'':'未取得'}</span></button>`}).join('')}</div>
+function openJobs(){const st=myStats(),r=rpgOf({...st,job:-1}),cur=jobIdx()>=0?settings.job:'';
+  const how={run:'峠・サーキットなどに行く',trip:'道の駅・PAなどに行く',faith:'神社・寺に行く',expl:'名橋・ダム・名城などに行く',charm:'交換で人に会う',luck:'EXやレアを出す'};
+  openSheet(`<b style="font-size:20px;display:block;text-align:center">ジョブをえらぶ</b><p class="note" style="text-align:center">そのジョブのスポットに1か所でも行くと転職できます。格（見習い→一人前→上級→凄腕→伝説）は、そのジョブの経験値で上がります。</p>
+   <div class="list jobpick"><button class="li press" data-job="" aria-pressed="${cur===''}"><div class="t"><b>おまかせ<small>一番高いジョブ：${esc(r.best?r.jobs.find(x=>x.k===r.best).cls:'なし')}</small></b></div><span class="d">${cur===''?'使用中':''}</span></button>
+   ${RSTATS.map((x,i)=>{const j=r.jobs[i],ok=j.p>0,nx=CLS_STEP[j.ri+1]?jobNeed(j.ri+1):null;return `<button class="li press${ok?'':' off'}" data-job="${x.k}" ${ok?'':'disabled'} aria-pressed="${cur===x.k}"><span class="jobimg">${ok?`<img src="${charaSrc(x.k,j.ri)}" alt="" loading="lazy">`:'?'}</span><div class="t"><b>${esc(ok?j.cls:x.cls)}<small>${ok?`ジョブLv.${j.L}・${x.n} ${j.p}${nx?`・つぎの格まであと${nx-j.p}`:''}`:`${how[x.k]}と転職できます`}</small></b></div><span class="d">${cur===x.k?'使用中':ok?'':'未取得'}</span></button>`}).join('')}</div>
    <button class="btn sub press" style="margin-top:12px" data-close>閉じる</button>`);
   bindClose();$$('[data-job]').forEach(b=>b.onclick=()=>{if(b.disabled)return;settings.job=b.dataset.job;saveSet();syncFrame();closeSheet();render();const n=rpgOf(myStats());toast(`ジョブを「${n.cls}」にしました`)})}
 function openRpgHelp(){openSheet(`<b style="font-size:20px;display:block;text-align:center">クラスのしくみ</b>
-  <div class="note" style="line-height:1.8;margin-top:8px">${RSTATS.map(x=>`<b>${x.n}</b>（${x.cls}）`).join('・')}のうち、一番高いステータスでクラスが決まります。一度でも一番になったクラスは「ジョブをえらぶ」でいつでも切り替えられます。<br>
-  EXP がたまると Lv が上がり（最高 Lv.${LV_MAX}）、Lv.10・25・45・70 で「見習い → 一人前 → 上級 → 凄腕の → 伝説の」とクラスの格が上がります。EXP は、交換1回10・はじめて会った人20・お題1つ100（3つ全部で+100）・スポット（道の駅10、峠15、サーキット20、日本一30 など）・都道府県30・図鑑5・バッジ（ブロンズ30〜レジェンド1200）でたまります。</div>
+  <div class="note" style="line-height:1.8;margin-top:8px">${RSTATS.map(x=>`<b>${x.n}</b>（${x.cls}）`).join('・')}のうち、一番高いステータスでクラスが決まります（「ジョブをえらぶ」で自由に転職できます）。そのジョブのスポットに1か所でも行くと、そのジョブの見習いに転職できます。<br>
+  ジョブの格は、そのジョブの経験値（ステータスの点×${JOB_K}）でジョブLvが上がり、ジョブLv.10・25・45・70 で「見習い → 一人前 → 上級 → 凄腕の → 伝説の」と上がります。<br>
+  全体の Lv は EXP で上がります（最高 Lv.${LV_MAX}）。EXP は、交換1回10・はじめて会った人20・お題1つ100（3つ全部で+100）・スポット（道の駅10、峠15、サーキット20、日本一30 など）・都道府県30・図鑑5・バッジ（ブロンズ30〜レジェンド1200）でたまります。</div>
   <b style="display:block;margin-top:14px">ステータスの上げ方</b>
-  <div class="note" style="margin-top:4px">スポットは、はじめて行った場所だけ数えます（同じ場所に何回行っても1回）。各ステータスは最大999です。</div>
+  <div class="note" style="margin-top:4px">スポットは、はじめて行った場所だけ数えます（同じ場所に何回行っても1回）。ステータスのグラフは999までですが、ジョブの経験値には上限はありません。</div>
   <div class="list" style="margin-top:8px">${RSTATS.map(x=>`<div class="li" style="display:block"><b>${x.n}</b> <span class="note">→ ${x.cls}</span><div class="note" style="margin-top:2px">${x.src.map(([,t,p])=>`${t} +${p}`).join('・')}</div></div>`).join('')}</div>
   <div class="row" style="margin-top:12px"><button class="btn press" data-close>閉じる</button></div>`);bindClose()}
 // クラスアップの音：きらっと上がるアルペジオ＋やわらかい和音（ベル系の音色）
@@ -1618,11 +1625,11 @@ let fanA=null;function fanfare(){if(settings.sound===false)return;try{const C=wi
   [[523.3,.42],[659.3,.42],[784,.42],[1046.5,.42],[1318.5,.47]].forEach(([f,d])=>bell(f,d,1.6,.11)); // 和音
   [[2093,.55],[2637,.63],[3136,.71]].forEach(([f,d])=>bell(f,d,.5,.035));                         // きらきら
 }catch(e){}}
-function checkLevelUp(){if(syncFrame()&&!$('#sh')){render();return}if(me.sample)return;const r=rpgOf(myStats()),pl=store.get('lv1',null),prev=store.get('cls3',null);
-  store.set('lv1',r.L);if(prev==null||r.ri<prev)store.set('cls3',r.ri);
-  if(prev!=null&&r.ri>prev){store.set('cls3',r.ri);fanfare();buzz([40,40,40,40,120]);
+function checkLevelUp(){if(syncFrame()&&!$('#sh')){render();return}if(me.sample)return;const st0=myStats(),r0=rpgOf(st0),pl=store.get('lv1',null),prev=store.get('cls4',null),now=r0.jobs.map(x=>x.p>0?x.ri:-1);
+  store.set('lv1',r0.L);store.set('cls4',now);const up=prev?now.findIndex((v,i)=>v>0&&v>(prev[i]??-1)):-1,r=up>=0?rpgOf({...st0,job:up}):r0;
+  if(up>=0){fanfare();buzz([40,40,40,40,120]);
   $('#lvup').innerHTML=`<div class="lvup" id="lvo" role="dialog" aria-modal="true" aria-label="クラスアップ"><div class="rpg"><h3>CLASS UP!</h3>
-   ${charaImg(r,'lvchara')}<p>${esc(me.name)}が Lv.${r.L} になって、クラスが</p><p class="cn">${esc(r.cls)}</p><p>になった！</p>
+   ${charaImg(r,'lvchara')}<p>${esc(me.name)}のクラスが</p><p class="cn">${esc(r.cls)}</p><p>に上がった！「ジョブをえらぶ」で転職できます</p>
    <button class="btn press" id="lvok">とじる</button></div></div>`;
   const c=()=>{$('#lvup').innerHTML=''};$('#lvok').onclick=c;$('#lvo').onclick=e=>{if(e.target.id==='lvo')c()};return}
   const qm=moStart(today()),qseen=store.get('qok2',[]),qdn=qDone(qm),qnew=qdn.filter(q=>!qseen.includes(qm+q.k));if(qnew.length){store.set('qok2',[...qseen.filter(x=>x.startsWith(qm)),...qnew.map(q=>qm+q.k)]);const qall=quests(qm).length>1&&qdn.length===quests(qm).length;try{sfx.chime()}catch(e){}buzz([30,60,30]);toast(`お題「${qnew[0].t}」を達成！ EXP +${QXP}`+(qall?`　全部達成で +${QXP_ALL}`:''));return}
@@ -1967,8 +1974,9 @@ async function shareImage(){
   const nm=me.name||'ゲスト',nsz=fit(nm,900,60,'400','"Dela Gothic One",sans-serif');T(nm,W/2,402,nsz,'400','center','#fff','"Dela Gothic One",sans-serif');
   T(`Lv.${r.L} ${r.cls}${me.official?' ・ 公式':''}`,W/2,452,32,'700');
   const car=[carLabel(me),me.pref].filter(x=>x&&x!=='未設定'&&x!=='—').join(' ・ ');if(car)T(car,W/2,494,28,'500','center','rgba(255,255,255,.85)');
-  [[got.length,'リワード'],[log.length,'交換回数'],[spotSet().size,'訪れたスポット']].forEach(([v,l],i)=>{const x=90+i*310;box(x,526,280,150,28,'rgba(255,255,255,.14)','rgba(255,255,255,.28)');
-    T(String(v),x+140,620,80,'700','center','#fff','"JetBrains Mono",monospace');T(l,x+140,658,27)});
+  const km=await totalKm().catch(()=>kmSum());
+  [[String(got.length),'リワード'],[String(log.length),'交換回数'],[String(spotSet().size),'訪れたスポット'],[kmFmt(km),'総移動距離 km']].forEach(([v,l],i)=>{const x=90+i*230;box(x,526,210,150,28,'rgba(255,255,255,.14)','rgba(255,255,255,.28)');
+    T(v,x+105,616,fit(v,186,72,'700','"JetBrains Mono",monospace'),'700','center','#fff','"JetBrains Mono",monospace');T(l,x+105,658,25)});
   // 交換したスタンプ（重ねて並べる。いちばん仲良しが一番上）
   T(fr.total?'交換したスタンプ':'まだ交換したスタンプはありません',W/2,730,30,'700','center','rgba(255,255,255,.92)');
   if(fr.list.length){const R=50,step=78,n=fr.list.length,more=fr.total-n,wAll=(n-1)*step+2*R+(more>0?96:0),x0=(W-wAll)/2+R;
@@ -2447,6 +2455,9 @@ function setRoute(on){settings.route=!!on;saveSet();on?rtStart():rtStop()}
 document.addEventListener('visibilitychange',()=>document.hidden?rtStop():rtStart());
 setTimeout(rtStart,1500);
 const rtKm=pts=>{let k=0;for(let i=1;i<pts.length;i++)k+=dist({la:pts[i-1][0],lo:pts[i-1][1]},{la:pts[i][0],lo:pts[i][1]});return k};
+const kmSum=()=>Object.values(store.get('rtkm1',{})).reduce((a,b)=>a+(+b||0),0);
+const kmFmt=k=>k<10?(Math.round(k*10)/10).toString():Math.round(k).toLocaleString();
+async function totalKm(){const c={...store.get('rtkm1',{})},td=today();let ch=false;for(const d of await rtDays()){if(c[d]!=null&&d!==td)continue;const p=await rtGet(d),k=p.length>=2?Math.round(rtKm(p)*100)/100:0;if(c[d]!==k){c[d]=k;ch=true}}if(ch)store.set('rtkm1',c);return kmSum()}
 // SNSに出すとき：出発と到着のまわり（各1km）を消して、自宅の場所が分からないようにする
 function rtTrim(pts,km=1){const c=[0];for(let i=1;i<pts.length;i++)c.push(c[i-1]+dist({la:pts[i-1][0],lo:pts[i-1][1]},{la:pts[i][0],lo:pts[i][1]}));
   const tot=c[c.length-1]||0;if(tot<km*2.5)return [];return pts.filter((p,i)=>c[i]>=km&&c[i]<=tot-km)}
@@ -2597,7 +2608,7 @@ function tripShareText(t){const d=t.d,km=t.km>=1?(t.km<10?t.km.toFixed(1):Math.r
   return [head,...body,'#ペタカー #旅のしおり #ドライブ #クルマ好きと繋がりたい'].join('\n')}
 function profileShareText(){const s=myStats(),r=rpgOf(s),car=carLabel(me);
   return [`ペタカー!で「Lv.${r.L} ${r.cls}」になりました🚗✨`,car&&car!=='未設定'&&car!=='その他 未設定'?`相棒は ${car}。`:'',
-    `🤝 ${met().length}人のクルマ好きと${log.length}回スタンプ交換`,`📍 ${spotSet().size}か所をめぐって、リワードは${gotList(s).length}個`,
+    `🤝 ${met().length}人のクルマ好きと${log.length}回スタンプ交換`,`📍 ${spotSet().size}か所をめぐって、リワードは${gotList(s).length}個`,kmSum()>=1?`🚗 これまでの移動 ${kmFmt(kmSum())}km`:'',
     '会ったときだけ交換できる、クルマのスタンプアプリです','#ペタカー #クルマ好きと繋がりたい #愛車'].filter(Boolean).join('\n')}
 // コレクション・プロフィールに出す相手のクラス（リワードを公開している人だけ）
 function clsMini(id,big){const ps=PST[id];if(!ps||ps.showRewards===false||ps.hidden)return '';const r=rpgOf(ps);if(r.L<=1&&r.cls==='ビギナー')return '';
@@ -2882,7 +2893,7 @@ function render(){
   const v=$('#view');v.innerHTML=views[tab]();
   if(lastTab!==tab){v.classList.remove('enter');void v.offsetWidth;v.classList.add('enter');$('#scroll').scrollTop=0;$('#navbar').classList.remove('on');lastTab=tab}
   bindEv();
-  if($('#ttlb'))$('#ttlb').onclick=openTitles;if($('#frb'))$('#frb').onclick=openFrames;if($('#rpghelp'))$('#rpghelp').onclick=openRpgHelp;if($('#jobb'))$('#jobb').onclick=openJobs;checkLevelUp();checkSets();hydratePho();
+  if($('#ttlb'))$('#ttlb').onclick=openTitles;if($('#frb'))$('#frb').onclick=openFrames;if($('#rpghelp'))$('#rpghelp').onclick=openRpgHelp;if($('#rpgKm'))totalKm().then(k=>{const e=$('#rpgKm');if(e)e.textContent=kmFmt(k)});if($('#jobb'))$('#jobb').onclick=openJobs;checkLevelUp();checkSets();hydratePho();
   $('.tab[data-t=rw]').classList.toggle('dot',tab!=='rw'&&unseen().length>0);
   $$('[data-p]').forEach(b=>b.onclick=()=>detail(b.dataset.p));
   if(tab==='me'){$$('.nearme [data-spot]').forEach(b=>b.onclick=()=>openSpot(b.dataset.spot));if($('#locate2'))$('#locate2').onclick=()=>locate();if($('#nearAll'))$('#nearAll').onclick=()=>{tab='sp';render()};if($('#tcWant'))$('#tcWant').onclick=()=>{tab='sp';render();setTimeout(()=>{const e=$('#planb');if(e)e.closest('.sec').scrollIntoView({behavior:'smooth',block:'start'});else toast('スポットの詳細で「行きたい」を押すと、ここに集まります')},120)};if($('#tcCrs'))$('#tcCrs').onclick=()=>openCourses();if($('#tcPlan'))$('#tcPlan').onclick=()=>{planSel=null;openPlan()};if($('#supTop'))$('#supTop').onclick=()=>openSup();$$('[data-nice]').forEach(b=>b.onclick=()=>sendNice(b.dataset.nice));if($('#shareb'))$('#shareb').onclick=openShare;$('#mk').onclick=openCrop;if($('#mkFirst'))$('#mkFirst').onclick=openCrop;if($('#qcard'))$('#qcard').onclick=openQuests;$('#hito').onclick=openHito;if($('#nmb'))$('#nmb').onclick=openName;$('#carb').onclick=()=>openGarage(render);if($('#grb'))$('#grb').onclick=()=>openGarage(render);if($('#newsTop'))$('#newsTop').onclick=()=>openNewsItem($('#newsTop').dataset.n);if($('#openRow'))$('#openRow').onclick=()=>{tab='ex';render()};$('#bgb').onclick=openBg;if($('#wrapb'))$('#wrapb').onclick=openWrap;if($('#tripb'))$('#tripb').onclick=()=>{const n=tripOf(today()).spots.length;n?openTripDay(today()):openTrip()};$('#allrec').onclick=()=>{colView='stamp';store.set('colv2',colView);colSort='recent';store.set('sort2',colSort);tab='col';render()}}
