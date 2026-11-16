@@ -522,6 +522,7 @@ textarea{width:100%;box-sizing:border-box;margin-top:6px;padding:10px 12px;borde
 .tourc{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}.tourc button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 4px;border-radius:14px;background:var(--surface);border:1px solid var(--line);color:var(--ink);font:inherit;cursor:pointer}.tourc b{font-size:12px;white-space:nowrap}.tourc span{font-size:11px;color:var(--muted)}.tourc svg{color:var(--accent)}
 .lthumb{position:relative;width:52px;height:52px;border-radius:12px;overflow:hidden;flex:none;background:var(--fill);display:block}.lthumb img{width:100%;height:100%;object-fit:cover;display:block}.lthumb>:not(img){position:absolute;right:2px;bottom:2px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.5))}.lthumb.ng img{display:none}.lthumb.ng>:not(img){position:absolute;inset:0;margin:auto;transform:scale(1.8)}.lthumb.cth{width:64px;height:64px}.crsli{align-items:center}.crsc{display:block;color:var(--ink)!important;font-weight:600;font-size:12.5px;opacity:.9}.crsc.big{margin:0 4px 4px;font-size:14px;text-align:center}.phcred{font-size:10.5px;text-align:center;margin-top:6px}
 .jobpick .li.off{opacity:.45}.jobpick .t small{display:block;font-weight:500;margin-top:2px}.jobpick .li[aria-pressed=true]{outline:2px solid var(--accent);outline-offset:-2px}
+.rpgstage{position:relative;height:230px;margin:-4px -4px 10px;border-radius:16px;overflow:hidden;background:radial-gradient(ellipse 60% 55% at 50% 62%,color-mix(in srgb,var(--accent) 22%,transparent),transparent 70%),var(--fill);display:flex;align-items:flex-end;justify-content:center}.rpgstage::after{content:'';position:absolute;left:50%;bottom:10px;width:46%;height:12px;transform:translateX(-50%);border-radius:50%;background:rgba(0,0,0,.18);filter:blur(3px)}.rpgchara{position:relative;z-index:1;height:216px;width:auto;margin-bottom:6px;filter:drop-shadow(0 4px 6px rgba(0,0,0,.18))}.lvchara{display:block;height:170px;width:auto;margin:0 auto 8px;filter:drop-shadow(0 4px 6px rgba(0,0,0,.2))}.jobimg{flex:none;width:44px;height:58px;border-radius:10px;background:var(--fill);overflow:hidden;display:grid;place-items:center;color:var(--muted);font-weight:800}.jobimg img{width:100%;height:100%;object-fit:cover;object-position:50% 6%;transform:scale(1.35);transform-origin:50% 0}
 [hidden]{display:none!important}
 body{margin:0}img{max-width:100%}
 html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -1573,12 +1574,14 @@ function rpgOf(s){s=s||{};const e=expOf(s),L=lvOf(e),vals=RSTATS.map(x=>[x,Math.
   const cls=best[1]>0?CLS_STEP[ri][1]+best[0].cls:'ビギナー';
   const ti=Number.isInteger(s.ttl)&&BADGES[s.ttl]&&BADGES[s.ttl].f(s)>=BADGES[s.ttl].g?BADGES[s.ttl].t:'';
   return {e,L,ri,cls,vals,top:best[1]>0?best[0].k:null,best:real[1]>0?real[0].k:null,cur:needXP(L),next:L<LV_MAX?needXP(L+1):null,nextCls:CLS_STEP[ri+1]?CLS_STEP[ri+1][0]:null,title:ti}}
+const charaSrc=(k,ri)=>k?`chara/${k}${Math.max(0,Math.min(4,ri|0))}.webp`:'';
+const charaImg=(r,cls='rpgchara')=>r.top?`<img class="${cls}" src="${charaSrc(r.top,r.ri)}" alt="${esc(r.cls)}" loading="lazy" onerror="this.remove()">`:'';
 const jobIdx=()=>{const k=settings.job;return k&&(settings.frCls||[]).includes(k)?RSTATS.findIndex(x=>x.k===k):-1};
 const ttlIdx=()=>{const i=BADGES.findIndex(b=>b.k===settings.title);return i<0?-1:i};
 const clsChip=r=>`<span class="lvchip"><b>Lv.${r.L}</b> ${esc(r.cls)}${r.title?` <span>【${esc(r.title)}】</span>`:''}</span>`;
 function rpgWindow(st){const r=rpgOf(st),mx=Math.max(100,...r.vals.map(v=>v[1]));
   const pct=r.next?Math.min(100,(r.e-r.cur)/(r.next-r.cur)*100):100;
-  return `<div class="rpg" role="group" aria-label="ステータス"><div class="hd"><div class="lvn"><small>Lv.</small>${r.L}</div><div><span class="lv">クラス</span><span class="job">${esc(r.cls)}</span>${r.title?`<span class="ttl">称号【${esc(r.title)}】</span>`:''}</div></div>
+  return `<div class="rpg" role="group" aria-label="ステータス">${r.top?`<div class="rpgstage">${charaImg(r)}</div>`:''}<div class="hd"><div class="lvn"><small>Lv.</small>${r.L}</div><div><span class="lv">クラス</span><span class="job">${esc(r.cls)}</span>${r.title?`<span class="ttl">称号【${esc(r.title)}】</span>`:''}</div></div>
    <div class="xp"><i style="width:${pct}%"></i></div><div class="xpn"><span>EXP ${r.e.toLocaleString()}</span><span>${r.next?`つぎのLvまで ${(r.next-r.e).toLocaleString()}`:'最高レベル'}</span></div>${r.nextCls?`<div class="xpn" style="margin-top:2px"><span></span><span>Lv.${r.nextCls} でクラスの格が上がります</span></div>`:''}
    <div class="sts">${r.vals.map(([x,v])=>`<span class="${x.k===r.top?'top':''}">${x.n}</span><span class="bar2"><i style="width:${v/mx*100}%"></i></span><span class="v">${v}</span>`).join('')}</div>
    <div class="row"><button class="btn sub press" id="ttlb">称号をえらぶ</button><button class="btn sub press" id="frb">縁をえらぶ</button></div><div class="row" style="margin-top:8px"><button class="btn sub press" id="jobb">ジョブをえらぶ</button><button class="btn sub press" id="rpghelp">クラスのしくみ</button></div></div>`}
@@ -1593,7 +1596,7 @@ function openJobs(){const st=myStats(),r=rpgOf({...st,job:-1}),own=new Set([...(
   const v=k=>(r.vals.find(([x])=>x.k===k)||[,0])[1];
   openSheet(`<b style="font-size:20px;display:block;text-align:center">ジョブをえらぶ</b><p class="note" style="text-align:center">一度でも一番になったジョブは、いつでも切り替えられます。格（${pre}）はレベルで決まり、どのジョブでも同じです。</p>
    <div class="list jobpick"><button class="li press" data-job="" aria-pressed="${cur===''}"><div class="t"><b>おまかせ<small>一番高いステータス：${esc(r.best?RSTATS.find(x=>x.k===r.best).cls:'なし')}</small></b></div><span class="d">${cur===''?'使用中':''}</span></button>
-   ${RSTATS.map(x=>{const ok=own.has(x.k)&&v(x.k)>0;return `<button class="li press${ok?'':' off'}" data-job="${x.k}" ${ok?'':'disabled'} aria-pressed="${cur===x.k}"><div class="t"><b>${esc(x.cls)}<small>${x.n} ${v(x.k)}${ok?'':'・まだ一番になったことがありません'}</small></b></div><span class="d">${cur===x.k?'使用中':ok?'':'未取得'}</span></button>`}).join('')}</div>
+   ${RSTATS.map(x=>{const ok=own.has(x.k)&&v(x.k)>0;return `<button class="li press${ok?'':' off'}" data-job="${x.k}" ${ok?'':'disabled'} aria-pressed="${cur===x.k}"><span class="jobimg">${ok?`<img src="${charaSrc(x.k,r.ri)}" alt="" loading="lazy">`:'?'}</span><div class="t"><b>${esc(x.cls)}<small>${x.n} ${v(x.k)}${ok?'':'・まだ一番になったことがありません'}</small></b></div><span class="d">${cur===x.k?'使用中':ok?'':'未取得'}</span></button>`}).join('')}</div>
    <button class="btn sub press" style="margin-top:12px" data-close>閉じる</button>`);
   bindClose();$$('[data-job]').forEach(b=>b.onclick=()=>{if(b.disabled)return;settings.job=b.dataset.job;saveSet();syncFrame();closeSheet();render();const n=rpgOf(myStats());toast(`ジョブを「${n.cls}」にしました`)})}
 function openRpgHelp(){openSheet(`<b style="font-size:20px;display:block;text-align:center">クラスのしくみ</b>
@@ -1617,7 +1620,7 @@ function checkLevelUp(){if(syncFrame()&&!$('#sh')){render();return}if(me.sample)
   store.set('lv1',r.L);if(prev==null||r.ri<prev)store.set('cls3',r.ri);
   if(prev!=null&&r.ri>prev){store.set('cls3',r.ri);fanfare();buzz([40,40,40,40,120]);
   $('#lvup').innerHTML=`<div class="lvup" id="lvo" role="dialog" aria-modal="true" aria-label="クラスアップ"><div class="rpg"><h3>CLASS UP!</h3>
-   <p>${esc(me.name)}が Lv.${r.L} になって、クラスが</p><p class="cn">${esc(r.cls)}</p><p>になった！</p>
+   ${charaImg(r,'lvchara')}<p>${esc(me.name)}が Lv.${r.L} になって、クラスが</p><p class="cn">${esc(r.cls)}</p><p>になった！</p>
    <button class="btn press" id="lvok">とじる</button></div></div>`;
   const c=()=>{$('#lvup').innerHTML=''};$('#lvok').onclick=c;$('#lvo').onclick=e=>{if(e.target.id==='lvo')c()};return}
   const qm=moStart(today()),qseen=store.get('qok2',[]),qdn=qDone(qm),qnew=qdn.filter(q=>!qseen.includes(qm+q.k));if(qnew.length){store.set('qok2',[...qseen.filter(x=>x.startsWith(qm)),...qnew.map(q=>qm+q.k)]);const qall=quests(qm).length>1&&qdn.length===quests(qm).length;try{sfx.chime()}catch(e){}buzz([30,60,30]);toast(`お題「${qnew[0].t}」を達成！ EXP +${QXP}`+(qall?`　全部達成で +${QXP_ALL}`:''));return}
