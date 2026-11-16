@@ -1778,15 +1778,16 @@ const sfx=(()=>{let A=null;
   const go=fn=>{const a=ctx();if(!a)return;if(a.state==='running')fn(a);else a.resume().then(()=>fn(a),()=>{})};
   return {
     unlock(){if(on())ctx()},
-    // ポンッ：木の机にハンコを押す音
+    // ペタッ：貼りつく「ペ」＋押さえる「タ」＋止まる「ッ」
     peta(kira,delay=.18){if(!on())return;go(a=>{const t=a.currentTime+delay;
-      tone(a,t,'sine',160,55,.9,.16);                  // 押した重み
-      hiss(a,t,'lowpass',900,1,.6,.04);                // 机に当たる音
-      tone(a,t+.005,'triangle',420,380,.25,.05);       // 木の響き
+      hiss(a,t,'bandpass',1500,.9,.55,.05);            // ペ：シールが当たる音
+      tone(a,t,'sine',210,62,.75,.12);                 // 押さえた重み
+      tone(a,t+.045,'triangle',720,300,.32,.06);       // タ：ゴムっぽい弾み
+      hiss(a,t+.085,'highpass',3200,.7,.22,.018);      // ッ：ぴたっと止まる
       if(kira)[2093,2637,3136,4186,5274].forEach((f,i)=>{tone(a,t+.32+i*.055,'sine',f,f,.12,.5);tone(a,t+.32+i*.055,'sine',f*2.01,f*2.01,.03,.25)})})},
-    // チェックイン：ポロン
+    // お知らせ・チェックイン：鉄琴でド・ミ・ソ
     chime(){if(!on())return;go(a=>{const t=a.currentTime+.02;
-      [[880,0],[1318.5,.11]].forEach(([f,d])=>{tone(a,t+d,'sine',f,f,.32,.9,.006);tone(a,t+d,'sine',f*2.76,f*2.76,.05,.35,.004);tone(a,t+d,'triangle',f/2,f/2,.06,.5,.006)})})}
+      [1046.5,1318.5,1568].forEach((f,i)=>{tone(a,t+i*.09,'sine',f,f,.28,.8,.003);tone(a,t+i*.09,'sine',f*4,f*4,.04,.2,.004)})})}
   }})();
 addEventListener('pointerdown',()=>sfx.unlock(),{once:true});
 
