@@ -1479,6 +1479,7 @@ function ringText(txt,r,o){const ch=[...txt],w=ch.map(c=>c.charCodeAt(0)>255?1:.
     return c===' '?'':`<text transform="translate(${(50+rr*Math.cos(th)).toFixed(2)} ${(50+rr*Math.sin(th)).toFixed(2)}) rotate(${(th*180/Math.PI+90).toFixed(1)})">${esc(c)}</text>`}).join('')}</g>`}
 /* stamp renderer */
 let uid=0;
+const FR_HOLE=39,FR_KMAX=1.22; // 縁の絵の写真の穴をここまで広げる（サポーターの縁と同じ39%）
 function stamp(p,o={}){
   if(o.v&&p.vers&&p.vers[o.v-1])p={...p,...p.vers[o.v-1]};
   if(o.im)p={...p,img:o.im,ring:o.rg||p.ring}; // その日に交換したスタンプ（車ごと・作り直しごと）
@@ -1499,7 +1500,10 @@ function stamp(p,o={}){
   }else if(szx)svg=seasonFrame(szx);
   else if(fr)svg=frameSvg(fr,p.ring);
   else svg=`<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48" fill="none" stroke="${p.ring}" stroke-width="3.6"/></svg>`;
-  return `<div class="stamp ${ev||off||szx||fr?'ev':''}" style="width:${size}px;font-size:${size/7}px"><img src="${p.img}" style="${window.PetaFrames?PetaFrames.photoStyle(svg):''}" alt="${esc(p.name)}のスタンプ">${o.kira?'<div class="k"></div>':o.rare?'<div class="k g"></div>':''}${svg}${o.kira?'<div class="kb">EX</div>':o.rare?'<div class="kb g">RARE</div>':''}</div>`;
+  let phs=window.PetaFrames?PetaFrames.photoStyle(svg):'';
+  if((szx||fr)&&window.PetaFrames){const h=PetaFrames.holeOf(svg);if(h&&h.r<FR_HOLE){const k=Math.min(FR_KMAX,FR_HOLE/h.r),r=h.r*k;
+    svg=svg.replace('<svg ',`<svg style="transform:scale(${k.toFixed(3)});transform-origin:${h.cx}% ${h.cy}%" `);phs=`inset:auto;left:${h.cx-r}%;top:${h.cy-r}%;width:${r*2}%;height:${r*2}%`}}
+  return `<div class="stamp ${ev||off||szx||fr?'ev':''}" style="width:${size}px;font-size:${size/7}px"><img src="${p.img}" style="${phs}" alt="${esc(p.name)}のスタンプ">${o.kira?'<div class="k"></div>':o.rare?'<div class="k g"></div>':''}${svg}${o.kira?'<div class="kb">EX</div>':o.rare?'<div class="kb g">RARE</div>':''}</div>`;
 }
 // サポーター：期限（ms）は課金サーバーだけが users/{uid}.sup に書く（本人は書けない）。名前の前に青丸白星
 const supPaid=p=>!!(p&&typeof p.sup==='number'&&p.sup>Date.now());
