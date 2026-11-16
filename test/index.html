@@ -1658,6 +1658,7 @@ const TITLES={me:['マイスタンプ',''],ex:['交換','近くにいる人と�
 const svgI=d=>`<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
 const COLI={stamp:svgI('<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/>'),bag:svgI('<path d="M5 8h14l-1.2 12H6.2z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/>'),shop:svgI('<path d="M4 9.5 5.5 4h13L20 9.5"/><path d="M5 9.5V20h14V9.5"/><path d="M10 20v-5h4v5"/>'),cam:svgI('<path d="M4 8h3l1.5-2h7L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>'),book:svgI('<path d="M5 4.5h10a3 3 0 0 1 3 3V20H8a3 3 0 0 1-3-3z"/><path d="M5 17a3 3 0 0 1 3-3h10"/>')};
 function zkBanner(){const st=zukanStats();return `<button class="zkban press" data-cv="zukan" aria-pressed="${colView==='zukan'}" style="background-image:linear-gradient(90deg,rgba(10,12,16,.92) 0%,rgba(10,12,16,.7) 42%,rgba(10,12,16,.05) 80%),url(chara/zukan_bg.webp)"><span class="zkt">${COLI.book}車種図鑑</span><span class="zkd">出会った車が図鑑に載ります</span><span class="zkn"><b>${st.zk}</b> / ${ZTOTAL} 車種</span><i aria-hidden="true">›</i></button>`}
+const RWI={bd:svgI('<circle cx="12" cy="9" r="5.5"/><path d="M8.5 13.5 7 21l5-2.5 5 2.5-1.5-7.5"/>'),set:svgI('<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><path d="M14.5 16.5l2 2 3.5-4"/>'),cls:svgI('<circle cx="12" cy="7.5" r="3.5"/><path d="M5 20c.8-4 3.6-6 7-6s6.2 2 7 6"/><path d="M16.5 3.5l1 1.8 2 .3-1.5 1.4.4 2-1.9-1-1.9 1 .4-2-1.5-1.4 2-.3z"/>')};
 function petaStore(){return `<div class="petast"><div class="pslogo">${COLI.shop}</div><b>公式協力店</b><p>ペタカー!の公式協力店です。訪れると、ここでしか手に入らない特別な特典が……？</p><span class="chip">現在開発中</span><p class="note">オープンしたら、お知らせでご案内します。</p></div>`}
 
 const views={
@@ -1742,7 +1743,7 @@ const views={
   const st=myStats(),mp=myPins(),gl=gotList(st),gk=gl.map(b=>b.k);
   const near=BADGES.filter(b=>!gk.includes(b.k)&&b.f(st)>0).sort((a,b)=>b.f(st)/b.g-a.f(st)/a.g||(a.g-a.f(st))-(b.g-b.f(st))); // 達成に近い順（割合→残り数）
   const show=b=>rwFilter==='all'||(rwFilter==='got')===gk.includes(b.k);
-  const seg=`<div class="seg" role="group" aria-label="表示">${[['bd','バッジ'],['set','セット'],['cls','クラス']].map(([k,t])=>`<button data-rv="${k}" aria-pressed="${rwView===k}">${t}</button>`).join('')}</div>`;
+  const seg=`<div class="spnav colnav" role="group" aria-label="表示">${[['bd','バッジ',RWI.bd],['set','セット',RWI.set],['cls','クラス',RWI.cls]].map(([k,t,ic])=>`<button class="press" data-rv="${k}" aria-pressed="${rwView===k}">${ic}<span>${t}</span></button>`).join('')}</div>`;
   if(rwView==='set')return seg+setsView();
   if(rwView==='cls')return seg+(settings.pubRewards?'':`<div class="incoming" style="margin:0 0 12px"><div><b>リワードは非公開にしています</b><div class="note">ほかの人があなたのプロフィールを見ても、バッジとクラスは表示されません。マイスタンプの設定で変えられます。</div></div></div>`)+rpgWindow(st);
   return `${seg}${settings.pubRewards?'':`<div class="incoming" style="margin:0 0 12px"><div><b>リワードは非公開にしています</b><div class="note">ほかの人があなたのプロフィールを見ても、バッジは表示されません。マイスタンプの設定で変えられます。</div></div></div>`}
