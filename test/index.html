@@ -530,6 +530,7 @@ textarea{width:100%;box-sizing:border-box;margin-top:6px;padding:10px 12px;borde
 .vwr{display:block;margin:2px 0}.vwr i{font-style:normal;font-size:11px;font-weight:800;padding:1px 7px;border-radius:999px;margin-right:6px;color:#fff;background:#e0782b}.vwr i.vw1{background:#3a4a8c}.vwr small{display:block;margin-left:0}
 .note[style*="text-align:center"],.sheet p[style*="text-align:center"]{text-wrap:balance}
 .u11top h1 small{display:block;font-size:.5em;letter-spacing:.08em;margin-top:2px}
+.u11big{display:inline-block;margin-left:8px;font-weight:900;font-size:14px;color:var(--accent);letter-spacing:.04em;vertical-align:middle}
 [hidden]{display:none!important}
 body{margin:0}img{max-width:100%}
 html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -1820,7 +1821,7 @@ function commonsCred(f){if(spCredCache[f])return Promise.resolve(spCredCache[f])
 function showUpd11(force){if((!force&&store.get('upd15',0))||$('#upd11'))return;store.set('upd15',1);
   const F=[["クラスに相棒", "6つのジョブに女の子の相棒。格が上がると姿も変わります"], ["ジョブを自由に転職", "スポットに行けば転職できます。格はジョブごとに上がります"], ["写真と紹介文", "約3,000か所のスポットに写真と紹介文がつきました"], ["絶景とダムカード", "夕日・夜景の名所と、ダムカードの配布情報"], ["天気と凍結注意", "今日・明日の天気、日の出・日の入り、路面凍結の注意"], ["コースと行きたいリスト", "テーマ別コースの制覇と、気になるスポットの登録"]];
   const el=document.createElement('div');el.id='upd11';el.className='upd11';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');el.setAttribute('aria-label','旅する相棒アップデートのお知らせ');
-  el.innerHTML=`<div class="u11in"><div class="u11top"><span class="u11ver">Ver 1.5</span><h1>旅する相棒<small>アップデート</small></h1></div>
+  el.innerHTML=`<div class="u11in"><div class="u11top"><span class="u11ver">Ver 1.5</span><span class="u11big">【大型アップデート】</span><h1>旅する相棒<small>アップデート</small></h1></div>
    <figure class="u11hero" id="u11hero">${UPD11_SLIDES.map(([n,f],i)=>`<div class="u11s${i?'':' cur'}" data-i="${i}"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(f)}?width=900" alt="" referrerpolicy="no-referrer" ${i?'loading="lazy"':''}><b style="font-size:min(60px,calc((min(100vw,480px) - 48px) / ${n.length+.4}))">${n}</b></div>`).join('')}<figcaption id="u11cred">写真：Wikimedia Commons</figcaption><div class="u11dots">${UPD11_SLIDES.map((_,i)=>`<i class="${i?'':'on'}"></i>`).join('')}</div></figure>
    <div class="u11body"><p class="u11lead">相棒と一緒に、旅がもっと楽しくなりました</p>
     <ul>${F.map(([h,t])=>`<li><b>${h}</b><span>${t}</span></li>`).join('')}</ul></div>
@@ -2196,7 +2197,7 @@ function openGarage(back){
 const BELL='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg>';
 const NTAG={info:['お知らせ','var(--accent)'],event:['イベント','#2f6fd6'],update:['アップデート','#1d8a4b'],mainte:['メンテナンス','#6b7480']};
 const NEWS=[
- {id:'r9',d:'2026-11-17',tag:'update',pin:true,act:'upd11',t:'Ver 1.5「旅する相棒」アップデート',b:'相棒と一緒に、スポットめぐりの旅がもっと楽しくなりました。\n\n・クラスに相棒：6つのジョブそれぞれに相棒の女の子がつきました。格が上がると姿も変わります。\n・ジョブを自由に転職：そのジョブのスポットに1か所でも行くと転職できます。格はジョブごとの経験値で上がります。\n・写真と紹介文：約3,000か所のスポットに写真と紹介文がつきました。\n・絶景とダムカード：夕日・夜景の名所を新しい種類「絶景」として追加。ダムではダムカードの配布情報も見られます。\n・天気と凍結注意：スポットの今日・明日の天気、日の出・日の入り、路面凍結の注意を表示します。\n・コースと行きたいリスト：本州四端・伝説の峠などのテーマ別コースと、気になるスポットの登録ができます。\n・総移動距離：クラス画面とSNSシェアに、これまでの移動距離が出ます。'},
+ {id:'r9',d:'2026-11-17',tag:'update',pin:true,act:'upd11',t:'【大型アップデート】Ver 1.5「旅する相棒」',b:'相棒と一緒に、スポットめぐりの旅がもっと楽しくなりました。\n\n・クラスに相棒：6つのジョブそれぞれに相棒の女の子がつきました。格が上がると姿も変わります。\n・ジョブを自由に転職：そのジョブのスポットに1か所でも行くと転職できます。格はジョブごとの経験値で上がります。\n・写真と紹介文：約3,000か所のスポットに写真と紹介文がつきました。\n・絶景とダムカード：夕日・夜景の名所を新しい種類「絶景」として追加。ダムではダムカードの配布情報も見られます。\n・天気と凍結注意：スポットの今日・明日の天気、日の出・日の入り、路面凍結の注意を表示します。\n・コースと行きたいリスト：本州四端・伝説の峠などのテーマ別コースと、気になるスポットの登録ができます。\n・総移動距離：クラス画面とSNSシェアに、これまでの移動距離が出ます。'},
  {id:'r1',d:'2026-11-01',tag:'info',pin:true,t:'ペタカー! 正式版を公開しました',b:'ペタカー!をご利用いただき、ありがとうございます。iPhone版をApp Storeで公開しました。Android版は公開の準備を進めています。\n\nベータ版から使っていただいている方の記録は、そのまま引き継がれています。\n\nはじめての方は、マイスタンプで愛車の写真からスタンプを作成してください。会った人とは「交換をはじめる」→相手を選ぶ→2人で同時にスマホを振る、の手順でスタンプを交換できます。\n\nご意見や不具合のご報告は、設定の「お問い合わせ・不具合の報告」からお寄せください。'},
  {id:'r8',d:'2026-11-11',tag:'update',t:'フォトスタンプの写真を入れ直せるようになりました',b:'・写真：フォトスタンプの写真がこの端末から消えて縞模様になったときは、その写真を開いて「写真を入れ直す」からアルバムの写真で直せます。日付とスポットはそのままです。\n・アプリ版は写真を端末のファイルにも保存するようにして、消えにくくしました。\n・スポットの紹介：道の駅・PA・神社・寺などに紹介を約800か所追加しました（全国「道の駅」連絡会の公式サイトやWikidataの公開情報をもとにしています）。\n・一部のスポットの住所を直しました。'},
  {id:'r7',d:'2026-11-10',tag:'update',t:'スポットに紹介文と公式サイトを追加しました',b:'・スポットの紹介：神社・城・寺・ダム・道の駅・PAなど約2,000か所に、ひとことの紹介や豆知識を付けました。Wikipedia日本語版などの公開情報をもとにしています。\n・公式サイト：公式サイトがあるスポットは、スポットの画面から開けるようになりました。\n・地図：「行っていないところだけ」に絞り込めるようになり、地図はいつでも白い地図で表示します。\n・手紙は1日3通までになりました。\n・そのほか、お気に入りの★が縁に隠れる不具合などを直しました。'},
