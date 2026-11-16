@@ -1733,7 +1733,7 @@ const views={
  },
  sp(){
   const vis=spotSet();
-  return `<div class="group zhead"><div class="big">${[...vis].filter(id=>!id.startsWith('rw:')).length}<small>/${SPOTS.filter(x=>x.cat!=='st').length}</small></div><div class="zt2"><b>行ったスポット</b></div>
+  return `<div class="group zhead zbg" style="background-image:linear-gradient(90deg,rgba(12,16,22,.9) 0%,rgba(12,16,22,.72) 55%,rgba(12,16,22,.35) 100%),url(chara/bg_expl.jpg)"><div class="big">${[...vis].filter(id=>!id.startsWith('rw:')).length}<small>/${SPOTS.filter(x=>x.cat!=='st').length}</small></div><div class="zt2"><b>行ったスポット</b></div>
     <details class="catdet"><summary>種類別の数を見る</summary><div class="catrow">${Object.entries(CAT).map(([k,c])=>`<span class="chip">${c.n} ${SPOTS.filter(x=>x.cat===k&&vis.has(x.id)).length}/${SPOTS.filter(x=>x.cat===k).length}</span>`).join('')}</div></details></div>
   <div class="spnav"><button class="press" id="srchb">${SRCHI}<span>探す</span></button><button class="press" id="spmapb">${MAPI}<span>地図</span></button><button class="press" id="crsb">${FLAGI}<span>コース</span></button><button class="press" id="mapb">${JPI}<span>制覇マップ</span></button></div>
   ${busySpots().length?`<div class="sec">近くでいま人がいるスポット<span class="chip">${busyScope()} · 2時間以内</span></div><div class="list">${busySpots().map(([x,n,d])=>`<button class="li press" data-spot="${esc(x.id)}">${listMark(x,spotDays(x.id)>0)}<div class="t"><b>${esc(x.n)}</b><span>${CAT[x.cat].n} · ${esc(x.ad||x.pref)}</span></div><span class="nowc big">${n}人</span>${d!=null?`<span class="d">${fmtKm(d)}</span>`:''}</button>`).join('')}</div>`:''}
