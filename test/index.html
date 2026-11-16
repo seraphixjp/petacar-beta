@@ -1820,8 +1820,8 @@ const gnav=x=>`https://www.google.com/maps/dir/?api=1&destination=${x.la},${x.lo
 // マイスタンプ：1.1 の観光機能への入口（行きたいリスト・コース・ドライブプラン）
 function tourCard(){const n=wantSet().size,L=COURSES(),d=courseDone();
   return `<div class="tourc"><button class="press" id="tcWant">${STARI}<b>行きたいリスト</b><span>${n?n+'か所':'未登録'}</span></button><button class="press" id="tcCrs">${FLAGI}<b>コース</b><span>制覇 ${d}/${L.length}</span></button><button class="press" id="tcPlan">${NAVI}<b>ドライブプラン</b><span>${n?'作る':'リストから'}</span></button></div>`}
-function nearMeCard(){return nearMeCard0()+tourCard()}
-function nearMeCard0(){
+function nearMeCard(){return nearMeBase()+tourCard()}
+function nearMeBase(){
   if(!here)return `<div class="sec">近くのスポット</div><button class="btn sub press" id="locate2">${MAPI}現在地から近くのスポットを探す</button>`;
   return `<div class="sec">近くのスポット<button class="seclink" id="nearAll">すべて見る ›</button></div><div class="list nearme">${nearest(2).map(([x,d])=>`<button class="li press" data-spot="${esc(x.id)}">${spotMark(x,spotDays(x.id)>0)}<div class="t"><b>${esc(x.n)}${nowTag(x.id)}</b><span>${CAT[x.cat].n} · ${esc(x.ad||x.pref)}</span></div><span class="d">${fmtKm(d)}</span></button>`).join('')}</div>`}
 function locate(){
