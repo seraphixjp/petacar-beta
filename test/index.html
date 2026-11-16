@@ -475,7 +475,7 @@ textarea{width:100%;box-sizing:border-box;margin-top:6px;padding:10px 12px;borde
 .lvup{position:fixed;inset:0;z-index:95;display:grid;place-items:center;background:rgba(0,0,0,.5);animation:fade .2s}
 .lvup .rpg{width:min(320px,86vw);text-align:center;padding:24px 20px 18px;animation:rpgpop .4s cubic-bezier(.2,1.5,.4,1);box-shadow:0 12px 32px rgba(0,0,0,.25)}
 .lvup h3{font-family:var(--display);font-size:28px;color:var(--accent);margin:0 0 10px;font-weight:400;transform:rotate(-4deg)}
-.lvup p{margin:4px 0;font-size:14px;color:var(--muted)}.lvup .cn{font-weight:900;font-size:22px;color:var(--ink);margin:6px 0}.lvup .btn{margin-top:16px}
+.lvup p{margin:4px 0;font-size:14px;color:var(--muted)}.lvup .cn{font-weight:900;font-size:22px;color:var(--ink);margin:6px 0}.lvup .btn{margin-top:16px}.lvup p{text-wrap:balance;word-break:keep-all;overflow-wrap:anywhere}.lvup .lvn2{font-size:12px;margin-top:8px}
 @keyframes rpgpop{from{transform:scale(.5);opacity:0}}
 .partyb{margin-top:12px;border-radius:16px;background:var(--surface)}.partyb>svg{color:var(--accent);flex:none}
 .ptgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:12px 8px;margin:6px 0 14px;width:100%}
@@ -528,6 +528,7 @@ textarea{width:100%;box-sizing:border-box;margin-top:6px;padding:10px 12px;borde
 .rkm i{display:block;font-style:normal;white-space:nowrap}.rkm{display:block;margin-top:4px;font-size:12px;font-weight:600;color:#5b6472}.rkm b{font:700 13px var(--mono);font-variant-numeric:tabular-nums;color:#1d232c}.rpg>.hd .rkm{color:var(--muted)}.rpg>.hd .rkm b{color:var(--ink)}
 .facs{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:2px}.facs i{font-style:normal;font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:999px;background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--ink)}.spr small a{color:var(--accent)}
 .vwr{display:block;margin:2px 0}.vwr i{font-style:normal;font-size:11px;font-weight:800;padding:1px 7px;border-radius:999px;margin-right:6px;color:#fff;background:#e0782b}.vwr i.vw1{background:#3a4a8c}.vwr small{display:block;margin-left:0}
+.note[style*="text-align:center"],.sheet p[style*="text-align:center"]{text-wrap:balance}
 [hidden]{display:none!important}
 body{margin:0}img{max-width:100%}
 html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -1641,7 +1642,7 @@ function checkLevelUp(){if(syncFrame()&&!$('#sh')){render();return}if(me.sample)
   store.set('lv1',r0.L);store.set('cls4',now);const up=prev?now.findIndex((v,i)=>v>0&&v>(prev[i]??-1)):-1,r=up>=0?rpgOf({...st0,job:up}):r0;
   if(up>=0){fanfare();buzz([40,40,40,40,120]);
   $('#lvup').innerHTML=`<div class="lvup" id="lvo" role="dialog" aria-modal="true" aria-label="クラスアップ"><div class="rpg"><h3>CLASS UP!</h3>
-   ${charaImg(r,'lvchara')}<p>${esc(me.name)}のクラスが</p><p class="cn">${esc(r.cls)}</p><p>に上がった！「ジョブをえらぶ」で転職できます</p>
+   ${charaImg(r,'lvchara')}<p>${esc(me.name)}のクラスが</p><p class="cn">${esc(r.ri===1?'一人前の'+r.cls:r.cls)}</p><p>に上がった！</p><p class="lvn2">「ジョブをえらぶ」で転職できます</p>
    <button class="btn press" id="lvok">とじる</button></div></div>`;
   const c=()=>{$('#lvup').innerHTML=''};$('#lvok').onclick=c;$('#lvo').onclick=e=>{if(e.target.id==='lvo')c()};return}
   const qm=moStart(today()),qseen=store.get('qok2',[]),qdn=qDone(qm),qnew=qdn.filter(q=>!qseen.includes(qm+q.k));if(qnew.length){store.set('qok2',[...qseen.filter(x=>x.startsWith(qm)),...qnew.map(q=>qm+q.k)]);const qall=quests(qm).length>1&&qdn.length===quests(qm).length;try{sfx.chime()}catch(e){}buzz([30,60,30]);toast(`お題「${qnew[0].t}」を達成！ EXP +${QXP}`+(qall?`　全部達成で +${QXP_ALL}`:''));return}
