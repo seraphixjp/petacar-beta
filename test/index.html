@@ -534,6 +534,7 @@ textarea{width:100%;box-sizing:border-box;margin-top:6px;padding:10px 12px;borde
 .colnav{margin:0 0 12px}.colnav button[aria-pressed=true]{background:color-mix(in srgb,var(--accent) 18%,var(--fill));color:var(--accent);box-shadow:inset 0 0 0 1.5px var(--accent)}.colnav:has(button:nth-child(5)){grid-template-columns:repeat(5,1fr)}.petast{display:grid;justify-items:center;gap:8px;text-align:center;padding:28px 18px;border-radius:20px;background:var(--surface)}.petast .pslogo{width:64px;height:64px;border-radius:20px;display:grid;place-items:center;background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent)}.petast .pslogo svg{width:32px;height:32px}.petast b{font-size:20px}.petast p{margin:0;color:var(--muted);font-size:13.5px;line-height:1.7;text-wrap:balance}
 .colnav{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:1fr}.zkban{position:relative;display:grid;justify-items:start;gap:4px;width:100%;min-height:104px;margin:0 0 14px;padding:14px 40px 14px 16px;border:0;border-radius:18px;background-size:cover;background-position:right 30% center;color:#fff;text-align:left;font:inherit;cursor:pointer;overflow:hidden}.zkban[aria-pressed=true]{box-shadow:inset 0 0 0 2px var(--accent)}.zkban .zkt{display:flex;align-items:center;gap:6px;font-size:18px;font-weight:900}.zkban .zkt svg{width:20px;height:20px}.zkban .zkd{font-size:12px;opacity:.85;max-width:62%}.zkban .zkn{font-size:12px;opacity:.9}.zkban .zkn b{font:800 18px var(--mono);color:#ffb37a}.zkban i{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-style:normal;font-size:24px;opacity:.8}
 .zkmk{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:12px 0 10px}.zkmk::-webkit-scrollbar{display:none}.zkmk .sortchip{flex:none}.zt .zmk{display:block;font-size:10.5px;color:var(--muted);margin-top:-2px}.zcar img,.zcar svg{display:block;width:100%;max-height:200px;object-fit:cover;border-radius:16px}.zcdesc{margin-top:12px;display:grid;gap:10px}.zcs{background:var(--fill);border-radius:14px;padding:10px 12px}.zcs b{display:block;font-size:12px;color:var(--accent);margin-bottom:3px}.zcs p{margin:0;font-size:14px;line-height:1.75}.zcs.lock{opacity:.75;border:1px dashed var(--line)}.zcsrc{font-size:10.5px;text-align:right}#view .zgrid{max-height:none;overflow:visible}
+.clsnav{margin-top:12px}
 [hidden]{display:none!important}
 body{margin:0}img{max-width:100%}
 html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -744,10 +745,10 @@ const BADGES=[
   {k:'crs3',m:'',ic:'flag',num:'3',t:'コース3つ制覇',s:'テーマ別コースを制覇した数',f:s=>s.crs||0,g:3,tier:'si'},
   {k:'crs8',m:'',ic:'crown',num:'8',t:'コース8つ制覇',s:'テーマ別コースを制覇した数',f:s=>s.crs||0,g:8,tier:'go'},
   {k:'crs15',m:'',ic:'crown',num:'15',t:'コースマスター',s:'テーマ別コースを制覇した数',f:s=>s.crs||0,g:15,tier:'pt'},
-  {k:'set1',m:'',ic:'flag',num:'1',t:'はじめてのセット',s:'セットを揃えた数',f:s=>s.setc||0,g:1,tier:'br'},
-  {k:'set3',m:'',ic:'flag',num:'3',t:'セット3つ',s:'セットを揃えた数',f:s=>s.setc||0,g:3,tier:'si'},
-  {k:'set6',m:'',ic:'flag',num:'6',t:'セット6つ',s:'セットを揃えた数',f:s=>s.setc||0,g:6,tier:'go'},
-  {k:'set12',m:'',ic:'crown',num:'12',t:'セットコレクター',s:'セットを揃えた数',f:s=>s.setc||0,g:12,tier:'pt'},
+  {k:'set1',m:'',ic:'flag',num:'1',t:'はじめてのチャレンジ',s:'達成したチャレンジの数',f:s=>s.setc||0,g:1,tier:'br'},
+  {k:'set3',m:'',ic:'flag',num:'3',t:'チャレンジ3つ',s:'達成したチャレンジの数',f:s=>s.setc||0,g:3,tier:'si'},
+  {k:'set6',m:'',ic:'flag',num:'6',t:'チャレンジ6つ',s:'達成したチャレンジの数',f:s=>s.setc||0,g:6,tier:'go'},
+  {k:'set12',m:'',ic:'crown',num:'12',t:'チャレンジマスター',s:'達成したチャレンジの数',f:s=>s.setc||0,g:12,tier:'pt'},
   {k:'ex1',m:'',ic:'swap',num:'1',t:'はじめての交換',s:'スタンプを交換した回数',f:s=>s.ex||0,g:1,tier:'br'},
   {k:'x10',m:'',ic:'swap',num:'10',t:'交換10回',s:'スタンプを交換した回数',f:s=>s.ex||0,g:10,tier:'br'},
   {k:'p5',m:'',ic:'people',num:'5',t:'5人と出会う',s:'交換した別々の人の数',f:s=>s.ppl||0,g:5,tier:'br'},
@@ -1609,7 +1610,7 @@ function rpgWindow(st){const r=rpgOf(st),mx=Math.max(100,...r.vals.map(v=>v[1]))
   return `<div class="rpg" role="group" aria-label="ステータス">${r.top?`<div class="rpgstage" style="background-image:linear-gradient(90deg,rgba(255,255,255,.55),rgba(255,255,255,.18) 45%,rgba(255,255,255,0) 65%),url(chara/bg_${r.top}.jpg)"><div class="hd onimg"><div class="lvn"><small>Lv.</small>${r.L}</div><div><span class="lv">クラス</span><span class="job">${esc(r.cls)}</span>${r.title?`<span class="ttl">称号【${esc(r.title)}】</span>`:''}${KMROW()}</div></div>${charaImg(r)}</div>`:`<div class="hd"><div class="lvn"><small>Lv.</small>${r.L}</div><div><span class="lv">クラス</span><span class="job">${esc(r.cls)}</span>${r.title?`<span class="ttl">称号【${esc(r.title)}】</span>`:''}${KMROW()}</div></div>`}
    <div class="xp"><i style="width:${pct}%"></i></div><div class="xpn"><span>EXP ${r.e.toLocaleString()}</span><span>${r.next?`つぎのLvまで ${(r.next-r.e).toLocaleString()}`:'最高レベル'}</span></div>${r.nextCls?`<div class="xpn" style="margin-top:2px"><span></span><span>${esc(r.jobN)}があと ${r.nextPts} で「${esc(r.nextCls)}」に上がります</span></div>`:''}
    <div class="sts">${r.vals.map(([x,v])=>`<span class="${x.k===r.top?'top':''}">${x.n}</span><span class="bar2"><i style="width:${v/mx*100}%"></i></span><span class="v">${v}</span>`).join('')}</div>
-   <div class="row"><button class="btn sub press" id="ttlb">称号をえらぶ</button><button class="btn sub press" id="frb">縁をえらぶ</button></div><div class="row" style="margin-top:8px"><button class="btn sub press" id="jobb">ジョブをえらぶ</button><button class="btn sub press" id="rpghelp">クラスのしくみ</button></div></div>`}
+   <div class="spnav clsnav"><button class="press" id="jobb">${RWI.job}<span>ジョブ</span></button><button class="press" id="ttlb">${RWI.ttl}<span>称号</span></button><button class="press" id="frb">${RWI.fr}<span>縁</span></button><button class="press" id="rpghelp">${RWI.help}<span>しくみ</span></button></div></div>`}
 function openTitles(){const st=myStats(),gl=gotList(st).sort((a,b)=>TIERS[b.tier].o-TIERS[a.tier].o);
   openSheet(`<b style="font-size:20px;display:block;text-align:center">称号をえらぶ</b><p class="note" style="text-align:center">獲得したバッジの名前を、称号としてクラスの横に付けられます。</p>
    <div class="list ttlpick" style="max-height:52vh;overflow:auto">${gl.map(b=>`<button class="li press" data-tt="${b.k}">${medal(b,34)}<div class="t"><b>${esc(b.t)}<small>${TIERS[b.tier].n}</small></b></div><span class="d">${settings.title===b.k?'使用中':''}</span></button>`).join('')||'<p class="note" style="text-align:center">まだバッジがありません。</p>'}</div>
@@ -1658,7 +1659,7 @@ const TITLES={me:['マイスタンプ',''],ex:['交換','近くにいる人と�
 const svgI=d=>`<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
 const COLI={stamp:svgI('<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/>'),bag:svgI('<path d="M5 8h14l-1.2 12H6.2z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/>'),shop:svgI('<path d="M4 9.5 5.5 4h13L20 9.5"/><path d="M5 9.5V20h14V9.5"/><path d="M10 20v-5h4v5"/>'),cam:svgI('<path d="M4 8h3l1.5-2h7L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>'),book:svgI('<path d="M5 4.5h10a3 3 0 0 1 3 3V20H8a3 3 0 0 1-3-3z"/><path d="M5 17a3 3 0 0 1 3-3h10"/>')};
 function zkBanner(){const st=zukanStats();return `<button class="zkban press" data-cv="zukan" aria-pressed="${colView==='zukan'}" style="background-image:linear-gradient(90deg,rgba(10,12,16,.92) 0%,rgba(10,12,16,.7) 42%,rgba(10,12,16,.05) 80%),url(chara/zukan_bg.webp)"><span class="zkt">${COLI.book}車種図鑑</span><span class="zkd">出会った車が図鑑に載ります</span><span class="zkn"><b>${st.zk}</b> / ${ZTOTAL} 車種</span><i aria-hidden="true">›</i></button>`}
-const RWI={bd:svgI('<circle cx="12" cy="9" r="5.5"/><path d="M8.5 13.5 7 21l5-2.5 5 2.5-1.5-7.5"/>'),set:svgI('<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><path d="M14.5 16.5l2 2 3.5-4"/>'),cls:svgI('<circle cx="12" cy="7.5" r="3.5"/><path d="M5 20c.8-4 3.6-6 7-6s6.2 2 7 6"/><path d="M16.5 3.5l1 1.8 2 .3-1.5 1.4.4 2-1.9-1-1.9 1 .4-2-1.5-1.4 2-.3z"/>')};
+const RWI={job:svgI('<path d="M4 12h16M14 6l6 6-6 6"/><path d="M4 6h6M4 18h6"/>'),ttl:svgI('<path d="M4 7h16v6a8 8 0 0 1-16 0z"/><path d="M9 7V4h6v3"/>'),fr:svgI('<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3"/>'),help:svgI('<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .9-1 1.7"/><path d="M12 17h.01"/>'),bd:svgI('<circle cx="12" cy="9" r="5.5"/><path d="M8.5 13.5 7 21l5-2.5 5 2.5-1.5-7.5"/>'),set:svgI('<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><path d="M14.5 16.5l2 2 3.5-4"/>'),cls:svgI('<circle cx="12" cy="7.5" r="3.5"/><path d="M5 20c.8-4 3.6-6 7-6s6.2 2 7 6"/><path d="M16.5 3.5l1 1.8 2 .3-1.5 1.4.4 2-1.9-1-1.9 1 .4-2-1.5-1.4 2-.3z"/>')};
 function petaStore(){return `<div class="petast"><div class="pslogo">${COLI.shop}</div><b>公式協力店</b><p>ペタカー!の公式協力店です。訪れると、ここでしか手に入らない特別な特典が……？</p><span class="chip">現在開発中</span><p class="note">オープンしたら、お知らせでご案内します。</p></div>`}
 
 const views={
@@ -1743,7 +1744,7 @@ const views={
   const st=myStats(),mp=myPins(),gl=gotList(st),gk=gl.map(b=>b.k);
   const near=BADGES.filter(b=>!gk.includes(b.k)&&b.f(st)>0).sort((a,b)=>b.f(st)/b.g-a.f(st)/a.g||(a.g-a.f(st))-(b.g-b.f(st))); // 達成に近い順（割合→残り数）
   const show=b=>rwFilter==='all'||(rwFilter==='got')===gk.includes(b.k);
-  const seg=`<div class="spnav colnav" role="group" aria-label="表示">${[['bd','バッジ',RWI.bd],['set','セット',RWI.set],['cls','クラス',RWI.cls]].map(([k,t,ic])=>`<button class="press" data-rv="${k}" aria-pressed="${rwView===k}">${ic}<span>${t}</span></button>`).join('')}</div>`;
+  const seg=`<div class="spnav colnav" role="group" aria-label="表示">${[['bd','バッジ',RWI.bd],['set','チャレンジ',RWI.set],['cls','クラス',RWI.cls]].map(([k,t,ic])=>`<button class="press" data-rv="${k}" aria-pressed="${rwView===k}">${ic}<span>${t}</span></button>`).join('')}</div>`;
   if(rwView==='set')return seg+setsView();
   if(rwView==='cls')return seg+(settings.pubRewards?'':`<div class="incoming" style="margin:0 0 12px"><div><b>リワードは非公開にしています</b><div class="note">ほかの人があなたのプロフィールを見ても、バッジとクラスは表示されません。マイスタンプの設定で変えられます。</div></div></div>`)+rpgWindow(st);
   return `${seg}${settings.pubRewards?'':`<div class="incoming" style="margin:0 0 12px"><div><b>リワードは非公開にしています</b><div class="note">ほかの人があなたのプロフィールを見ても、バッジは表示されません。マイスタンプの設定で変えられます。</div></div></div>`}
@@ -2235,7 +2236,7 @@ const NEWS=[
  {id:'r3',d:'2026-10-26',tag:'update',t:'サポーターを始めました（iPhone版）',b:'ペタカー!の運営を応援していただけるサポーター（月額）を始めました。設定の「サポーター」から申し込めます。\n\nサポーターになると、名前の横に星が付き、サポーター限定の縁でスタンプを交換できます。ガレージにも5台まで車を登録できます（サポーターでない方は2台まで）。いただいたお金は、サーバー代と新しい機能の開発に使います。'},
  {id:'r4',d:'2026-11-01',tag:'update',t:'iPhone版の使い勝手を良くしました',b:'・スタンプやスタンプ帳の画像を、写真アプリに直接保存できるようになりました。\n・設定の自動記録の欄に、いま動いているか・止まっている理由が出るようになりました。\n・金のバッジのデザインを新しくしました。'},
  {id:'b9',d:'2026-10-09',tag:'update',t:'旅のしおりにドライブの記録・移動距離・ナイスが入りました',b:'旅のしおりが新しくなりました。\n\n・ドライブの記録（オンにした人だけ）：アプリを開いている間の位置を2分または500mごとに記録し、その日のルートを地図に表示します。記録はスマホの中だけに保存され、運営にもほかの人にも送られません。旅のしおりか設定の「ドライブを記録する」でオンにできます。\n・移動距離：ルートがあればルートから、なければスポットどうしの直線距離の目安を出します。\n・すれ違った人とナイス！：その日すれ違った人と、送った・届いたナイス！が並びます。\n・SNS用の画像にも地図が入ります。出発と到着のまわり（約1km）は自動で消すので、自宅の場所は出ません。'},
- {id:'b8',d:'2026-10-09',tag:'update',t:'一人でも楽しめる機能を追加しました',b:'会えない日も楽しめるように、4つの機能を追加しました。\n\n・フォトスタンプ：スポットを記録した日に、その場で撮った写真をスタンプにできます。スポットの画面の「フォトスタンプを作る」から。写真はスマホの中だけに保存されます。\n・旅のしおり：マイスタンプの「旅のしおり」に、行ったスポットと交換した人が1日ずつ残ります。SNS用の画像にもできます。\n・セット：リワードの「セット」に、決まったスポットや車種を集めるセットが16個あります。揃えるとEXP+100とバッジ。\n・データの持ち出し：設定の「データの持ち出し」から、スタンプ帳の画像と記録のファイルを保存できます。'},
+ {id:'b8',d:'2026-10-09',tag:'update',t:'一人でも楽しめる機能を追加しました',b:'会えない日も楽しめるように、4つの機能を追加しました。\n\n・フォトスタンプ：スポットを記録した日に、その場で撮った写真をスタンプにできます。スポットの画面の「フォトスタンプを作る」から。写真はスマホの中だけに保存されます。\n・旅のしおり：マイスタンプの「旅のしおり」に、行ったスポットと交換した人が1日ずつ残ります。SNS用の画像にもできます。\n・チャレンジ：リワードの「チャレンジ」に、決まったスポットや車種を集めるチャレンジが16個あります。達成するとEXP+100とバッジ。\n・データの持ち出し：設定の「データの持ち出し」から、スタンプ帳の画像と記録のファイルを保存できます。'},
  {id:'b7',d:'2026-10-06',tag:'update',t:'近くでペタカーを開いている人が見えるようになりました',b:'交換をはじめていなくても、アプリを開いている近くの人が、マイスタンプと交換タブに出ます。車の写真を見て、駐車場で相手を探してみてください。\n\nタップすると交換を申し込めます。相手がアプリを開いていれば、音と表示でお知らせします。\n\n出るのはだいたいの場所（約5km四方）だけで、アプリを閉じると消えます。出たくないときは、設定→交換でオフにできます（オフにすると、自分からも見えなくなります）。'},
  {id:'b6',d:'2026-10-06',tag:'update',t:'「みんなで交換」ができるようになりました',b:'3人以上で、同時にスマホを振って一度に交換できます。\n\n交換をはじめたら「みんなで交換」を押して部屋を作ります。近くで交換をはじめている人には「参加する」が出ます。3人以上そろったら、ホストが合図を出して全員で「せーの」で振ってください。\n\nタイミングが2秒以内で、近くにいる人どうしで交換されます。合わなかった人とは、ホストの「もう一度振る」でやり直せます。'},
  {id:'b5',d:'2026-10-05',tag:'update',t:'スポットに「いま◯人」が出るようになりました',b:'2時間以内にそのスポットで記録した人の数が、スポット一覧と詳細に出ます。スポットタブの上には「いま人がいるスポット」も出ます。\n\n出るのは人数だけで、名前や車は出ません。誰が記録したかも保存していません。仲間が集まっている場所を見つけて、会いに行くきっかけにしてください。'},
@@ -2706,14 +2707,14 @@ function setProg(){const vs=spotSet(),zk=zukanMap();return SETS.map(S=>{const it
 function setCount(){try{return setProg().filter(S=>S.n>=S.g).length}catch(e){return 0}} // 起動直後（SETSの定義前）に呼ばれても止まらないように
 function setsView(){const P=setProg(),done=P.filter(S=>S.n>=S.g).length,near=P.filter(S=>S.n<S.g&&S.n>0).sort((a,b)=>(a.g-a.n)-(b.g-b.n));
   const card=S=>{const ok=S.n>=S.g;return `<button class="setc press${ok?' done':''}" data-setk="${S.k}"><span class="si">${ok?'<b>✓</b>':`<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${ICONS[S.ic]||''}</svg>`}</span><div class="t"><b>${esc(S.t)}${ok?'<span class="tag setok">COMPLETE</span>':''}</b><span>${esc(S.s)}</span><div class="bar"><i style="width:${S.n/S.g*100}%"></i></div></div><span class="v">${S.n}/${S.g}</span></button>`};
-  return `<div class="group zhead"><div class="big">${done}<small>/${P.length}</small></div><b>揃えたセット</b>
-    <div class="note">決まったスポットや車種を集めるセットです。1つ揃うごとに EXP+${SETXP}。少しずつ増えていきます。</div></div>
-  ${near.length?`<div class="sec">もうすぐ揃う</div><div class="list">${near.slice(0,3).map(card).join('')}</div>`:''}
-  <div class="sec">スポットのセット</div><div class="list">${P.filter(S=>S.sp).map(card).join('')}</div>
-  <div class="sec">交換のセット</div><div class="list">${P.filter(S=>!S.sp).map(card).join('')}</div>`}
+  return `<div class="group zhead"><div class="big">${done}<small>/${P.length}</small></div><b>達成したチャレンジ</b>
+    <div class="note">決まったスポットや車種を集めるチャレンジです。1つ達成するごとに EXP+${SETXP}。少しずつ増えていきます。</div></div>
+  ${near.length?`<div class="sec">もうすぐ達成</div><div class="list">${near.slice(0,3).map(card).join('')}</div>`:''}
+  <div class="sec">スポットのチャレンジ</div><div class="list">${P.filter(S=>S.sp).map(card).join('')}</div>
+  <div class="sec">交換のチャレンジ</div><div class="list">${P.filter(S=>!S.sp).map(card).join('')}</div>`}
 function openSet(k){const S=setProg().find(x=>x.k===k);if(!S)return;const ok=S.n>=S.g;
   openSheet(`<div class="result"><span class="setbig${ok?' done':''}">${ok?'✓':`<svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICONS[S.ic]||''}</svg>`}</span><b style="font-size:20px">${esc(S.t)}</b><div class="note">${esc(S.s)}</div>
-    <div class="mapstat" style="margin-top:6px"><div><b>${S.n}</b><small>/${S.g}</small><span>${ok?'コンプリート！':`あと${S.g-S.n}`}</span></div></div></div>
+    <div class="mapstat" style="margin-top:6px"><div><b>${S.n}</b><small>/${S.g}</small><span>${ok?'達成！':`あと${S.g-S.n}`}</span></div></div></div>
    <div class="list" style="margin-top:12px">${S.it.map(x=>`<${x.sp?`button class="li press" data-spot="${esc(x.sp)}"`:'div class="li" style="cursor:default"'}><span class="chk${x.ok?' on':''}" aria-label="${x.ok?'済み':'まだ'}">${x.ok?'✓':''}</span>${x.sp?spotMark(SP(x.sp),x.ok,32):''}<div class="t"><b>${esc(x.l)}</b>${x.sub||x.sp?`<span>${esc(x.sub||(CAT[SP(x.sp).cat].n+' · '+SP(x.sp).pref))}</span>`:''}</div>${x.sp?'<span class="val">›</span>':''}</${x.sp?'button':'div'}>`).join('')}</div>
    <p class="note" style="margin:10px 4px 0">${S.sp?'スポットを記録すると、チェックが付きます。':S.car?'その車種の人とスタンプを交換すると、チェックが付きます（車種図鑑と同じ数え方）。':'そのメーカーの車の人と交換すると、チェックが付きます。'}</p>
    <button class="btn sub press" style="margin-top:12px" data-close>閉じる</button>`);
@@ -2721,9 +2722,9 @@ function openSet(k){const S=setProg().find(x=>x.k===k);if(!S)return;const ok=S.n
 // 揃った瞬間に知らせる（一度知らせたセットは setok1 に残す）
 function checkSets(){if(me.sample)return;const P=setProg(),ok=store.get('setok1',null),now=P.filter(S=>S.n>=S.g).map(S=>S.k);
   if(!ok){store.set('setok1',now);return}const nw=now.filter(k=>!ok.includes(k));if(!nw.length)return;store.set('setok1',[...ok,...nw]);
-  const S=P.find(x=>x.k===nw[0]);setTimeout(()=>{if($('#sh')){toast(`セット「${S.t}」コンプリート！ EXP+${SETXP}`);return}
-    openSheet(`<div class="result"><span class="setbig done">✓</span><div class="note" style="font-weight:700;color:var(--accent)">SET COMPLETE</div><b style="font-size:22px">${esc(S.t)}</b><div class="note">${S.g}個ぜんぶ揃いました · EXP+${SETXP}${nw.length>1?`（ほか${nw.length-1}セット）`:''}</div></div>
-      <div class="row" style="margin-top:14px"><button class="btn sub press" data-close>閉じる</button><button class="btn press" id="setGo">セットを見る</button></div>`);
+  const S=P.find(x=>x.k===nw[0]);setTimeout(()=>{if($('#sh')){toast(`チャレンジ「${S.t}」達成！ EXP+${SETXP}`);return}
+    openSheet(`<div class="result"><span class="setbig done">✓</span><div class="note" style="font-weight:700;color:var(--accent)">CHALLENGE CLEAR</div><b style="font-size:22px">${esc(S.t)}</b><div class="note">${S.g}個ぜんぶ達成しました · EXP+${SETXP}${nw.length>1?`（ほか${nw.length-1}チャレンジ）`:''}</div></div>
+      <div class="row" style="margin-top:14px"><button class="btn sub press" data-close>閉じる</button><button class="btn press" id="setGo">チャレンジを見る</button></div>`);
     bindClose();try{fanfare()}catch(e){}$('#setGo').onclick=()=>{closeSheet();rwView='set';store.set('rwv2',rwView);tab='rw';render()}},400)}
 
 /* --- データの持ち出し：スタンプ帳の画像と、記録をまとめたファイル（サービス終了時もここから書き出せる） --- */
