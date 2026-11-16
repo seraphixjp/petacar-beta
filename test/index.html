@@ -1465,7 +1465,7 @@ const RI_FORCE=(()=>{try{return window.__cloud?null:+new URLSearchParams(locatio
 const SUP_FORCE=(()=>{try{return !window.__cloud&&new URLSearchParams(location.search).get('sup')==='1'}catch(e){return false}})(); // 試作だけ：?sup=1 でサポーターの縁を確かめる
 const rpgF=()=>{const r=rpgOf(myStats());return RI_FORCE?{...r,ri:RI_FORCE}:r};
 function myFrameList(){const r=rpgF(),cl=[...new Set([...(settings.frCls||[]),...(r.top?[r.top]:[])])].filter(k=>FR_EN[k]);
-  const out=[''];if(supOn(me)||SUP_FORCE)out.push('sp:1');for(let t=1;t<=r.ri;t++)cl.forEach(k=>out.push(`t${t}:${k}`));return {r,list:out}} // サポーターの縁は、サポーターの間だけ選べる（切れたらおまかせに戻る）
+  const out=[''];if(supOn(me)||SUP_FORCE)out.push('sp:1');const mri=RI_FORCE||Math.max(r.ri,...(r.jobs||[]).map(j=>j.p>0?j.ri:0),CLS_STEP.reduce((a,[x],i)=>r.L>=x?i:a,0));for(let t=1;t<=mri;t++)cl.forEach(k=>out.push(`t${t}:${k}`));return {r,list:out}} // 縁の格は、どれかのジョブで届いた一番上の格か、全体のLvで届いた格の高いほうまで（ジョブを切り替えても減らない） // サポーターの縁は、サポーターの間だけ選べる（切れたらおまかせに戻る）
 // 使う縁：settings.frame が 'auto'（既定）なら今の格・クラス。選んだ縁が使えなくなっていたら auto に戻す
 const autoFrame=()=>{const r=rpgF();return r.ri>0&&r.top?`t${r.ri}:${r.top}`:''};
 function myFrame(){const {list}=myFrameList(),f=settings.frame;return f==null||f==='auto'||!list.includes(f)?autoFrame():f}
@@ -1475,7 +1475,7 @@ function frName(f){return f==='sp:1'?'サポーターの縁':f?`${FR_TIER[+f[1]]
 function openFrames(){const {list}=myFrameList(),cur=settings.frame&&settings.frame!=='auto'&&list.includes(settings.frame)?settings.frame:'auto';
   openSheet(`<b style="font-size:20px;display:block;text-align:center">縁をえらぶ</b><p class="note" style="text-align:center">クラスの格と種類で、スタンプの縁が変わります。獲得した縁はいつでも選び直せます。季節・イベントの期間中に交換したスタンプは、その期間の縁になります。</p>
    <div class="frpick"><button class="frop press" data-fr="auto" aria-pressed="${cur==='auto'}">${stamp(me,{size:64,fr:autoFrame()})}<span>おまかせ<small>今のクラス</small></span></button>${list.map(f=>`<button class="frop press" data-fr="${f}" aria-pressed="${cur===f}">${stamp(me,{size:64,fr:f})}<span>${esc(frName(f))}</span></button>`).join('')}</div>
-   <div class="note" style="margin-top:8px;text-align:center">縁の格は、今のジョブの格（見習い→一人前→上級→凄腕→伝説）と同じところまで選べます</div>
+   <div class="note" style="margin-top:8px;text-align:center">縁の格は、どれかのジョブで届いた一番上の格まで選べます（ジョブを切り替えても減りません）</div>
    <button class="btn sub press" style="margin-top:12px" data-close>閉じる</button>`);
   bindClose();$$('[data-fr]').forEach(b=>b.onclick=()=>{settings.frame=b.dataset.fr;store.set('set2',settings);syncFrame();closeSheet();render();toast('縁を変えました')})}
 /* 縁の文字を円に沿って1文字ずつ並べる（textPath の textLength は iPhone が無視して、文字が半周で詰まっていた）。
@@ -1593,7 +1593,7 @@ function rpgOf(s){s=s||{};const e=expOf(s),L=lvOf(e),raw=RSTATS.map(x=>Math.roun
   const nx=ok&&CLS_STEP[ri+1]?jobNeed(ri+1,j.k):null;
   return {e,L,ri,cls,vals,jobs,top:ok?j.k:null,best:raw[bi]>0?jobs[bi].k:null,cur:needXP(L),next:L<LV_MAX?needXP(L+1):null,nextCls:nx?CLS_STEP[ri+1][1]||'一人前':null,nextPts:nx?Math.max(1,nx-raw[pi]):null,jobN:ok?RSTATS[pi].n:'',title:ti}}
 const charaSrc=(k,ri)=>k?`chara/${k}${Math.max(0,Math.min(4,ri|0))}.webp`:'';
-const charaImg=(r,cls='rpgchara')=>r.top?`<img class="${cls}" src="${charaSrc(r.top,r.ri)}" alt="${esc(r.cls)}" loading="lazy" onerror="this.remove()">`:'';
+const charaImg=(r,cls='rpgchara')=>r.top?`<img class="${cls}" src="${charaSrc(r.top,r.ri)}" alt="${esc(r.cls)}" decoding="async" onerror="this.remove()">`:'';
 const jobIdx=()=>{const k=settings.job;return k?RSTATS.findIndex(x=>x.k===k):-1};
 const ttlIdx=()=>{const i=BADGES.findIndex(b=>b.k===settings.title);return i<0?-1:i};
 const clsChip=r=>`<span class="lvchip"><b>Lv.${r.L}</b> ${esc(r.cls)}${r.title?` <span>【${esc(r.title)}】</span>`:''}</span>`;
