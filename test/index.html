@@ -536,6 +536,18 @@ textarea{width:100%;box-sizing:border-box;margin-top:6px;padding:10px 12px;borde
 .zkmk{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:12px 0 10px}.zkmk::-webkit-scrollbar{display:none}.zkmk .sortchip{flex:none}.zt .zmk{display:block;font-size:10.5px;color:var(--muted);margin-top:-2px}.zcar img,.zcar svg{display:block;width:100%;max-height:200px;object-fit:cover;border-radius:16px}.zcdesc{margin-top:12px;display:grid;gap:10px}.zcs{background:var(--fill);border-radius:14px;padding:10px 12px}.zcs b{display:block;font-size:12px;color:var(--accent);margin-bottom:3px}.zcs p{margin:0;font-size:14px;line-height:1.75}.zcs.lock{opacity:.75;border:1px dashed var(--line)}.zcsrc{font-size:10.5px;text-align:right}#view .zgrid{max-height:none;overflow:visible}
 .clsnav{margin-top:12px}
 .zhead.zbg{background-size:cover;background-position:center right;color:#fff}.zhead.zbg .note{color:rgba(255,255,255,.82)}.zhead.zbg .big small{color:rgba(255,255,255,.7)}
+
+/* 画面の動き（2026-11-17 試作） */
+.enter{animation:enter2 .32s cubic-bezier(.2,.8,.2,1)}.enter.fromL{animation-name:enter2L}
+@keyframes enter2{from{opacity:0;transform:translateX(24px)}}@keyframes enter2L{from{opacity:0;transform:translateX(-24px)}}
+.enter .stg{animation:stg .4s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i,0)*35ms + 70ms)}
+@keyframes stg{from{opacity:0;transform:translateY(12px) scale(.97)}}
+.bar i.bgr{transform-origin:left;animation:barg .8s cubic-bezier(.2,.8,.2,1) .18s both}@keyframes barg{from{transform:scaleX(0)}}
+.member::after{content:"";position:absolute;top:0;bottom:0;left:-60%;width:45%;pointer-events:none;background:linear-gradient(100deg,transparent,rgba(255,255,255,.16) 45%,rgba(255,255,255,.28) 50%,rgba(255,255,255,.16) 55%,transparent);transform:skewX(-18deg) translateX(0);animation:msheen 9s ease-in-out 1.2s infinite}
+@keyframes msheen{0%,78%{transform:skewX(-18deg) translateX(0)}100%{transform:skewX(-18deg) translateX(480%)}}
+.flyst{position:fixed;z-index:9999;pointer-events:none;margin:0;transition:transform .7s cubic-bezier(.55,0,.7,.2),opacity .7s ease-in}
+.tab.bump{animation:tbump .45s cubic-bezier(.3,1.6,.5,1)}@keyframes tbump{40%{transform:scale(1.22)}}
+@media (prefers-reduced-motion:reduce){.member::after{display:none}}
 [hidden]{display:none!important}
 body{margin:0}img{max-width:100%}
 html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -1533,7 +1545,8 @@ const curV=p=>p.vers?p.vers.length:(p.ver||1);
 const vOf=(p,l)=>l&&l.v?l.v:curV(p);
 const vName=v=>v===1?'初版':`第${v}版`;
 const albName=(p,l)=>l.im?((l.car&&l.car.car)||'')+((l.vr||1)>1?' '+vName(l.vr):''):vName(l.v||1);
-const best=id=>{const ls=log.filter(l=>l.pid===id);return ls.filter(l=>l.kira).pop()||ls.filter(l=>l.rare).pop()||ls[ls.length-1]};
+// 見た目（縁・写真・バージョン）は最後の交換。EX・レアは一度でも出ていれば光を残す（2026-11-17 鈴木さん）
+const best=id=>{const ls=log.filter(l=>l.pid===id);if(!ls.length)return undefined;const last=ls[ls.length-1],kira=ls.some(l=>l.kira),rare=!kira&&ls.some(l=>l.rare);return {...last,kira,rare}};
 
 /* event pieces */
 function evCard(){return '';
@@ -2947,6 +2960,20 @@ function openSpot(id,back){
   const b=$('#spIn');if(b&&!done)b.onclick=()=>betaCheckin(x,b,()=>{const before=gotList(myStats()).map(q=>q.k);spotlog.push({id,d:today(),t:Date.now()});saveSpots();onSpotRecorded(id);sfx.chime();
     const nb=gotList(myStats()).filter(q=>!before.includes(q.k));closeSheet();render();toast(nb.length?`バッジ獲得：${nb.map(q=>q.t).join('・')}`:`${x.n} の印を押しました`);setTimeout(()=>{if(!$('#sh'))openSpot(id,back)},700)});
 }
+/* ===== 画面の動き（2026-11-17 試作） ===== */
+const TABO=['me','col','ex','sp','rw'];
+const calm=()=>{try{return matchMedia('(prefers-reduced-motion: reduce)').matches}catch(e){return false}};
+function countUp(el){const t=el.textContent.trim();if(!/^[\d,]+$/.test(t))return;const n=+t.replace(/,/g,'');if(!(n>1))return;const cm=t.includes(','),t0=performance.now(),D=Math.min(900,350+n*6);
+  const f=now=>{const k=Math.min(1,(now-t0)/D),v=Math.round(n*(1-Math.pow(1-k,3)));el.textContent=cm?v.toLocaleString():String(v);if(k<1)requestAnimationFrame(f)};el.textContent='0';requestAnimationFrame(f)}
+function motionIn(v){if(calm())return;
+  v.querySelectorAll('.grid,.zgrid,.list,.spnav,.mstats,.colnav').forEach(g=>{[...g.children].slice(0,16).forEach((c,i)=>{c.classList.add('stg');c.style.setProperty('--i',i)})});
+  v.querySelectorAll('.bar i').forEach(i=>i.classList.add('bgr'));v.querySelectorAll('.mstats b').forEach(countUp)}
+function flyStamp(){if(calm())return;const st=document.querySelector('#res .supwrap .stamp');const to=document.querySelector('.tab[data-t=col]');if(!st||!to)return;
+  const a=st.getBoundingClientRect(),b=to.getBoundingClientRect();if(!a.width)return;
+  const c=st.cloneNode(true);c.classList.add('flyst');Object.assign(c.style,{left:a.left+'px',top:a.top+'px',width:a.width+'px',height:a.height+'px'});document.body.appendChild(c);
+  const dx=b.left+b.width/2-(a.left+a.width/2),dy=b.top+b.height/2-(a.top+a.height/2);
+  void c.offsetWidth;c.style.transform=`translate(${dx}px,${dy}px) scale(.18) rotate(-20deg)`;c.style.opacity='.4';
+  setTimeout(()=>{c.remove();to.classList.remove('bump');void to.offsetWidth;to.classList.add('bump')},720)}
 function render(){
   clearInterval(modeTimer);
   if(tab==='rw'&&lastTab!=='rw'){newShown=unseen();seenB=gotKeys();store.set('seen2',seenB)}else if(tab!=='rw')newShown=[];
@@ -2957,7 +2984,7 @@ function render(){
   $('#hact').innerHTML=tab==='me'?`<button class="iconbtn press bell${newsUnread().length?' dot':''}" id="bell" aria-label="お知らせ${newsUnread().length?`（未読${newsUnread().length}件）`:''}">${BELL}</button>${mailBtn()}<button class="iconbtn press" id="gear" aria-label="設定"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>`:'';
   if(tab==='me'){$('#gear').onclick=openSettings;$('#bell').onclick=openNews}
   const v=$('#view');v.innerHTML=views[tab]();
-  if(lastTab!==tab){v.classList.remove('enter');void v.offsetWidth;v.classList.add('enter');$('#scroll').scrollTop=0;$('#navbar').classList.remove('on');lastTab=tab}
+  if(lastTab!==tab){v.classList.remove('enter','fromL');void v.offsetWidth;if(TABO.indexOf(tab)<TABO.indexOf(lastTab))v.classList.add('fromL');v.classList.add('enter');motionIn(v);$('#scroll').scrollTop=0;$('#navbar').classList.remove('on');lastTab=tab}
   bindEv();
   if($('#ttlb'))$('#ttlb').onclick=openTitles;if($('#frb'))$('#frb').onclick=openFrames;if($('#rpghelp'))$('#rpghelp').onclick=openRpgHelp;if($('#rpgKm'))totalKm().then(k=>{const e=$('#rpgKm');if(e)e.textContent=kmFmt(k)});if($('#jobb'))$('#jobb').onclick=openJobs;checkLevelUp();checkSets();hydratePho();
   $('.tab[data-t=rw]').classList.toggle('dot',tab!=='rw'&&unseen().length>0);
@@ -2993,7 +3020,7 @@ function grant(p,o={}){
    <div class="note">EX ${pct(rate)} · レア ${pct(rrate)}${ev&&!boost?'（イベントで2倍）':''}</div>${nb.length?`<div class="newbad">${medal(nb[0],30)}<span>バッジ獲得：${nb.map(b=>b.t).join('・')}</span></div>`:''}</div>
    <button class="btn press" style="margin-top:14px" data-close data-go="col">コレクションに入れる</button>`;
 }
-function showResult(p){$('#res').innerHTML=grant(p);bindClose();render()}
+function showResult(p){$('#res').innerHTML=grant(p);bindClose(()=>{});const fb=$('#res [data-close]');if(fb&&$('#res .peta')){const oc=fb.onclick;fb.onclick=e=>{if(Date.now()-sheetAt<500)return;flyStamp();oc&&oc(e)}}render()}
 
 function setCheck(id,ok,v){const li=$('#'+id);if(!li)return;li.className=ok?'ok':'ng';li.querySelector('.m').textContent=ok?'✓':'×';li.querySelector('small').textContent=v}
 
