@@ -535,6 +535,7 @@ textarea{width:100%;box-sizing:border-box;margin-top:6px;padding:10px 12px;borde
 .colnav{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:1fr}.zkban{position:relative;display:grid;justify-items:start;gap:4px;width:100%;min-height:104px;margin:0 0 14px;padding:14px 40px 14px 16px;border:0;border-radius:18px;background-size:cover;background-position:right 30% center;color:#fff;text-align:left;font:inherit;cursor:pointer;overflow:hidden}.zkban[aria-pressed=true]{box-shadow:inset 0 0 0 2px var(--accent)}.zkban .zkt{display:flex;align-items:center;gap:6px;font-size:18px;font-weight:900}.zkban .zkt svg{width:20px;height:20px}.zkban .zkd{font-size:12px;opacity:.85;max-width:62%}.zkban .zkn{font-size:12px;opacity:.9}.zkban .zkn b{font:800 18px var(--mono);color:#ffb37a}.zkban i{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-style:normal;font-size:24px;opacity:.8}
 .zkmk{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:12px 0 10px}.zkmk::-webkit-scrollbar{display:none}.zkmk .sortchip{flex:none}.zt .zmk{display:block;font-size:10.5px;color:var(--muted);margin-top:-2px}.zcar img,.zcar svg{display:block;width:100%;max-height:200px;object-fit:cover;border-radius:16px}.zcdesc{margin-top:12px;display:grid;gap:10px}.zcs{background:var(--fill);border-radius:14px;padding:10px 12px}.zcs b{display:block;font-size:12px;color:var(--accent);margin-bottom:3px}.zcs p{margin:0;font-size:14px;line-height:1.75}.zcs.lock{opacity:.75;border:1px dashed var(--line)}.zcsrc{font-size:10.5px;text-align:right}#view .zgrid{max-height:none;overflow:visible}
 .clsnav{margin-top:12px}
+.zhead.zbg{background-size:cover;background-position:center right;color:#fff}.zhead.zbg .note{color:rgba(255,255,255,.82)}.zhead.zbg .big small{color:rgba(255,255,255,.7)}
 [hidden]{display:none!important}
 body{margin:0}img{max-width:100%}
 html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -609,15 +610,15 @@ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const store=window.__cloud.store;
 const CARS={
- 'トヨタ':['2000GT','スポーツ800','パブリカ','トヨタ7','セリカ','セリカXX','セリカGT-FOUR','カローラレビン','スプリンタートレノ','カローラ','カローラツーリング','カローラフィールダー','カローラスポーツ','スターレット','ヴィッツ','ヤリス','GRヤリス','GRカローラ','GRMNヤリス','MR2','MR-S','スープラ','GRスープラ','86','GR86','アルテッツァ','アリスト','ソアラ','チェイサー','マークII','クレスタ','ヴェロッサ','マークX','クラウン','クラウンアスリート','クラウンクロスオーバー','セルシオ','センチュリー','カムリ','カリーナ','カリーナED','コロナ','コロナEXiV','カルディナ','カルディナGT-FOUR','セラ','サイノス','プリウス','アクア','bB','iQ','C-HR','RAV4','ハリアー','ランドクルーザー','ランドクルーザー70','ランドクルーザー250','ランドクルーザープラド','FJクルーザー','ハイラックス','ハイラックスサーフ','4ランナー','タンドラ','アルファード','ヴェルファイア','ノア','ヴォクシー','エスティマ','ハイエース','シエンタ','プロボックス','タウンエース','ライトエース'],
+ 'トヨタ':['2000GT','スポーツ800','パブリカ','トヨタ7','セリカ','セリカXX','セリカGT-FOUR','カローラレビン','スプリンタートレノ','カローラ','カローラツーリング','カローラフィールダー','カローラスポーツ','カローラクロス','スターレット','ヴィッツ','ヤリス','GRヤリス','GRカローラ','GRMNヤリス','MR2','MR-S','スープラ','GRスープラ','86','GR86','アルテッツァ','アリスト','ソアラ','チェイサー','マークII','クレスタ','ヴェロッサ','マークX','クラウン','クラウンアスリート','クラウンクロスオーバー','セルシオ','センチュリー','カムリ','カリーナ','カリーナED','コロナ','コロナEXiV','カルディナ','カルディナGT-FOUR','セラ','サイノス','プリウス','アクア','bB','iQ','C-HR','RAV4','ハリアー','ランドクルーザー','ランドクルーザー70','ランドクルーザー250','ランドクルーザープラド','FJクルーザー','ハイラックス','ハイラックスサーフ','4ランナー','タンドラ','アルファード','ヴェルファイア','ノア','ヴォクシー','エスティマ','ハイエース','シエンタ','プロボックス','タウンエース','ライトエース'],
  'レクサス':['IS','IS F','IS500','RC','RC F','LC','LFA','GS','GS F','LS','ES','HS','CT','UX','LBX','NX','RX','RZ','LX','GX','SC'],
  '日産':['GT-R','スカイラインGT-R','スカイライン','フェアレディZ','シルビア','180SX','ローレル','セフィーロ','ステージア','グロリア','セドリック','シーマ','プレジデント','レパード','プリメーラ','パルサー','パルサーGTI-R','サニー','ブルーバード','ブルーバードSSS','マーチ','マーチNISMO','ノート','ノートNISMO','ノート オーラ NISMO','ジューク','ジュークNISMO','エクストレイル','サファリ','テラノ','ラシーン','エルグランド','セレナ','キューブ','Be-1','パオ','フィガロ','エスカルゴ','アリア','リーフ','サクラ','NV350キャラバン','キャラバン','ダットサントラック'],
- 'ホンダ':['NSX','S2000','S660','S600','S800','ビート','シビック','シビック タイプR','インテグラ','インテグラ タイプR','CR-X','CR-X デルソル','プレリュード','アコード','アコード ユーロR','トルネオ','シティ','シティターボII','フィット','フィットRS','CR-Z','インサイト','オデッセイ','ステップワゴン','ストリーム','エディックス','エレメント','ヴェゼル','ZR-V','CR-V','レジェンド','N-BOX','N-ONE','N-ONE RS','N-VAN','ライフ','ザッツ','Z','アクティ','バモス','トゥデイ'],
+ 'ホンダ':['NSX','ジェイド','S2000','S660','S600','S800','ビート','シビック','シビック タイプR','インテグラ','インテグラ タイプR','CR-X','CR-X デルソル','プレリュード','アコード','アコード ユーロR','トルネオ','シティ','シティターボII','フィット','フィットRS','CR-Z','インサイト','オデッセイ','ステップワゴン','ストリーム','エディックス','エレメント','ヴェゼル','ZR-V','CR-V','レジェンド','N-BOX','N-ONE','N-ONE RS','N-VAN','ライフ','ザッツ','Z','アクティ','バモス','トゥデイ'],
  'マツダ':['ロードスター','ロードスターRF','ユーノスロードスター','サバンナRX-7','RX-7','アンフィニRX-7','RX-8','コスモスポーツ','ユーノスコスモ','ルーチェ','センティア','ファミリア','ランティス','オートザムAZ-1','キャロル','MAZDA2','デミオ','MAZDA3','アクセラ','MAZDA6','アテンザ','CX-3','CX-30','CX-5','CX-60','CX-8','CX-80','MX-30','MX-6','プレマシー','MPV','ビアンテ','ボンゴ','ボンゴフレンディ'],
- 'スバル':['BRZ','WRX STI','WRX S4','インプレッサ','インプレッサ WRX','インプレッサ WRX STI','インプレッサ スポーツ','インプレッサ リトナ','レヴォーグ','レガシィ','レガシィ ツーリングワゴン','レガシィ B4','アウトバック','フォレスター','XV','クロストレック','レイバック','ソルテラ','エクシーガ','トレジア','アルシオーネ','アルシオーネSVX','レオーネ','ジャスティ','スバル360','ヴィヴィオ','R1','R2','プレオ','ステラ','サンバー','ドミンゴ'],
+ 'スバル':['BRZ','WRX STI','WRX S4','インプレッサ','インプレッサ WRX','インプレッサ WRX STI','インプレッサ スポーツ','インプレッサ リトナ','レヴォーグ','レガシィ','レガシィ ツーリングワゴン','レガシィ B4','アウトバック','フォレスター','XV','クロストレック','レイバック','ソルテラ','エクシーガ','トレジア','アルシオーネ','アルシオーネSVX','レオーネ','ジャスティ','スバル360','ヴィヴィオ','R1','R2','プレオ','ステラ','シフォン','サンバー','ドミンゴ'],
  '三菱':['ランサーエボリューション','ランサー','ギャラン','ギャランVR-4','レグナム','GTO','FTO','エクリプス','スタリオン','ディアマンテ','パジェロ','パジェロエボリューション','パジェロミニ','パジェロイオ','デリカD:5','デリカスペースギア','デリカスターワゴン','デリカミニ','アウトランダー','エクリプスクロス','RVR','コルト','コルト ラリーアートVR','i','i-MiEV','eKワゴン','eKクロス','ミラージュ','トッポ','ミニカ','ジープ'],
  'スズキ':['スイフトスポーツ','スイフト','ジムニー','ジムニーシエラ','ジムニーノマド','アルトワークス','アルト','カプチーノ','ハスラー','ワゴンR','ワゴンR RR','Kei','Kei ワークス','エスクード','X-90','ツイン','セルボ','セルボモード','ソリオ','スペーシア','ラパン','エブリイ','キャリイ','SX4','キザシ'],
- 'ダイハツ':['コペン','コペン GR SPORT','ミラ','ミラ TR-XX','ミラジーノ','ムーヴ','タント','ウェイク','キャスト','ロッキー','タフト','テリオス','テリオスキッド','ハイゼット','アトレー','シャレード','シャレード デ・トマソ','ストーリア X4','YRV','ブーン','ソニカ','リーザ','エッセ','ネイキッド'],
+ 'ダイハツ':['コペン','コペン GR SPORT','ミラ','ミラ TR-XX','ミラジーノ','ムーヴ','ムーヴ キャンバス','タント','ウェイク','キャスト','ロッキー','タフト','テリオス','テリオスキッド','ハイゼット','アトレー','シャレード','シャレード デ・トマソ','ストーリア X4','YRV','ブーン','ソニカ','リーザ','エッセ','ネイキッド'],
  'いすゞ':['117クーペ','ピアッツァ','ジェミニ','ビークロス','ビッグホーン','ミュー','ウィザード','エルフ'],
  '光岡':['オロチ','ビュート','ガリュー','ヒミコ','ロックスター','バディ','リューギ'],
  'BMW':['2002','M1','M2','M3','M4','M5','M8','1シリーズ','2シリーズ','3シリーズ','4シリーズ','5シリーズ','6シリーズ','7シリーズ','8シリーズ','Z1','Z3','Z4','Z8','X1','X3','X5','X6','i3','i4','i8'],
@@ -638,7 +639,7 @@ const CARS={
  'フィアット・アバルト':['500','アバルト500','アバルト595','アバルト695','アバルト124スパイダー','パンダ','X1/9','プント'],
  'ランチア':['デルタ HFインテグラーレ','ストラトス','037','イプシロン'],
  'プジョー':['106','205','206','207','208','306','308','RCZ'],
- 'ルノー':['ルーテシア','ルーテシアR.S.','メガーヌ','メガーヌR.S.','トゥインゴ','トゥインゴGT','カングー','サンク'],
+ 'ルノー':['ルーテシア','ルーテシアR.S.','メガーヌ','メガーヌR.S.','アルピーヌA110','トゥインゴ','トゥインゴGT','カングー','サンク'],
  'シトロエン':['2CV','DS','C3','C4','サクソ','クサラ'],
  'ボルボ':['240','850','V40','V60','V70','XC40','XC60','XC90','P1800'],
  'ジャガー':['Eタイプ','XK','XJ','Fタイプ'],
@@ -1057,7 +1058,11 @@ let favs=new Set(store.get('fav2',[]));const saveFav=()=>store.set('fav2',[...fa
 const favMark=id=>favs.has(id)?'<span class="favmark" aria-label="お気に入り">★</span>':'';
 let here=null,spotSort='visit',colView=store.get('colv2','stamp'),spotCat='all',spotPref='',spotQ='',spotLim=40,colQ='',rwFilter='all',rwView=store.get('rwv2','bd'),newShown=[],seenB=store.get('seen2',null),sheetAfter=null;
 const ZTOTAL=MAKERS.reduce((n,m)=>n+CARS[m].length,0);
-function zukanMap(){const z={};log.forEach(l=>{const c=l.car||person(l.pid),known=(Object.hasOwn(CARS,c.maker)?CARS[c.maker]:[]).includes(c.car),k=(known?c.maker:'その他')+'|'+c.car,a=(z[k]=z[k]||[]);if(!a.includes(l.pid))a.push(l.pid)});return z}
+const CAR_ALIAS={'トヨタ|AQUA':'アクア','ホンダ|JADE':'ジェイド','ダイハツ|ハイゼットカーゴ':'ハイゼット','ダイハツ|ハイゼットトラック':'ハイゼット','トヨタ|カローラクロス GRスポーツ':'カローラクロス','スバル|シフォンカスタムRS':'シフォン','スバル|シフォンカスタム':'シフォン','ルノー|Alpine A110S':'アルピーヌA110','ルノー|Alpine A110':'アルピーヌA110','ルノー|アルピーヌ A110':'アルピーヌA110'};
+const carNorm=t=>String(t||'').normalize('NFKC').replace(/[\s・\-]/g,'').toUpperCase();
+// 図鑑のリストの名前に読み替える（別名・大文字小文字・空白の違い）。リストに無ければ null
+function carOf(c){const L=Object.hasOwn(CARS,c.maker)?CARS[c.maker]:[];if(L.includes(c.car))return c.car;const a=CAR_ALIAS[c.maker+'|'+c.car];if(a&&L.includes(a))return a;const n=carNorm(c.car);return L.find(x=>carNorm(x)===n)||null}
+function zukanMap(){const z={};log.forEach(l=>{const c=l.car||person(l.pid),cc=carOf(c),k=(cc?c.maker:'その他')+'|'+(cc||c.car),a=(z[k]=z[k]||[]);if(!a.includes(l.pid))a.push(l.pid)});return z}
 /* 車種図鑑の写真（Wikimedia Commons。出典は zukan-credits.html） */
 let ZIMG={};try{fetch('zukan/index.json').then(r=>r.ok?r.json():{}).then(j=>{ZIMG=j||{}}).catch(()=>{})}catch(e){}
 function carPic(m,c,on){const f=ZIMG[m+'|'+c];return f?`<span class="zp${on?'':' off'}"><img src="zukan/${f}" loading="lazy" decoding="async" alt=""></span>`:`<span class="zp ic">${carTile(on,44)}</span>`}
@@ -1748,7 +1753,7 @@ const views={
   if(rwView==='set')return seg+setsView();
   if(rwView==='cls')return seg+(settings.pubRewards?'':`<div class="incoming" style="margin:0 0 12px"><div><b>リワードは非公開にしています</b><div class="note">ほかの人があなたのプロフィールを見ても、バッジとクラスは表示されません。マイスタンプの設定で変えられます。</div></div></div>`)+rpgWindow(st);
   return `${seg}${settings.pubRewards?'':`<div class="incoming" style="margin:0 0 12px"><div><b>リワードは非公開にしています</b><div class="note">ほかの人があなたのプロフィールを見ても、バッジは表示されません。マイスタンプの設定で変えられます。</div></div></div>`}
-  <div class="group zhead"><div class="big">${gl.length}<small>/${BADGES.length}</small></div><b>獲得したバッジ</b>
+  <div class="group zhead zbg" style="background-image:linear-gradient(90deg,rgba(12,16,22,.9) 0%,rgba(12,16,22,.72) 55%,rgba(12,16,22,.35) 100%),url(chara/bg_luck.jpg)"><div class="big">${gl.length}<small>/${BADGES.length}</small></div><b>獲得したバッジ</b>
     <div class="tiercount">${Object.entries(TIERS).map(([t,x])=>`<span class="tier tier-${t}">${x.n} ${gl.filter(b=>b.tier===t).length}</span>`).join('')}</div></div>
   <div class="sec">飾っているバッジ <span class="chip">${mp.length}/${PIN_MAX}</span></div>
   <div class="group">${pinRow(mp,'バッジをタップして「プロフィールに飾る」を押すと、ここに並びます')}</div>
@@ -2707,7 +2712,7 @@ function setProg(){const vs=spotSet(),zk=zukanMap();return SETS.map(S=>{const it
 function setCount(){try{return setProg().filter(S=>S.n>=S.g).length}catch(e){return 0}} // 起動直後（SETSの定義前）に呼ばれても止まらないように
 function setsView(){const P=setProg(),done=P.filter(S=>S.n>=S.g).length,near=P.filter(S=>S.n<S.g&&S.n>0).sort((a,b)=>(a.g-a.n)-(b.g-b.n));
   const card=S=>{const ok=S.n>=S.g;return `<button class="setc press${ok?' done':''}" data-setk="${S.k}"><span class="si">${ok?'<b>✓</b>':`<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${ICONS[S.ic]||''}</svg>`}</span><div class="t"><b>${esc(S.t)}${ok?'<span class="tag setok">COMPLETE</span>':''}</b><span>${esc(S.s)}</span><div class="bar"><i style="width:${S.n/S.g*100}%"></i></div></div><span class="v">${S.n}/${S.g}</span></button>`};
-  return `<div class="group zhead"><div class="big">${done}<small>/${P.length}</small></div><b>達成したチャレンジ</b>
+  return `<div class="group zhead zbg" style="background-image:linear-gradient(90deg,rgba(12,16,22,.9) 0%,rgba(12,16,22,.72) 55%,rgba(12,16,22,.35) 100%),url(chara/bg_trip.jpg)"><div class="big">${done}<small>/${P.length}</small></div><b>達成したチャレンジ</b>
     <div class="note">決まったスポットや車種を集めるチャレンジです。1つ達成するごとに EXP+${SETXP}。少しずつ増えていきます。</div></div>
   ${near.length?`<div class="sec">もうすぐ達成</div><div class="list">${near.slice(0,3).map(card).join('')}</div>`:''}
   <div class="sec">スポットのチャレンジ</div><div class="list">${P.filter(S=>S.sp).map(card).join('')}</div>
