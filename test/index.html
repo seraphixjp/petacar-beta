@@ -543,7 +543,8 @@ textarea{width:100%;box-sizing:border-box;margin-top:6px;padding:10px 12px;borde
 .enter .stg{animation:stg .4s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i,0)*35ms + 70ms)}
 @keyframes stg{from{opacity:0;transform:translateY(12px) scale(.97)}}
 .bar i.bgr{transform-origin:left;animation:barg .8s cubic-bezier(.2,.8,.2,1) .18s both}@keyframes barg{from{transform:scaleX(0)}}
-.member::after{content:"";position:absolute;top:0;bottom:0;left:-60%;width:45%;pointer-events:none;background:linear-gradient(100deg,transparent,rgba(255,255,255,.16) 45%,rgba(255,255,255,.28) 50%,rgba(255,255,255,.16) 55%,transparent);transform:skewX(-18deg) translateX(0);animation:msheen 9s ease-in-out 1.2s infinite}
+/* 保留（2026-11-17 鈴木さん）：カードに光が通る。戻すときは display:none を外す */
+.member::after{display:none;content:"";position:absolute;top:0;bottom:0;left:-60%;width:45%;pointer-events:none;background:linear-gradient(100deg,transparent,rgba(255,255,255,.16) 45%,rgba(255,255,255,.28) 50%,rgba(255,255,255,.16) 55%,transparent);transform:skewX(-18deg) translateX(0);animation:msheen 9s ease-in-out 1.2s infinite}
 @keyframes msheen{0%,78%{transform:skewX(-18deg) translateX(0)}100%{transform:skewX(-18deg) translateX(480%)}}
 .flyst{position:fixed;z-index:9999;pointer-events:none;margin:0;transition:transform .7s cubic-bezier(.55,0,.7,.2),opacity .7s ease-in}
 .tab.bump{animation:tbump .45s cubic-bezier(.3,1.6,.5,1)}@keyframes tbump{40%{transform:scale(1.22)}}
@@ -3020,6 +3021,10 @@ function grant(p,o={}){
    <div class="note">EX ${pct(rate)} · レア ${pct(rrate)}${ev&&!boost?'（イベントで2倍）':''}</div>${nb.length?`<div class="newbad">${medal(nb[0],30)}<span>バッジ獲得：${nb.map(b=>b.t).join('・')}</span></div>`:''}</div>
    <button class="btn press" style="margin-top:14px" data-close data-go="col">コレクションに入れる</button>`;
 }
+// デモ（テストURL・試作だけ）：?demo=fly を付けて開くと、交換後にスタンプがコレクションへ飛ぶ動きを繰り返し見られる（2026-11-17）
+if(/[?&]demo=fly/.test(location.search)&&/\/test\/|localhost|127\.0\.0\.1/.test(location.href))setTimeout(function demoFly(){if(!me||$('#sh'))return setTimeout(demoFly,1000);
+  openSheet(`<div id="res"><div class="result"><div class="peta" aria-hidden="true">ペタッ!</div><div class="supwrap">${stamp(me,{size:150})}</div><b style="font-size:20px">デモ：交換しました</b><div class="note">「コレクションに入れる」を押してください</div></div><button class="btn press" style="margin-top:14px" data-close data-go="col">コレクションに入れる</button></div>`);bindClose();
+  const fb=$('#res [data-close]'),oc=fb.onclick;fb.onclick=e=>{if(Date.now()-sheetAt<500)return;flyStamp();oc&&oc(e);setTimeout(()=>{tab='me';render();setTimeout(demoFly,500)},2000)}},2500);
 function showResult(p){$('#res').innerHTML=grant(p);bindClose(()=>{});const fb=$('#res [data-close]');if(fb&&$('#res .peta')){const oc=fb.onclick;fb.onclick=e=>{if(Date.now()-sheetAt<500)return;flyStamp();oc&&oc(e)}}render()}
 
 function setCheck(id,ok,v){const li=$('#'+id);if(!li)return;li.className=ok?'ok':'ng';li.querySelector('.m').textContent=ok?'✓':'×';li.querySelector('small').textContent=v}
