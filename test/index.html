@@ -549,6 +549,12 @@ textarea{width:100%;box-sizing:border-box;margin-top:6px;padding:10px 12px;borde
 .flyst{position:fixed;z-index:9999;pointer-events:none;margin:0;transition:transform .7s cubic-bezier(.55,0,.7,.2),opacity .7s ease-in}
 .tab.bump{animation:tbump .45s cubic-bezier(.3,1.6,.5,1)}@keyframes tbump{40%{transform:scale(1.22)}}
 @media (prefers-reduced-motion:reduce){.member::after{display:none}}
+
+/* コレクションのページめくり（2026-11-17） */
+.pager{display:flex;justify-content:center;align-items:center;gap:6px;margin:18px 0 6px;flex-wrap:wrap}
+.pgn{min-width:40px;height:40px;padding:0 10px;border:0;border-radius:12px;background:var(--surface);color:var(--ink);font:700 15px var(--mono);cursor:pointer}
+.pgn[aria-current=page]{background:var(--accent);color:#fff}.pgn:disabled{opacity:.35;cursor:default}
+.pgdot{color:var(--muted);padding:0 2px}
 [hidden]{display:none!important}
 body{margin:0}img{max-width:100%}
 html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -1780,19 +1786,31 @@ const views={
  }
 };
 
+let colPage=0;const COL_PER=30;
 function colGrid(){
-  const lastMet=id=>log.filter(l=>l.pid===id).map(l=>l.d).sort().pop()||'';
-  const rare=id=>{const ls=log.filter(l=>l.pid===id);return ls.filter(l=>l.kira).length*100+new Set(ls.map(l=>(l.im||l.v||1)+(l.ev||l.sz||'-')+(l.kira?'k':l.rare?'r':''))).size*10+ls.filter(l=>l.ev).length};
-  const S={love:(a,b)=>daysWith(b)-daysWith(a)||lastMet(b).localeCompare(lastMet(a)),rare:(a,b)=>rare(b)-rare(a)||daysWith(b)-daysWith(a),
+  // 交換記録を1回だけ見て、人ごとの「最後に会った日・EXの数・種類・イベント数」をまとめる
+  const A={};log.forEach(l=>{const a=A[l.pid]||(A[l.pid]={d:'',k:0,e:0,v:new Set()});if(l.d>a.d)a.d=l.d;if(l.kira)a.k++;if(l.ev)a.e++;a.v.add((l.im||l.v||1)+(l.ev||l.sz||'-')+(l.kira?'k':l.rare?'r':''))});
+  const Z={d:'',k:0,e:0,v:new Set()},ag=id=>A[id]||Z,DW={},dw=id=>DW[id]??(DW[id]=daysWith(id));
+  const lastMet=id=>ag(id).d;
+  const rare=id=>{const a=ag(id);return a.k*100+a.v.size*10+a.e};
+  const S={love:(a,b)=>dw(b)-dw(a)||lastMet(b).localeCompare(lastMet(a)),rare:(a,b)=>rare(b)-rare(a)||dw(b)-dw(a),
     recent:(a,b)=>lastMet(b).localeCompare(lastMet(a)),car:(a,b)=>(MAKERS.indexOf(person(a).maker)-MAKERS.indexOf(person(b).maker))||person(a).car.localeCompare(person(b).car,'ja')};
   const N=t=>t.normalize('NFKC').toLowerCase().replace(/\s/g,''),q=N(colQ);
   let ids=colSort==='fav'?met().filter(id=>favs.has(id)).sort(S.love):met().sort(S[colSort]);
   if(q)ids=ids.filter(id=>{const p=person(id);return N(p.name+p.maker+p.car+p.pref).includes(q)});
   if(!ids.length)return `<p class="note" style="text-align:center;margin-top:18px">${q?'見つかりません。':colSort==='fav'?'まだお気に入りがいません。相手のプロフィールの「☆ お気に入りに追加」で登録できます。':'まだ交換した人がいません。'}</p>`;
-  return `${q?`<p class="note" style="margin:0 4px 8px">${ids.length}人</p>`:''}<div class="grid">${ids.map(id=>{const p=person(id),n=daysWith(id),b=best(id),kc=log.filter(l=>l.pid===id&&l.kira).length;
-    const sub=colSort==='recent'?`<span class="s">${fmtD(lastMet(id))}</span>`:colSort==='car'?`<span class="s">${esc(carLabel(p))}</span>`:colSort==='rare'?`<span class="s">${kc?`EX×${kc} · `:''}${new Set(log.filter(l=>l.pid===id).map(l=>(l.im||l.v||1)+(l.ev||l.sz||'-')+(l.kira?'k':l.rare?'r':''))).size}種類</span>`:`<span class="hearts">♥${n} ${rank(n)}</span>`;
-    return `<button class="cell press" data-p="${id}">${favMark(id)}${stamp(p,{ev:b.ev,sz:b.sz,fr:b.fr||p.frame,kira:b.kira,rare:b.rare,v:b.v,im:b.im,rg:b.rg})}<span class="n">${supM(p)}${esc(p.name)}</span>${clsMini(id)}${sub}</button>`}).join('')}</div>`;
+  const pages=Math.ceil(ids.length/COL_PER);colPage=Math.max(0,Math.min(colPage,pages-1));const from=colPage*COL_PER,pg=ids.slice(from,from+COL_PER);
+  return `${q||pages>1?`<p class="note" style="margin:0 4px 8px">${pages>1?`${from+1}〜${from+pg.length}人目 / `:''}全${ids.length}人</p>`:''}<div class="grid">${pg.map(id=>{const p=person(id),n=dw(id),b=best(id),kc=ag(id).k;
+    const sub=colSort==='recent'?`<span class="s">${fmtD(lastMet(id))}</span>`:colSort==='car'?`<span class="s">${esc(carLabel(p))}</span>`:colSort==='rare'?`<span class="s">${kc?`EX×${kc} · `:''}${ag(id).v.size}種類</span>`:`<span class="hearts">♥${n} ${rank(n)}</span>`;
+    return `<button class="cell press" data-p="${id}">${favMark(id)}${stamp(p,{ev:b.ev,sz:b.sz,fr:b.fr||p.frame,kira:b.kira,rare:b.rare,v:b.v,im:b.im,rg:b.rg})}<span class="n">${supM(p)}${esc(p.name)}</span>${clsMini(id)}${sub}</button>`}).join('')}</div>${pages>1?colPager(pages):''}`;
 }
+// ページ番号：多いときは「1 … 4 5 6 … 20」のように詰める
+function colPager(n){const c=colPage,nums=[...new Set([0,c-1,c,c+1,n-1])].filter(i=>i>=0&&i<n).sort((a,b)=>a-b);let h='',prev=-1;
+  nums.forEach(i=>{if(i-prev>1)h+='<span class="pgdot">…</span>';h+=`<button class="pgn press" data-pg="${i}"${i===c?' aria-current="page"':''}>${i+1}</button>`;prev=i});
+  return `<nav class="pager" aria-label="ページ"><button class="pgn press" data-pg="${c-1}" aria-label="前のページ"${c?'':' disabled'}>‹</button>${h}<button class="pgn press" data-pg="${c+1}" aria-label="次のページ"${c<n-1?'':' disabled'}>›</button></nav>`}
+function colRedraw(top){$('#cgrid').innerHTML=colGrid();$$('#cgrid [data-p]').forEach(b=>b.onclick=()=>detail(b.dataset.p));
+  $$('#cgrid [data-pg]').forEach(b=>b.onclick=()=>{colPage=+b.dataset.pg;colRedraw(true)});
+  if(top){const g=$('#colq')||$('#cgrid'),sc=$('#scroll');if(g&&sc)sc.scrollTop=Math.max(0,sc.scrollTop+g.getBoundingClientRect().top-sc.getBoundingClientRect().top-70)}}
 const PINI='<svg viewBox="0 0 24 24" width="11" height="11" fill="#fff"><path d="M12 2.5l2.8 6 6.6.7-5 4.5 1.4 6.5L12 17l-5.8 3.2 1.4-6.5-5-4.5 6.6-.7z"/></svg>';
 // 場所が決まっているバッジは、対象のスポットと「済／まだ」を詳細に出す（2026-10-06 鈴木さん「あとどこなのか分かりづらい」）
 const BADGE_PLACES=k=>({legA3:LEG.A,legA:LEG.A,legB2:LEG.B,legB:LEG.B,legD2:LEG.D,legD:LEG.D,c1:LEG.C1,gs3:['gunsai'],gs10:['gunsai'],
@@ -2997,8 +3015,8 @@ function render(){
   if(tab==='col'){$$('[data-cv]').forEach(b=>b.onclick=()=>{colView=b.dataset.cv;store.set('colv2',colView);render()});$$('[data-maker]').forEach(b=>b.onclick=()=>openMaker(b.dataset.maker));$$('[data-car]').forEach(b=>b.onclick=()=>openCar(b.dataset.car));$$('[data-zkmk]').forEach(b=>b.onclick=()=>{zkMk=b.dataset.zkmk;zkLim=60;render()});if($('#zkMore'))$('#zkMore').onclick=()=>{zkLim+=60;render()};$$('#view [data-pho]').forEach(b=>b.onclick=()=>openPho(b.dataset.pho))}
   if(tab==='sp'){$$('[data-spot]').forEach(b=>b.onclick=()=>openSpot(b.dataset.spot));if($('#mapb'))$('#mapb').onclick=openMap;if($('#crsb'))$('#crsb').onclick=()=>openCourses();if($('#srchb'))$('#srchb').onclick=()=>{const q=$('#spq');if(q){q.scrollIntoView({behavior:'smooth',block:'center'});setTimeout(()=>q.focus({preventScroll:true}),350)}};if($('#planb'))$('#planb').onclick=()=>{planSel=null;openPlan()};if($('#spmapb'))$('#spmapb').onclick=()=>openSpotMap();bindSpList();$('#locate').onclick=locate;if($('#demoArr'))$('#demoArr').onclick=demoArrive;if($('#autoOn'))$('#autoOn').onclick=()=>askAlways(render);$$('[data-ss]').forEach(b=>b.onclick=()=>{spotSort=b.dataset.ss;spotLim=40;render()});$$('[data-cat]').forEach(b=>b.onclick=()=>{spotCat=b.dataset.cat;spotLim=40;render()});
     $('#spq').oninput=e=>{spotQ=e.target.value;spotLim=40;$('#spl').innerHTML=spList();bindSpList()};$('#sppref').onchange=e=>{spotPref=e.target.value;spotLim=40;$('#spl').innerHTML=spList();bindSpList()}}
-  if(tab==='col'){$$('[data-sort]').forEach(b=>b.onclick=()=>{colSort=b.dataset.sort;store.set('sort2',colSort);render()});
-    const cq=$('#colq');if(cq)cq.oninput=e=>{colQ=e.target.value;$('#cgrid').innerHTML=colGrid();$$('#cgrid [data-p]').forEach(b=>b.onclick=()=>detail(b.dataset.p))}}
+  if(tab==='col'){$$('[data-sort]').forEach(b=>b.onclick=()=>{colSort=b.dataset.sort;store.set('sort2',colSort);colPage=0;render()});$$('#cgrid [data-pg]').forEach(b=>b.onclick=()=>{colPage=+b.dataset.pg;colRedraw(true)});
+    const cq=$('#colq');if(cq)cq.oninput=e=>{colQ=e.target.value;colPage=0;colRedraw()}}
   if(tab==='rw'){$$('[data-b]').forEach(b=>b.onclick=()=>openBadge(b.dataset.b));if($('#nearMore'))$('#nearMore').onclick=()=>{nearOpen=!nearOpen;render()};$$('[data-rf]').forEach(b=>b.onclick=()=>{rwFilter=b.dataset.rf;render()});$$('#view [data-setk]').forEach(b=>b.onclick=()=>openSet(b.dataset.setk));$$('[data-rv]').forEach(b=>b.onclick=()=>{rwView=b.dataset.rv;store.set('rwv2',rwView);render();window.scrollTo&&window.scrollTo(0,0)})}
   if(tab==='ex')bindExBeta();
 }
