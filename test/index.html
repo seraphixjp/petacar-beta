@@ -1469,7 +1469,7 @@ function frName(f){return f==='sp:1'?'サポーターの縁':f?`${FR_TIER[+f[1]]
 function openFrames(){const {list}=myFrameList(),cur=settings.frame&&settings.frame!=='auto'&&list.includes(settings.frame)?settings.frame:'auto';
   openSheet(`<b style="font-size:20px;display:block;text-align:center">縁をえらぶ</b><p class="note" style="text-align:center">クラスの格と種類で、スタンプの縁が変わります。獲得した縁はいつでも選び直せます。季節・イベントの期間中に交換したスタンプは、その期間の縁になります。</p>
    <div class="frpick"><button class="frop press" data-fr="auto" aria-pressed="${cur==='auto'}">${stamp(me,{size:64,fr:autoFrame()})}<span>おまかせ<small>今のクラス</small></span></button>${list.map(f=>`<button class="frop press" data-fr="${f}" aria-pressed="${cur===f}">${stamp(me,{size:64,fr:f})}<span>${esc(frName(f))}</span></button>`).join('')}</div>
-   <div class="note" style="margin-top:8px;text-align:center">${FR_TIER.slice(1).map((n,i)=>`${n} Lv.${CLS_STEP[i+1][0]}`).join('・')} で縁の格が上がります</div>
+   <div class="note" style="margin-top:8px;text-align:center">縁の格は、今のジョブの格（見習い→一人前→上級→凄腕→伝説）と同じところまで選べます</div>
    <button class="btn sub press" style="margin-top:12px" data-close>閉じる</button>`);
   bindClose();$$('[data-fr]').forEach(b=>b.onclick=()=>{settings.frame=b.dataset.fr;store.set('set2',settings);syncFrame();closeSheet();render();toast('縁を変えました')})}
 /* 縁の文字を円に沿って1文字ずつ並べる（textPath の textLength は iPhone が無視して、文字が半周で詰まっていた）。
@@ -1500,10 +1500,10 @@ function stamp(p,o={}){
   }else if(szx)svg=seasonFrame(szx);
   else if(fr)svg=frameSvg(fr,p.ring);
   else svg=`<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48" fill="none" stroke="${p.ring}" stroke-width="3.6"/></svg>`;
-  let phs=window.PetaFrames?PetaFrames.photoStyle(svg):'';
+  let phs=window.PetaFrames?PetaFrames.photoStyle(svg):'',frm='';
   if((szx||fr)&&window.PetaFrames){const h=PetaFrames.holeOf(svg);if(h&&h.r<FR_HOLE){const k=Math.min(FR_KMAX,FR_HOLE/h.r),r=h.r*k;
-    svg=svg.replace('<svg ',`<svg style="transform:scale(${k.toFixed(3)});transform-origin:${h.cx}% ${h.cy}%" `);phs=`inset:auto;left:${h.cx-r}%;top:${h.cy-r}%;width:${r*2}%;height:${r*2}%`}}
-  return `<div class="stamp ${ev||off||szx||fr?'ev':''}" style="width:${size}px;font-size:${size/7}px"><img src="${p.img}" style="${phs}" alt="${esc(p.name)}のスタンプ">${o.kira?'<div class="k"></div>':o.rare?'<div class="k g"></div>':''}${svg}${o.kira?'<div class="kb">EX</div>':o.rare?'<div class="kb g">RARE</div>':''}</div>`;
+    svg=svg.replace('<svg ',`<svg style="transform:scale(${k.toFixed(3)});transform-origin:${h.cx}% ${h.cy}%" `);phs=`inset:auto;left:${h.cx-r}%;top:${h.cy-r}%;width:${r*2}%;height:${r*2}%`;frm=`margin:${((k-1)/2*7).toFixed(2)}em;`}} // はみ出す分だけ余白を取って、名前などに重ならないように
+  return `<div class="stamp ${ev||off||szx||fr?'ev':''}" style="${frm}width:${size}px;font-size:${size/7}px"><img src="${p.img}" style="${phs}" alt="${esc(p.name)}のスタンプ">${o.kira?'<div class="k"></div>':o.rare?'<div class="k g"></div>':''}${svg}${o.kira?'<div class="kb">EX</div>':o.rare?'<div class="kb g">RARE</div>':''}</div>`;
 }
 // サポーター：期限（ms）は課金サーバーだけが users/{uid}.sup に書く（本人は書けない）。名前の前に青丸白星
 const supPaid=p=>!!(p&&typeof p.sup==='number'&&p.sup>Date.now());
@@ -2578,7 +2578,8 @@ async function tripImage(t){if(t.route&&t.route.length>=2)t={...t,km:rtKm(t.rout
   return cv}
 // スタンプ（縁・フチ込み）を画像にする。stamp() の見た目をそのまま canvas に描く
 async function stampCanvas(html,S){const doc=new DOMParser().parseFromString(html,'text/html'),st=doc.querySelector('.stamp');if(!st)return null;
-  const im=st.querySelector('img'),sv=st.querySelector(':scope>svg'),ins=st.classList.contains('shop')?.12:st.classList.contains('ev')?.115:.06;
+  const im=st.querySelector('img'),sv=st.querySelector(':scope>svg');if(sv)sv.removeAttribute('style'); // 画像に書き出すときは縁を広げない（canvasの外にはみ出すので）
+  const ins=st.classList.contains('shop')?.12:st.classList.contains('ev')?.115:.06;
   const cv=document.createElement('canvas');cv.width=cv.height=S;const g=cv.getContext('2d'),pic=im&&im.getAttribute('src')?await loadImg(im.getAttribute('src')):null,hole=window.PetaFrames&&sv?PetaFrames.holeOf(sv.outerHTML):null,r=S*(hole?hole.r/100:.5-ins),cx=S*(hole?hole.cx/100:.5),cy=S*(hole?hole.cy/100:.5);
   g.save();g.beginPath();g.arc(cx,cy,r,0,Math.PI*2);g.clip();
   if(pic){const k=Math.max(2*r/pic.width,2*r/pic.height);g.drawImage(pic,cx-pic.width*k/2,cy-pic.height*k/2,pic.width*k,pic.height*k)}else{g.fillStyle='#2a3440';g.fillRect(0,0,S,S)}g.restore();
