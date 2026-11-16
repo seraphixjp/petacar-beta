@@ -532,6 +532,7 @@ textarea{width:100%;box-sizing:border-box;margin-top:6px;padding:10px 12px;borde
 .u11top h1 small{display:block;font-size:.5em;letter-spacing:.08em;margin-top:2px}
 .u11big{display:inline-block;margin-left:8px;font-weight:900;font-size:14px;color:var(--accent);letter-spacing:.04em;vertical-align:middle}
 .colnav{margin:0 0 12px}.colnav button[aria-pressed=true]{background:color-mix(in srgb,var(--accent) 18%,var(--fill));color:var(--accent);box-shadow:inset 0 0 0 1.5px var(--accent)}.colnav:has(button:nth-child(5)){grid-template-columns:repeat(5,1fr)}.petast{display:grid;justify-items:center;gap:8px;text-align:center;padding:28px 18px;border-radius:20px;background:var(--surface)}.petast .pslogo{width:64px;height:64px;border-radius:20px;display:grid;place-items:center;background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent)}.petast .pslogo svg{width:32px;height:32px}.petast b{font-size:20px}.petast p{margin:0;color:var(--muted);font-size:13.5px;line-height:1.7;text-wrap:balance}
+.colnav{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:1fr}.zkban{position:relative;display:grid;justify-items:start;gap:4px;width:100%;min-height:104px;margin:0 0 14px;padding:14px 40px 14px 16px;border:0;border-radius:18px;background-size:cover;background-position:right 30% center;color:#fff;text-align:left;font:inherit;cursor:pointer;overflow:hidden}.zkban[aria-pressed=true]{box-shadow:inset 0 0 0 2px var(--accent)}.zkban .zkt{display:flex;align-items:center;gap:6px;font-size:18px;font-weight:900}.zkban .zkt svg{width:20px;height:20px}.zkban .zkd{font-size:12px;opacity:.85;max-width:62%}.zkban .zkn{font-size:12px;opacity:.9}.zkban .zkn b{font:800 18px var(--mono);color:#ffb37a}.zkban i{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-style:normal;font-size:24px;opacity:.8}
 [hidden]{display:none!important}
 body{margin:0}img{max-width:100%}
 html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -1655,6 +1656,7 @@ const TITLES={me:['マイスタンプ',''],ex:['交換','近くにいる人と�
 // コレクションの切り替えボタンのアイコンと、ペタストア（ペタカー!公式ストア・準備中）
 const svgI=d=>`<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
 const COLI={stamp:svgI('<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/>'),bag:svgI('<path d="M5 8h14l-1.2 12H6.2z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/>'),shop:svgI('<path d="M4 9.5 5.5 4h13L20 9.5"/><path d="M5 9.5V20h14V9.5"/><path d="M10 20v-5h4v5"/>'),cam:svgI('<path d="M4 8h3l1.5-2h7L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>'),book:svgI('<path d="M5 4.5h10a3 3 0 0 1 3 3V20H8a3 3 0 0 1-3-3z"/><path d="M5 17a3 3 0 0 1 3-3h10"/>')};
+function zkBanner(){const st=zukanStats();return `<button class="zkban press" data-cv="zukan" aria-pressed="${colView==='zukan'}" style="background-image:linear-gradient(90deg,rgba(10,12,16,.92) 0%,rgba(10,12,16,.7) 42%,rgba(10,12,16,.05) 80%),url(chara/zukan_bg.webp)"><span class="zkt">${COLI.book}車種図鑑</span><span class="zkd">出会った車が図鑑に載ります</span><span class="zkn"><b>${st.zk}</b> / ${ZTOTAL} 車種</span><i aria-hidden="true">›</i></button>`}
 function petaStore(){return `<div class="petast"><div class="pslogo">${COLI.bag}</div><b>ペタストア</b><p>ペタカー!公式のストアです。オリジナルグッズの販売を準備しています。</p><span class="chip">準備中</span><p class="note">お店が開いたら、お知らせでご案内します。</p></div>`}
 
 const views={
@@ -1702,7 +1704,7 @@ const views={
  },
  col(){
   if(colView==='shop'&&!SHOPS.length)colView='stamp';
-  const seg=`<div class="spnav colnav" role="group" aria-label="表示">${[['stamp','スタンプ',COLI.stamp],['peta','ペタストア',COLI.bag],...(SHOPS.length?[['shop','協力店',COLI.shop]]:[]),['pho','フォトスタ',COLI.cam],['zukan','車種図鑑',COLI.book]].map(([k,t,ic])=>`<button class="press" data-cv="${k}" aria-pressed="${colView===k}">${ic}<span>${t}</span></button>`).join('')}</div>`;
+  const seg=`<div class="spnav colnav" role="group" aria-label="表示">${[['stamp','スタンプ',COLI.stamp],['peta','ペタストア',COLI.bag],...(SHOPS.length?[['shop','協力店',COLI.shop]]:[]),['pho','フォトスタ',COLI.cam]].map(([k,t,ic])=>`<button class="press" data-cv="${k}" aria-pressed="${colView===k}">${ic}<span>${t}</span></button>`).join('')}</div>${zkBanner()}`;
   if(colView==='zukan')return seg+zukan();
   if(colView==='peta')return seg+petaStore();
   if(colView==='shop')return seg+shopsView();
