@@ -576,6 +576,11 @@ textarea{width:100%;box-sizing:border-box;margin-top:6px;padding:10px 12px;borde
 .hwx2{font-size:12px;color:var(--muted)}.hwx2 b{color:var(--ink);font-family:var(--mono)}.hwx2 small{display:block;font-size:10px;opacity:.6;margin-top:1px}.hwxice{color:#3b82f6;font-weight:700}
 .hwxb{border:0;background:none;color:var(--ink);font:700 14px var(--sans);display:flex;align-items:center;gap:8px;cursor:pointer;padding:2px 0;width:100%}.hwxb small{font-weight:500;font-size:11px;color:var(--muted);margin-left:auto}
 .hwxn{font-size:12px;color:var(--muted)}
+
+/* 天気の一言アドバイス（2026-11-17） */
+.hwxtip{margin-top:4px;padding:7px 10px;border-radius:12px;background:var(--fill);font-size:12.5px;font-weight:600;line-height:1.5;display:flex;gap:6px;align-items:flex-start}
+.hwxtip span{flex:1}.hwxtip span.in{animation:tipin .45s ease}@keyframes tipin{from{opacity:0;transform:translateY(6px)}}
+.hwxsrc{font-size:10px;color:var(--muted);opacity:.6}
 [hidden]{display:none!important}
 body{margin:0}img{max-width:100%}
 html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -3057,6 +3062,20 @@ function flyBind(){const fb=$('#res [data-close][data-go=col]');if(!fb||!$('#res
 const WXI=c=>c===0?'☀️':c<=2?'🌤️':c===3?'☁️':c<=48?'🌫️':c<=67?'🌧️':c<=77?'❄️':c<=82?'🌦️':c<=86?'🌨️':'⛈️';
 function hwxPlace(pos){const R=/^(.{2,3}?[都道府県])?(?:[^市区町村\s]+?郡)?([^\s]+?[市区町村])/,L=[];for(const x of SPOTS){if(x.la==null)continue;const d=dist1(pos,x);if(d<30)L.push([d,x])}L.sort((a,b)=>a[0]-b[0]);if(!L.length)return '';
   for(const [d,x] of L.slice(0,12)){const m=String(x.ad||'').match(R);if(m)return (m[1]||String(x.pref||'').split('・')[0])+m[2]}return String(L[0][1].pref||'').split('・')[0]}
+function wxTips(c,hi,lo,pp,st){const T=[],m=new Date().getMonth()+1;
+  if(c>=95)T.push('雷雨の予報です。峠や山道では無理をせず、早めに切り上げましょう');
+  if((c>=71&&c<=77)||c===85||c===86)T.push('雪の予報です。スタッドレスタイヤやチェーンの準備を忘れずに');
+  if(lo<=0)T.push('朝晩は路面が凍るかもしれません。橋の上や日陰はとくに慎重に');else if(lo<=3)T.push('冷え込みます。朝晩の峠道は凍結に気をつけましょう');
+  if(pp!=null&&pp>=70)T.push('雨の可能性が高めです。傘を積んで、車間距離はいつもより長めに');else if(pp!=null&&pp>=40)T.push('にわか雨があるかもしれません。傘を1本積んでおくと安心です');
+  if(c===45||c===48)T.push('霧が出やすい空模様です。ライトは早めに点けましょう');
+  if(hi>=33)T.push('猛烈な暑さです。飲み物を多めに。駐車中の車内はすぐ高温になります');else if(hi>=28)T.push('暑くなりそうです。こまめに水分をとりましょう');
+  else if(hi<=8)T.push('かなり寒い一日です。しっかりした上着と手袋を');else if(hi<=15)T.push('今日は少し肌寒い気温です。上着を持ってお出かけしましょう');
+  if(hi-lo>=12&&hi>8)T.push('朝晩と日中の気温差が大きい日です。脱ぎ着しやすい服がおすすめ');
+  if(c<=1&&(pp==null||pp<30)&&hi>=15&&hi<=27)T.push('絶好のドライブ日和です。景色のいい道を走りに行きましょう');
+  else if(c<=2&&(pp==null||pp<30))T.push('晴れの一日です。'+(m>=10||m<=2?'紅葉や冬の澄んだ景色を見に行くのもいいですね':'窓を開けて走るのも気持ちよさそうです'));
+  if(st&&c<=2&&(pp==null||pp<50))T.push(`日の入りは${st.set}ごろ。夕日の名所に寄るなら少し早めに出発を`);
+  return T.slice(0,3)}
+let hwxTimer=0;
 function homeWx(ask){const el=$('#hwx');if(!el)return;
   const sv=store.get('wxpos1',null),pos=here&&!here.demo&&here.la!=null?{la:here.la,lo:here.lo}:sv&&Date.now()-sv.at<216e5?sv:null;
   const btn=()=>{el.innerHTML=`<button class="hwxb press" id="hwxb">${WXI(1)} 今日の天気を見る<small>現在地を使います</small></button>`;$('#hwxb').onclick=()=>homeWx(true)};
@@ -3065,9 +3084,11 @@ function homeWx(ask){const el=$('#hwx');if(!el)return;
   if(!pos){if(ask)return getPos();
     try{navigator.permissions.query({name:'geolocation'}).then(r=>r.state==='granted'?getPos():btn(),btn)}catch(e){btn()}return}
   const k=pos.la.toFixed(2)+','+pos.lo.toFixed(2),st=sunTimes(pos.la,pos.lo),pl=hwxPlace(pos);
-  const put=w=>{const e=$('#hwx');if(!e||!w)return;const d=w.daily,c=d.weather_code[0],mn=d.temperature_2m_min[0],pp=d.precipitation_probability_max&&d.precipitation_probability_max[0];
+  const put=w=>{const e=$('#hwx');if(!e||!w)return;const d=w.daily,c=d.weather_code[0],mn=d.temperature_2m_min[0],pp=d.precipitation_probability_max&&d.precipitation_probability_max[0],tips=wxTips(c,Math.round(d.temperature_2m_max[0]),Math.round(mn),pp,st);
     e.innerHTML=`<div class="hwx1"><span class="hwxi" aria-hidden="true">${WXI(c)}</span><b>今日の天気</b><span class="hwxt">${WXN(c)}</span><span class="hi">${Math.round(d.temperature_2m_max[0])}℃</span><span class="lo">${Math.round(mn)}℃</span>${pp!=null?`<span class="hwxp">雨${pp}%</span>`:''}</div>
-      <div class="hwx2">${st?`日の入り <b>${st.set}</b>`:''}${pl?` · ${esc(pl)}付近`:''}${mn<=3?' · <span class="hwxice">路面凍結に注意</span>':''}<small>天気：Open-Meteo.com</small></div>`};
+      <div class="hwx2">${st?`日の入り <b>${st.set}</b>`:''}${pl?` · ${esc(pl)}付近`:''}${mn<=3?' · <span class="hwxice">路面凍結に注意</span>':''}</div>
+      ${tips.length?`<div class="hwxtip" id="hwxtip">💬 <span>${esc(tips[0])}</span></div>`:''}<small class="hwxsrc">天気：Open-Meteo.com</small>`;
+    clearInterval(hwxTimer);if(tips.length>1&&!calm()){let i=0;hwxTimer=setInterval(()=>{const t=$('#hwxtip span');if(!t){clearInterval(hwxTimer);return}i=(i+1)%tips.length;t.classList.remove('in');void t.offsetWidth;t.textContent=tips[i];t.classList.add('in')},5000)}};
   if(WX[k]&&Date.now()-WX[k].at<18e5)return put(WX[k].w);
   if(!el.innerHTML)el.innerHTML='<small class="hwxn">天気を読み込んでいます…</small>';
   fetch(`https://api.open-meteo.com/v1/forecast?latitude=${pos.la}&longitude=${pos.lo}&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Asia%2FTokyo&forecast_days=2`).then(r=>r.json()).then(w=>{if(!w.daily)throw 0;WX[k]={w,at:Date.now()};put(w)}).catch(()=>{const e=$('#hwx');if(e)e.innerHTML='<small class="hwxn">天気を読み込めませんでした</small>'})}
