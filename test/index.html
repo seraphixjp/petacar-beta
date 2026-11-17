@@ -3225,6 +3225,15 @@ function COURSES(){if(COURSES_C)return COURSES_C;const has=id=>SPOTS.some(x=>x.i
   add('tower','全日本タワー連盟','連盟に加わる全国のタワー',[...ntHas('全日本タワー連盟','tower').map(x=>x.id),'vw:22:東山スカイタワー']);
   REG.forEach(([r],i)=>add('mizu'+i,`名水百選 ${r}`,`${r}地方の名水百選`,SPOTS.filter(x=>x.cat==='mizu'&&regOf(x)===r).map(x=>x.id)));
   REG.forEach(([r],i)=>add('misa'+i,`岬めぐり ${r}`,`${r}地方の岬`,SPOTS.filter(x=>x.cat==='misa'&&regOf(x)===r).map(x=>x.id)));
+  /* 2026-11-17 追加：道100選・メロディロード・夕日と夜景・名橋・ダムカード */
+  const addc=(k,t,s,c,ids)=>{const n=L.length;add(k,t,s,ids);if(L.length>n)L[L.length-1].c=c};
+  REG.forEach(([r],i)=>addc('rd'+i,`日本の道100選 ${r}`,`${r}地方の日本の道100選`,`${r}地方の名道を走りつくす`,SPOTS.filter(x=>x.cat==='rd'&&regOf(x)===r).map(x=>x.id)));
+  addc('melall','メロディロード 全国','全国のメロディロード','走ると曲が流れる道を、全国制覇',SPOTS.filter(x=>x.cat==='mel').map(x=>x.id));
+  REG.forEach(([r],i)=>{const ids=SPOTS.filter(x=>x.cat==='mel'&&regOf(x)===r).map(x=>x.id);if(ids.length>=3)addc('mel'+i,`メロディロード ${r}`,`${r}地方のメロディロード`,`${r}地方の「鳴る道」をめぐる`,ids)});
+  REG.forEach(([r],i)=>addc('vw'+i,`夕日と夜景 ${r}`,`${r}地方の夕日・夜景・絶景の名所`,`${r}地方の夕日と夜景の名所へ`,SPOTS.filter(x=>x.cat==='vw'&&regOf(x)===r).map(x=>x.id)));
+  REG.forEach(([r],i)=>addc('bri'+i,`名橋めぐり ${r}`,`${r}地方の名橋`,`${r}地方の名橋を、渡って眺める`,SPOTS.filter(x=>x.cat==='bri'&&regOf(x)===r).map(x=>x.id)));
+  const DCP={};Object.keys(SPOT_DC).forEach(id=>{const x=SP(id);if(x&&x.id){const pi=+id.split(':')[1];(DCP[pi]=DCP[pi]||{p:x.pref,ids:[]}).ids.push(id)}});
+  Object.entries(DCP).filter(([pi,o])=>o.ids.length>=10).sort((a,b)=>a[0]-b[0]).forEach(([pi,o])=>addc('dc'+pi,`ダムカード ${o.p}`,`${o.p}でダムカードを配布しているダム`,`${o.p}のダムカードを全部集める`,o.ids));
   return COURSES_C=L}
 const spotDone=id=>spotlog.some(v=>v.id===id);
 const ISLE=/^(沖縄|東京都(八丈|三宅|大島|新島|神津|御蔵|青ヶ島|小笠原|利島|式根)|鹿児島県(屋久|奄美|大島郡|熊毛|西之表|中種子|南種子)|長崎県(対馬|壱岐|五島|南松浦|北松浦郡小値賀)|島根県隠岐|新潟県佐渡|北海道(利尻|礼文|奥尻)|山形県酒田市飛島)/;
@@ -3245,8 +3254,8 @@ const crsStars=c=>{const v=crsLv(c);return `<span class="crslv" aria-label="難�
 const crsProg=c=>c.ids.filter(spotDone).length;
 const courseDone=()=>COURSES().filter(c=>crsProg(c)===c.ids.length).length;
 // ツアーの種類（絞り込み用）
-const CRS_G=[['drive','ドライブ'],['tera','寺社・巡礼'],['cas','城'],['wh','世界遺産'],['nat','自然'],['town','街道・タワー']];
-const crsGenre=k=>/^(honshu4|japan4|legcir|legtg|hakone|shutoko|gunma_tg)$/.test(k)?'drive':/^(sea_torii|view_jin|henro|saigoku|bando|chichibu|kokuho)/.test(k)?'tera':/^castle/.test(k)?'cas':/^wh/.test(k)?'wh':/^(mizu|misa|dam100)/.test(k)?'nat':'town';
+const CRS_G=[['drive','ドライブ'],['tera','寺社・巡礼'],['cas','城'],['wh','世界遺産'],['nat','自然'],['dc','ダムカード'],['town','街道・タワー']];
+const crsGenre=k=>/^dc\d/.test(k)?'dc':/^(rd\d|mel|bri\d)/.test(k)?'drive':/^vw\d/.test(k)?'nat':/^(honshu4|japan4|legcir|legtg|hakone|shutoko|gunma_tg)$/.test(k)?'drive':/^(sea_torii|view_jin|henro|saigoku|bando|chichibu|kokuho)/.test(k)?'tera':/^castle/.test(k)?'cas':/^wh/.test(k)?'wh':/^(mizu|misa|dam100)/.test(k)?'nat':'town';
 function openCourses(back){const F=Object.assign({g:'',r:'',by:'lv',nd:0},store.get('crsF',{})||{});
   const L=COURSES(),regs=['全国',...REG.map(r=>r[0])].filter(r=>L.some(c=>c.r===r));
   const chip=(k,v,lab,on)=>`<button class="crsfc press${on?' on':''}" data-f="${k}" data-v="${esc(v)}">${lab}</button>`;
