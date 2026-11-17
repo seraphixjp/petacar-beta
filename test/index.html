@@ -1145,9 +1145,10 @@ const daysWith=id=>log.filter(l=>l.pid===id).length;
 const RANKS=[[1,'顔見知り'],[3,'常連'],[10,'相棒']];
 const rank=n=>{let r='—';RANKS.forEach(([k,v])=>{if(n>=k)r=v});return r};
 const met=()=>[...new Set(log.map(l=>l.pid))];
-const kiraRate=(before,ev)=>boost?.5:Math.min(.15,.03+.01*before)*(ev?2:1);
-const rareRate=(before,ev)=>boost?.3:Math.min(.3,.1+.02*before)*(ev?1.5:1);
-const pct=x=>Math.round(x*100)+'%';
+// 排出率 案A（2026-11-17 鈴木さん）：EX 2%＋仲良し度ごと0.5%・上限8%／レア 8%＋1%・上限20%。イベント中はEX×2・レア×1.5（旧：EX 3%＋1%・上限15%／レア 10%＋2%・上限30%）
+const kiraRate=(before,ev)=>boost?.5:Math.min(.08,.02+.005*before)*(ev?2:1);
+const rareRate=(before,ev)=>boost?.3:Math.min(.2,.08+.01*before)*(ev?1.5:1);
+const pct=x=>(Math.round(x*1000)/10)+'%'; // 3.5% のような小数も出す（案Aで0.5%刻みになったため）
 // サポーターだった暦月（JST）。サポーター中に開いた月だけ足していく
 const supMonths=()=>{let L=store.get('supMon',[]);if(!Array.isArray(L))L=[];if(supOn(me)){const m=new Date(Date.now()+9*3600e3).toISOString().slice(0,7);if(!L.includes(m)){L=[...L,m].slice(-240);store.set('supMon',L)}}return L.length};
 const myStats=()=>{const ppl=met();return hiMerge({supm:supMonths(),ex:log.length,ppl:ppl.length,prefs:new Set(ppl.map(i=>person(i).pref).filter(x=>PREFS.includes(x))).size,same:ppl.filter(i=>person(i).maker===me.maker&&person(i).car===me.car).length,
