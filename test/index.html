@@ -644,6 +644,22 @@ textarea{width:100%;box-sizing:border-box;margin-top:6px;padding:10px 12px;borde
 
 /* ツアーの独立ボタン（2026-11-17） */
 .tourbig{margin:10px 0 2px}.tourbig .aico{color:#d4af37}
+
+/* ツアーのヒーローボタン（2026-11-17） */
+.tourhero{position:relative;display:grid;gap:4px;width:100%;margin:12px 0 4px;padding:14px 16px 12px;border:1.5px solid #c9a227;border-radius:18px;overflow:hidden;text-align:left;color:#fff;cursor:pointer;
+ background:#1a1408;box-shadow:0 6px 20px rgba(0,0,0,.28),inset 0 0 0 1px rgba(255,230,150,.25);min-height:150px;font:inherit}
+.tourhero .thbg{position:absolute;inset:0;background:linear-gradient(100deg,rgba(14,10,4,.92) 0%,rgba(14,10,4,.72) 45%,rgba(14,10,4,.25) 100%),var(--thb,linear-gradient(135deg,#3a2a0a,#7a5a14));background-size:cover;background-position:center;z-index:0;transition:transform .6s}
+.tourhero:active .thbg{transform:scale(1.04)}
+.tourhero>*:not(.thbg){position:relative;z-index:1}
+.thtop{display:flex;align-items:center;justify-content:space-between}
+.thlab{display:inline-flex;align-items:center;gap:5px;font:800 11px var(--mono);letter-spacing:2px;color:#f3d77a;background:rgba(201,162,39,.18);border:1px solid rgba(243,215,122,.45);border-radius:999px;padding:3px 9px}.thlab svg{width:13px;height:13px}
+.thstar{color:#d4af37;font-size:12px;letter-spacing:2px;text-shadow:0 0 6px rgba(212,175,55,.6)}
+.thttl{font-size:22px;font-weight:900;letter-spacing:.5px;background:linear-gradient(180deg,#fff6d6,#e6c25a 60%,#b8892a);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:none;filter:drop-shadow(0 1px 1px rgba(0,0,0,.5))}
+.thsub{font-size:12px;color:rgba(255,255,255,.82);line-height:1.5}
+.thfoot{display:flex;align-items:flex-end;gap:12px;margin-top:6px}
+.thnum{font-size:11px;color:rgba(255,255,255,.75)}.thnum b{font:800 20px var(--mono);color:#fff;margin-right:2px}
+.threc{flex:1;min-width:0;display:grid;font-size:10.5px;color:#f3d77a;text-align:right}.threc b{font-size:13px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.threc .crslv{font-size:11px}
+.thgo{font-size:26px;line-height:1;color:#f3d77a}
 [hidden]{display:none!important}
 body{margin:0}img{max-width:100%}
 html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -1885,7 +1901,7 @@ const views={
   const vis=spotSet();
   return `<div class="group zhead zbg" style="background-image:linear-gradient(90deg,rgba(12,16,22,.9) 0%,rgba(12,16,22,.72) 55%,rgba(12,16,22,.35) 100%),url(chara/bg_expl.jpg)"><div class="big">${[...vis].filter(id=>!id.startsWith('rw:')).length}<small>/${SPOTS.filter(x=>x.cat!=='st').length}</small></div><div class="zt2"><b>行ったスポット</b></div>
     <details class="catdet"><summary>種類別の数を見る</summary><div class="catrow">${Object.entries(CAT).map(([k,c])=>`<span class="chip">${c.n} ${SPOTS.filter(x=>x.cat===k&&vis.has(x.id)).length}/${SPOTS.filter(x=>x.cat===k).length}</span>`).join('')}</div></details></div>
-  <button class="autorow off press tourbig" id="crsb"><span class="aico">${FLAGI}</span><div class="t"><b>テーマ別ツアー</b><span>${COURSES().length}本 · 制覇 ${courseDone()}本 · 巡礼・名城・世界遺産・名水など</span></div><span class="val">›</span></button>
+  ${tourHero()}
   <div class="spnav"><button class="press" id="srchb">${SRCHI}<span>探す</span></button><button class="press" id="spmapb">${MAPI}<span>地図</span></button><button class="press" id="wantb">${STARI}<span>行きたい</span></button><button class="press" id="mapb">${JPI}<span>制覇マップ</span></button></div>
   ${busySpots().length?`<div class="sec">近くでいま人がいるスポット<span class="chip">${busyScope()} · 2時間以内</span></div><div class="list">${busySpots().map(([x,n,d])=>`<button class="li press" data-spot="${esc(x.id)}">${listMark(x,spotDays(x.id)>0)}<div class="t"><b>${esc(x.n)}</b><span>${CAT[x.cat].n} · ${esc(x.ad||x.pref)}</span></div><span class="nowc big">${n}人</span>${d!=null?`<span class="d">${fmtKm(d)}</span>`:''}</button>`).join('')}</div>`:''}
   ${wantSection()}<div class="sec">近くのスポット${here?`<span class="chip">${esc(here.label)}から</span><button class="seclink" id="locate">更新</button>`:''}</div>
@@ -3205,6 +3221,14 @@ function openPlan(back){const W=[...wantSet()].map(SP).filter(x=>x&&x.id&&x.la!=
   bindClose(back);
   $$('#sh [data-pid]').forEach(c=>c.onchange=()=>{const id=c.dataset.pid;if(c.checked){if(planSel.size>=PLAN_MAX){c.checked=false;toast(`一度に回れるのは${PLAN_MAX}か所までです`);return}planSel.add(id)}else planSel.delete(id);
     const sc=$('#sh .sheet,#sh')&&($('#sh .sheet')||$('#sh')).scrollTop;closeSheet();openPlan(back);setTimeout(()=>{const e=$('#sh .sheet')||$('#sh');if(e&&sc)e.scrollTop=sc},30)})}
+/* スポット画面のツアーボタン：その日のおすすめツアーの写真を背景に（2026-11-17） */
+function tourHero(){const L=COURSES(),P=L.filter(c=>c.img&&SPOT_IMG[c.img]),d=today();let h=0;for(let i=0;i<d.length;i++)h=(h*31+d.charCodeAt(i))>>>0;
+  const c=P.length?P[h%P.length]:null,img=c?`https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(SPOT_IMG[c.img])}?width=900`:'';
+  return `<button class="tourhero press" id="crsb"${img?` style="--thb:url('${img}')"`:''}><span class="thbg" aria-hidden="true"></span>
+   <span class="thtop"><span class="thlab">${FLAGI}TOUR</span><span class="thstar">★★★★★</span></span>
+   <b class="thttl">テーマ別ツアー</b>
+   <span class="thsub">巡礼・名城・世界遺産・名水・岬・峠…全国の名所をまとめて巡る</span>
+   <span class="thfoot"><span class="thnum"><b>${L.length}</b>本</span><span class="thnum"><b>${courseDone()}</b>制覇</span>${c?`<span class="threc">今日のおすすめ<b>${esc(c.t)}</b>${crsStars(c)}</span>`:''}<span class="thgo">›</span></span></button>`}
 /* 行きたいリストを全部見る（2026-11-17） */
 function openWantList(back){const w=[...wantSet()].map(SP).filter(x=>x&&x.id);
   const L=w.map(x=>[x,here&&x.la!=null?dist(here,x):null]).sort((a,b)=>(a[1]??1e9)-(b[1]??1e9));
