@@ -722,6 +722,9 @@ textarea{width:100%;box-sizing:border-box;margin-top:6px;padding:10px 12px;borde
 .zkban i{font-size:30px}
 .zt.got{box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)}
 .zkban[aria-pressed=true]{box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.45),0 6px 18px rgba(0,0,0,.28)}
+
+/* 飾りのリワードはまとめてぼかしの下地に（2026-11-17） */
+.mpins{width:100%;margin-top:6px;padding:10px 8px 8px;border-radius:16px;background:rgba(0,0,0,.36);-webkit-backdrop-filter:blur(10px) saturate(1.1);backdrop-filter:blur(10px) saturate(1.1);box-shadow:inset 0 0 0 1px rgba(255,255,255,.1)}
 [hidden]{display:none!important}
 body{margin:0}img{max-width:100%}
 html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -1924,7 +1927,7 @@ const views={
     <button class="hito press${me.msg?'':' add'}" id="hito">${me.msg?esc(me.msg):'＋ ひとことを書く'}</button>
     <div><button class="chip carchip press" id="carb" aria-label="ガレージ（今日の車を選ぶ）">${CARI}${esc(carLabel(me))}${me.garage.length>1?`<small>${me.garage.length}台</small>`:''}<i aria-hidden="true">▾</i></button> <span class="chip">${esc(me.pref)}</span></div>
     ${inEvent()?`<div class="note" style="color:rgba(255,255,255,.85)">今日はイベント限定のフチで交換されます</div>`:''}
-    ${myPins().length?`<div style="margin-top:6px">${pinRow(myPins())}</div>`:''}
+    ${myPins().length?`<div class="mpins">${pinRow(myPins())}</div>`:''}
     <div class="mstats"><span><b>${log.length}</b>交換回数</span><span><b>${ppl.length}</b>会った人</span><span><b>${kc}</b>EX</span></div>
     <div class="mband"><span>${PINI}スポット <b>${[...spotSet()].filter(id=>!id.startsWith('rw:')).length.toLocaleString()}</b> か所</span><i></i><span>${NAVI}総移動 <b>${kmFmt(kmSum())}</b> km</span></div></div><div class="hwx" id="hwx" aria-live="polite"></div>
   ${me.def?`<button class="newsrow press" id="mkFirst"><span class="ntag" style="--nc:var(--accent)">はじめに</span><b>自分の車の写真でスタンプを作る</b><span class="val" aria-hidden="true">›</span></button>`:''}
