@@ -3062,19 +3062,47 @@ function flyBind(){const fb=$('#res [data-close][data-go=col]');if(!fb||!$('#res
 const WXI=c=>c===0?'☀️':c<=2?'🌤️':c===3?'☁️':c<=48?'🌫️':c<=67?'🌧️':c<=77?'❄️':c<=82?'🌦️':c<=86?'🌨️':'⛈️';
 function hwxPlace(pos){const R=/^(.{2,3}?[都道府県])?(?:[^市区町村\s]+?郡)?([^\s]+?[市区町村])/,L=[];for(const x of SPOTS){if(x.la==null)continue;const d=dist1(pos,x);if(d<30)L.push([d,x])}L.sort((a,b)=>a[0]-b[0]);if(!L.length)return '';
   for(const [d,x] of L.slice(0,12)){const m=String(x.ad||'').match(R);if(m)return (m[1]||String(x.pref||'').split('・')[0])+m[2]}return String(L[0][1].pref||'').split('・')[0]}
-function wxTips(c,hi,lo,pp,st){const T=[],m=new Date().getMonth()+1;
-  if(c>=95)T.push('雷雨の予報です。峠や山道では無理をせず、早めに切り上げましょう');
-  if((c>=71&&c<=77)||c===85||c===86)T.push('雪の予報です。スタッドレスタイヤやチェーンの準備を忘れずに');
-  if(lo<=0)T.push('朝晩は路面が凍るかもしれません。橋の上や日陰はとくに慎重に');else if(lo<=3)T.push('冷え込みます。朝晩の峠道は凍結に気をつけましょう');
-  if(pp!=null&&pp>=70)T.push('雨の可能性が高めです。傘を積んで、車間距離はいつもより長めに');else if(pp!=null&&pp>=40)T.push('にわか雨があるかもしれません。傘を1本積んでおくと安心です');
-  if(c===45||c===48)T.push('霧が出やすい空模様です。ライトは早めに点けましょう');
-  if(hi>=33)T.push('猛烈な暑さです。飲み物を多めに。駐車中の車内はすぐ高温になります');else if(hi>=28)T.push('暑くなりそうです。こまめに水分をとりましょう');
-  else if(hi<=8)T.push('かなり寒い一日です。しっかりした上着と手袋を');else if(hi<=15)T.push('今日は少し肌寒い気温です。上着を持ってお出かけしましょう');
-  if(hi-lo>=12&&hi>8)T.push('朝晩と日中の気温差が大きい日です。脱ぎ着しやすい服がおすすめ');
-  if(c<=1&&(pp==null||pp<30)&&hi>=15&&hi<=27)T.push('絶好のドライブ日和です。景色のいい道を走りに行きましょう');
-  else if(c<=2&&(pp==null||pp<30))T.push('晴れの一日です。'+(m>=10||m<=2?'紅葉や冬の澄んだ景色を見に行くのもいいですね':'窓を開けて走るのも気持ちよさそうです'));
-  if(st&&c<=2&&(pp==null||pp<50))T.push(`日の入りは${st.set}ごろ。夕日の名所に寄るなら少し早めに出発を`);
-  return T.slice(0,3)}
+const WXT={
+ thunder:['雷雨の予報です。峠や山道では無理をせず、早めに切り上げましょう','雷が鳴りやすい空模様です。開けた場所での長居は避けましょう','急な雷雨に注意。怪しい雲が見えたら、屋根のあるところで一休みを'],
+ snow:['雪の予報です。スタッドレスタイヤやチェーンの準備を忘れずに','雪道は「急」のつく操作が禁物。ゆっくり発進、早めのブレーキで','雪が降りそうです。峠越えの予定は、通行止めの情報も確かめてから','雪の日は車間距離をいつもの倍くらいに。ワイパーの凍りつきにも注意'],
+ ice0:['朝晩は路面が凍るかもしれません。橋の上や日陰はとくに慎重に','氷点下の冷え込みです。トンネルの出口や橋の上は凍っていることがあります','朝のフロントガラスが凍るかも。出発前に少し早めの準備を','ブラックアイスバーンに注意。濡れて見える路面は凍っていることがあります'],
+ ice3:['冷え込みます。朝晩の峠道は凍結に気をつけましょう','朝晩は冷えます。山の上は路面が凍ることもあるので慎重に','冷えた朝はタイヤも硬め。走り出しはおだやかにいきましょう'],
+ rain70:['雨の可能性が高めです。傘を積んで、車間距離はいつもより長めに','雨の一日になりそうです。昼でもライトを点けると見落とされにくくなります','雨の日は道の駅めぐりや屋内の名所がおすすめです','路面が濡れると止まるまでの距離が伸びます。いつもより早めのブレーキで','雨の予報です。ワイパーのゴムがへたっていたら交換のチャンスかも'],
+ rain40:['にわか雨があるかもしれません。傘を1本積んでおくと安心です','空模様が変わりやすい日です。洗車は明日以降がよさそう','ところによって雨の予報。窓を開けて走るなら空の様子に気をつけて'],
+ fog:['霧が出やすい空模様です。ライトは早めに点けましょう','霧の日はフォグランプとロービームで。ハイビームは逆に見えにくくなります','視界が悪くなりそうです。峠や高原の道はとくにゆっくりと'],
+ wind:['風が強い予報です。橋の上やトンネルの出口では横風に注意','強風の日はドアの開け閉めに気をつけて。隣の車にぶつけないように','風が強い一日です。高い橋や海沿いの道はハンドルをしっかり握って'],
+ uv:['紫外線が強い日です。サングラスがあると運転も楽になります','日差しが強めです。ダッシュボードに物を置きっぱなしにしないように','紫外線が強い予報です。窓際の腕の日焼けに気をつけて'],
+ hot33:['猛烈な暑さです。飲み物を多めに。駐車中の車内はすぐ高温になります','危険な暑さです。車内に子どもやペットを残さないでください','炎天下の駐車は日陰を選んで。ハンドルやシートが熱くなります','エアコン全開の日です。水分と塩分をこまめにとりましょう'],
+ hot28:['暑くなりそうです。こまめに水分をとりましょう','夏日の予報です。冷たい飲み物を1本積んでおくと安心','暑い日はソフトクリームのある道の駅に寄り道するのもいいですね','日差しで車内が暑くなります。乗る前に窓を開けて換気を'],
+ warm:['過ごしやすい気温です。窓を少し開けて走るのも気持ちよさそう','ドライブにちょうどいい気温です。少し遠くまで足をのばしてみては','暑すぎず寒すぎない一日。展望台で景色を眺めるのにもいい日です'],
+ cool:['今日は少し肌寒い気温です。上着を持ってお出かけしましょう','ひんやりした一日です。羽織るものを1枚積んでおくと安心','秋冬らしい空気です。温かい飲み物を片手にドライブもいいですね','少し肌寒い日です。道の駅で温かいものを食べるのもおすすめ'],
+ cold:['かなり寒い一日です。しっかりした上着と手袋を','寒さが厳しい日です。走り出す前にガラスの曇りを取ってから','冷え込む日はバッテリーも弱りがち。久しぶりに乗るなら様子を見て','寒い日は温泉のある道の駅がおすすめです'],
+ gap:['朝晩と日中の気温差が大きい日です。脱ぎ着しやすい服がおすすめ','寒暖差が大きい一日です。朝は上着、昼は1枚脱げるくらいがちょうどいい','気温差でガラスが曇りやすい日です。デフロスターを上手に使って'],
+ clear_sp:['春のドライブ日和です。桜や新緑の名所を回ってみては','暖かな晴れの日です。花の咲く道をのんびり走りたいですね','春らしい晴れ空です。花粉が気になる人は内気循環で'],
+ clear_su:['夏空の一日です。海沿いの道や高原ドライブが気持ちよさそう','晴れて暑くなりそうです。早朝や夕方のドライブもおすすめ','青空のドライブ日和。日焼け止めとサングラスをお忘れなく'],
+ clear_au:['秋晴れのドライブ日和です。紅葉の名所を回ってみては','空気が澄んで遠くまで見える日です。展望スポットへ行ってみましょう','秋晴れです。峠道の景色が楽しめそうな一日','晴れの一日です。紅葉や秋の澄んだ景色を見に行くのもいいですね'],
+ clear_wi:['冬晴れの一日です。空気が澄んで富士山や山並みがよく見えそう','冬の青空です。日差しは低めなので、まぶしさに気をつけて','晴れても風は冷たい日です。景色のいい場所で温かい飲み物を'],
+ cloudy:['くもりの一日です。日差しがない分、写真は落ち着いた色に撮れます','雲の多い一日です。雨が気になる人は折りたたみ傘を','くもり空でも路面は乾いています。のんびりドライブにちょうどいい日'],
+ sunset:['日の入りは{t}ごろ。夕日の名所に寄るなら少し早めに出発を','{t}ごろに日が沈みます。帰り道は早めにライトを点けましょう','日没は{t}ごろ。夕焼けが見られるかもしれません','{t}ごろから暗くなります。初めての道は明るいうちに'],
+ morning:['おはようございます。今日も安全運転でいきましょう','朝のドライブは空いていて気持ちいいですね','出発前にタイヤの空気とガソリンをチェックしておくと安心'],
+ night:['夜道はスピード控えめに。動物の飛び出しにも気をつけて','今日もおつかれさまでした。帰り道も安全運転で','夜景スポットに寄って帰るのもいいですね'],
+ weekend:['週末は名所や道の駅が混みやすいです。早めの出発がおすすめ','休日のドライブ日和。いつもより少し遠くの道の駅を目指してみては','週末は交換できる人に会えるチャンス。スタンプ交換も楽しんで'],
+ weekday:['平日は名所が空いていてゆっくり回れます','平日の夕方は帰宅ラッシュに気をつけて','平日ドライブは渋滞が少なめ。寄り道も楽しめそうです']};
+function wxPick(k,v){const L=WXT[k];if(!L||!L.length)return '';const d=today()+k;let h=0;for(let i=0;i<d.length;i++)h=(h*31+d.charCodeAt(i))>>>0;return L[h%L.length].replace('{t}',v||'')}
+function wxTips(c,hi,lo,pp,st,x={}){const T=[],m=new Date().getMonth()+1,hr=new Date().getHours(),wd=new Date().getDay(),dry=pp==null||pp<30,P=k=>{const t=wxPick(k,st&&st.set);if(t)T.push(t)};
+  if(c>=95)P('thunder');
+  if((c>=71&&c<=77)||c===85||c===86)P('snow');
+  if(lo<=0)P('ice0');else if(lo<=3)P('ice3');
+  if(pp!=null&&pp>=70)P('rain70');else if(pp!=null&&pp>=40)P('rain40');
+  if(c===45||c===48)P('fog');
+  if(x.wind!=null&&x.wind>=36)P('wind');
+  if(x.uv!=null&&x.uv>=8&&c<=2)P('uv');
+  if(hi>=33)P('hot33');else if(hi>=28)P('hot28');else if(hi<=8)P('cold');else if(hi<=15)P('cool');else if(hi<=25&&dry)P('warm');
+  if(hi-lo>=12&&hi>8)P('gap');
+  if(c<=2&&dry)P(m>=3&&m<=5?'clear_sp':m>=6&&m<=8?'clear_su':m>=9&&m<=11?'clear_au':'clear_wi');else if(c===3&&dry)P('cloudy');
+  if(st&&c<=2&&(pp==null||pp<50)&&hr<17)P('sunset');
+  P(hr>=4&&hr<10?'morning':hr>=18||hr<4?'night':(wd===0||wd===6)?'weekend':'weekday');
+  return T.slice(0,4)}
 let hwxTimer=0;
 function homeWx(ask){const el=$('#hwx');if(!el)return;
   const sv=store.get('wxpos1',null),pos=here&&!here.demo&&here.la!=null?{la:here.la,lo:here.lo}:sv&&Date.now()-sv.at<216e5?sv:null;
@@ -3084,14 +3112,14 @@ function homeWx(ask){const el=$('#hwx');if(!el)return;
   if(!pos){if(ask)return getPos();
     try{navigator.permissions.query({name:'geolocation'}).then(r=>r.state==='granted'?getPos():btn(),btn)}catch(e){btn()}return}
   const k=pos.la.toFixed(2)+','+pos.lo.toFixed(2),st=sunTimes(pos.la,pos.lo),pl=hwxPlace(pos);
-  const put=w=>{const e=$('#hwx');if(!e||!w)return;const d=w.daily,c=d.weather_code[0],mn=d.temperature_2m_min[0],pp=d.precipitation_probability_max&&d.precipitation_probability_max[0],tips=wxTips(c,Math.round(d.temperature_2m_max[0]),Math.round(mn),pp,st);
+  const put=w=>{const e=$('#hwx');if(!e||!w)return;const d=w.daily,c=d.weather_code[0],mn=d.temperature_2m_min[0],pp=d.precipitation_probability_max&&d.precipitation_probability_max[0],tips=wxTips(c,Math.round(d.temperature_2m_max[0]),Math.round(mn),pp,st,{wind:d.wind_speed_10m_max&&d.wind_speed_10m_max[0],uv:d.uv_index_max&&d.uv_index_max[0]});
     e.innerHTML=`<div class="hwx1"><span class="hwxi" aria-hidden="true">${WXI(c)}</span><b>今日の天気</b><span class="hwxt">${WXN(c)}</span><span class="hi">${Math.round(d.temperature_2m_max[0])}℃</span><span class="lo">${Math.round(mn)}℃</span>${pp!=null?`<span class="hwxp">雨${pp}%</span>`:''}</div>
       <div class="hwx2">${st?`日の入り <b>${st.set}</b>`:''}${pl?` · ${esc(pl)}付近`:''}${mn<=3?' · <span class="hwxice">路面凍結に注意</span>':''}</div>
       ${tips.length?`<div class="hwxtip" id="hwxtip">💬 <span>${esc(tips[0])}</span></div>`:''}<small class="hwxsrc">天気：Open-Meteo.com</small>`;
     clearInterval(hwxTimer);if(tips.length>1&&!calm()){let i=0;hwxTimer=setInterval(()=>{const t=$('#hwxtip span');if(!t){clearInterval(hwxTimer);return}i=(i+1)%tips.length;t.classList.remove('in');void t.offsetWidth;t.textContent=tips[i];t.classList.add('in')},5000)}};
-  if(WX[k]&&Date.now()-WX[k].at<18e5)return put(WX[k].w);
+  const kh='h'+k;if(WX[kh]&&Date.now()-WX[kh].at<18e5)return put(WX[kh].w);
   if(!el.innerHTML)el.innerHTML='<small class="hwxn">天気を読み込んでいます…</small>';
-  fetch(`https://api.open-meteo.com/v1/forecast?latitude=${pos.la}&longitude=${pos.lo}&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Asia%2FTokyo&forecast_days=2`).then(r=>r.json()).then(w=>{if(!w.daily)throw 0;WX[k]={w,at:Date.now()};put(w)}).catch(()=>{const e=$('#hwx');if(e)e.innerHTML='<small class="hwxn">天気を読み込めませんでした</small>'})}
+  fetch(`https://api.open-meteo.com/v1/forecast?latitude=${pos.la}&longitude=${pos.lo}&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max,uv_index_max&timezone=Asia%2FTokyo&forecast_days=2`).then(r=>r.json()).then(w=>{if(!w.daily)throw 0;WX[kh]={w,at:Date.now()};put(w)}).catch(()=>{const e=$('#hwx');if(e)e.innerHTML='<small class="hwxn">天気を読み込めませんでした</small>'})}
 function render(){
   clearInterval(modeTimer);
   if(tab==='rw'&&lastTab!=='rw'){newShown=unseen();seenB=gotKeys();store.set('seen2',seenB)}else if(tab!=='rw')newShown=[];
