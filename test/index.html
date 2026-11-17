@@ -2516,6 +2516,8 @@ const CAMI='<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="
 function bindPhoSpot(id){const b=$('#phMake');if(b)b.onclick=()=>{closeSheet();setTimeout(()=>openPhoto(id,()=>openSpot(id)),260)};
   $$('[data-phoo]').forEach(e=>e.onclick=()=>{closeSheet();setTimeout(()=>openPho(e.dataset.phoo,()=>openSpot(id)),260)});hydratePho()}
 
+// ドライブの記録がいつ動くか（Web版は開いている間だけ。アプリ版は app_block で「自動記録もオンなら閉じていても」に差し替える）（2026-11-17）
+let rtScope=long=>'開いている間だけ';
 /* --- 旅のしおり：記録したスポット・交換・すれ違いを日ごとにまとめる（自分だけに見える。位置の追跡はしない） --- */
 const hm=t=>{const d=new Date(t);return `${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`};
 const WD='日月火水木金土';
@@ -2574,7 +2576,7 @@ async function routeMap(pts,spots,W,H,o={}){const all=[...pts.filter(Boolean).ma
   spots.forEach(x=>{if(x.la==null)return;const [a,b]=P(x.la,x.lo);g.beginPath();g.arc(a,b,o.r||8,0,Math.PI*2);g.fillStyle=CAT[x.cat].c;g.fill();g.lineWidth=3;g.strokeStyle='#fff';g.stroke()});
   g.font=`500 ${o.fs||11}px sans-serif`;g.textAlign='right';g.fillStyle='rgba(0,0,0,.6)';g.fillText('地理院タイル',W-6,H-6);return cv}
 function routeRow(){return `<div class="srow rtrow"><div class="t"><b>ドライブを記録する</b><span>アプリを開いている間の位置を、2分または500mごとに記録して、旅のしおりの地図に使います。記録はこの端末の中だけに保存され、運営にもほかの人にも送られません</span></div><button class="switch" role="switch" aria-checked="${!!settings.route}" id="rtSw" aria-label="ドライブを記録する"></button></div>`}
-function bindRouteRow(after){const b=$('#rtSw');if(b)b.onclick=()=>{setRoute(!settings.route);b.setAttribute('aria-checked',!!settings.route);toast(settings.route?'ドライブの記録をはじめました（開いている間だけ）':'ドライブの記録を止めました');after&&after()}}
+function bindRouteRow(after){const b=$('#rtSw');if(b)b.onclick=()=>{setRoute(!settings.route);b.setAttribute('aria-checked',!!settings.route);toast(settings.route?`ドライブの記録をはじめました（${rtScope()}）`:'ドライブの記録を止めました');after&&after()}}
 function tripCard(){const t=tripOf(today()),n=t.spots.filter(v=>SP(v.id).cat!=='st').length;
   const bg=tripBg();return `<button class="yrcard trip press" id="tripb" style="background-image:linear-gradient(90deg,rgba(12,18,28,.94) 0%,rgba(12,18,28,.72) 48%,rgba(12,18,28,.25) 100%),url(&quot;${bg}&quot;)"><span class="yk">TRIP NOTE</span><b>${n?`今日の旅のしおり · ${n}か所`:'旅のしおり'}</b><span class="ys">${n?'行ったスポットと出会いを1日ずつ残します':'行ったスポットと出会いを、日記のように1日ずつ残します'}</span>
    ${n?`<span class="tripic">${t.spots.slice(-5).map(v=>spotMark(SP(v.id),true,26)).join('')}</span>`:''}<span class="ya" aria-hidden="true">›</span><span class="tripcr">写真：Wikimedia Commons</span></button>`}
@@ -2626,7 +2628,7 @@ function openTripDay(d,back){const t=tripOf(d),isT=d===today();
    ${t.spots.length?'<div class="twx" id="twx"></div>':''}<div class="mapstat trips"><div><b>${t.spots.length}</b><small>か所</small><span>スポット</span></div><div id="tkm"><b>${t.km<1?'—':t.km<10?t.km.toFixed(1):Math.round(t.km)}</b><small>${t.km<1?'':'km'}</small><span>移動</span></div><div><b>${t.ppl.length}</b><small>人</small><span>交換</span></div><div><b>${t.pass}</b><small>人</small><span>すれ違い</span></div></div>
    <p class="note" id="tkmn" style="text-align:center;margin:6px 0 0">${t.km>=1?'移動はスポットどうしを直線で結んだ距離の目安です':''}</p>
    ${tripHigh(t)}<div class="tripmap" id="tmap" hidden></div>
-   ${isT?`<div class="rtnow">${settings.route?`<span class="livedot"></span>ドライブを記録中（開いている間だけ） · <b id="rtn">${d===rtDay?rtPts.length:'…'}</b>点`:`<button class="seclink press" id="rtOn" style="margin:0">ドライブの記録をオンにする</button>`}</div>`:''}
+   ${isT?`<div class="rtnow">${settings.route?`<span class="livedot"></span>ドライブを記録中（${rtScope(1)}） · <b id="rtn">${d===rtDay?rtPts.length:'…'}</b>点`:`<button class="seclink press" id="rtOn" style="margin:0">ドライブの記録をオンにする</button>`}</div>`:''}
    ${t.spots.length?`<div class="sec" style="margin-top:14px">行ったところ</div><div class="tline">${t.spots.map(v=>{const x=SP(v.id),ph=t.photos.filter(p=>p.spot===v.id);
      const lg=t.legs.find(g=>g.to===v.id);
      return `${lg?`<div class="tleg">↓ ${kmTxt(lg.k)}</div>`:''}<div class="tl"><span class="tlt">${v.t?hm(v.t):''}</span><button class="tlm press" data-spot="${esc(v.id)}">${spotMark(x,true,38)}</button><div class="t"><b>${esc(x.n)}</b><span>${CAT[x.cat].n} · ${esc(x.pref)}</span>${tripGuide(v.id)}
@@ -2637,7 +2639,7 @@ function openTripDay(d,back){const t=tripOf(d),isT=d===today();
    <div class="row" style="margin-top:16px"><button class="btn sub press" data-close>閉じる</button><button class="btn press" id="tripImg">SNS用の画像にする</button></div>
    <button class="linkbtn" id="rtDel" style="padding:10px;display:none"><span class="danger">この日のルートを消す</span></button>`);
   bindClose(back);hydratePho();tripWx(t);
-  if($('#rtOn'))$('#rtOn').onclick=()=>{setRoute(true);toast('ドライブの記録をはじめました（開いている間だけ）');closeSheet();setTimeout(()=>openTripDay(d,back),260)};
+  if($('#rtOn'))$('#rtOn').onclick=()=>{setRoute(true);toast(`ドライブの記録をはじめました（${rtScope()}）`);closeSheet();setTimeout(()=>openTripDay(d,back),260)};
   rtGet(d).then(async pts=>{t.route=pts;if(!$('#tmap'))return;const sps=t.spots.map(v=>SP(v.id));if($('#rtn'))$('#rtn').textContent=pts.length;
     if(pts.length>=2){const k=rtKm(pts);t.km=k;$('#tkm').innerHTML=`<b>${k<10?k.toFixed(1):Math.round(k)}</b><small>km</small><span>移動</span>`;$('#tkmn').textContent='移動はドライブの記録（2分か500mごとの点）から計算した、おおよその距離です';$('#rtDel').style.display='block'}
     if(pts.length>=2||sps.filter(x=>x.la!=null).length>=2){const cv=await routeMap(pts,sps,680,420);if(cv&&$('#tmap')){$('#tmap').hidden=false;$('#tmap').appendChild(cv)}}});
