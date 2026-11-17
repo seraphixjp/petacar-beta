@@ -3130,7 +3130,7 @@ function crsInfo(c){if(c.inf)return c.inf;const P=c.ids.map(SP).filter(x=>x&&x.l
   // かかる時間：走る（平均45km/h）＋見る（1か所30分）＋島へ渡る（1回半日）
   const h=road/45+n*0.5+isle*(sea?4:0)+(sea?4:0);
   let lv=h<=5?1:h<=12?2:h<=30?3:h<=72?4:5;
-  if(lv<5&&(w>=1200||gap>=400))lv++; // 端から端まで遠い・1区間がとても長い（飛行機やフェリーが要る）
+  if(lv<5&&(w>=1200||gap>=400||n>=60))lv++; // 60か所以上も（四国八十八箇所など） // 端から端まで遠い・1区間がとても長い（飛行機やフェリーが要る）
   return c.inf={lv:Math.max(1,Math.min(5,lv)),h,road,n,w,isle}}
 const crsLv=c=>crsInfo(c).lv;
 const crsDays=h=>h<=8?`約${Math.max(1,Math.round(h))}時間`:`約${Math.round(h/8)}日`;
@@ -3162,12 +3162,13 @@ function openCourses(back){const F=Object.assign({g:'',r:'',by:'lv',nd:0},store.
   draw()}
 
 /* ツアーをGoogleマップで回る：行っていない所だけ（切替で全部）を近い順に並べ、10か所ずつ道順にする（2026-11-17） */
-function tourGoHtml(c){const all=!!store.get('tgoAll',0),h=here&&here.la!=null?here:null;
-  const O=planOrder(c.ids.map(SP).filter(x=>x&&x.la!=null&&(all||!spotDone(x.id))),h),ch=[];
+const CRS_SEQ=/^(henro|saigoku|bando|chichibu|tokaido)$/; // 札所・宿場の番号順に回るツアー
+function tourGoHtml(c){const all=!!store.get('tgoAll',0),h=here&&here.la!=null?here:null,seq=CRS_SEQ.test(c.k);
+  const P0=c.ids.map(SP).filter(x=>x&&x.la!=null&&(all||!spotDone(x.id))),O=seq?P0:planOrder(P0,h),ch=[];
   for(let i=0;i<O.length;i+=PLAN_MAX)ch.push(O.slice(i,i+PLAN_MAX));
   return `<div class="sec" style="margin-top:12px">Googleマップで回る</div>
    <label class="tgochk"><input type="checkbox" id="tgoAll" ${all?'checked':''}><span>行ったスポットも入れる</span></label>
-   ${O.length?`<p class="note" style="margin:4px 4px 8px">${all?'':'まだ行っていない'}${O.length}か所を、${h?'いまいる場所から':''}近い順の道順にします。${ch.length>1?`Googleマップで一度に回れるのは${PLAN_MAX}か所までなので、${ch.length}回に分けています。`:''}</p>
+   ${O.length?`<p class="note" style="margin:4px 4px 8px">${all?'':'まだ行っていない'}${O.length}か所を、${seq?(c.k==='tokaido'?'宿場の順':'札所の番号順'):(h?'いまいる場所から':'')+'近い順'}の道順にします。${ch.length>1?`Googleマップで一度に回れるのは${PLAN_MAX}か所までなので、${ch.length}回に分けています。`:''}</p>
    ${ch.map((L,i)=>`<a class="btn press tgob" href="${planUrl(L)}" target="_blank" rel="noopener">${NAVI}${ch.length>1?`${i*PLAN_MAX+1}〜${i*PLAN_MAX+L.length}か所目を開く`:`${L.length}か所をGoogleマップで開く`}</a>`).join('')}`
    :`<p class="note" style="margin:4px">${c.ids.length?'このツアーのスポットはすべて行きました':'回れるスポットがありません'}</p>`}`}
 function openCourse(k,back){const c=COURSES().find(c=>c.k===k);if(!c)return;const n=crsProg(c);
