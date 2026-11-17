@@ -633,6 +633,14 @@ textarea{width:100%;box-sizing:border-box;margin-top:6px;padding:10px 12px;borde
 /* ツアーの難易度（2026-11-17） */
 .crslv{display:block;font-size:11px;letter-spacing:1px;color:#e0a100;margin:1px 0}.crslv i{font-style:normal;color:var(--muted);opacity:.35}
 .crslvrow{margin:0 4px 4px;font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:6px}.crslvrow .crslv{display:inline;font-size:14px}
+
+/* ツアーの絞り込み（2026-11-17） */
+.crsf{display:grid;gap:6px;margin:0 0 6px}.crsfr{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:1px 2px}.crsfr::-webkit-scrollbar{display:none}
+.crsfc{flex:none;border:1px solid var(--line,rgba(127,127,127,.3));background:var(--fill);color:inherit;border-radius:999px;padding:6px 12px;font:600 12.5px inherit;cursor:pointer;white-space:nowrap}
+.crsfc.on{background:var(--accent);border-color:var(--accent);color:#fff}
+/* ★は金色 */
+.crslv{color:#d4af37!important;text-shadow:0 0 1px rgba(140,100,0,.55),0 1px 0 rgba(255,236,160,.35)}.crslv i{color:var(--muted)!important;text-shadow:none;opacity:.3}
+.crslvsec{display:flex;align-items:center;gap:8px}.crslvsec .crslv{display:inline;font-size:13px}
 [hidden]{display:none!important}
 body{margin:0}img{max-width:100%}
 html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -3085,7 +3093,7 @@ const regOf=x=>{const i=PREFS.indexOf(String(x.pref||'').split('・')[0]);const 
 let COURSES_C=null;
 function COURSES(){if(COURSES_C)return COURSES_C;const has=id=>SPOTS.some(x=>x.id===id),L=[];
   const CATCH={"honshu4": "本州の東西南北、4つの最果てへ", "japan4": "宗谷岬から佐多岬まで、日本の端をめぐる", "legcir": "日本のモータースポーツの舞台を訪ねる", "legtg": "走り屋の聖地として語られる峠へ", "hakone": "箱根の名ドライブコースをつなぐ", "shutoko": "夜の首都高、名所のPAをはしご", "sea_torii": "海や湖に立つ鳥居を見に行く", "view_jin": "天空の鳥居、巨岩、滝の神社へ", "gunma_tg": "群馬の峠を走りつくす", "henro": "お遍路さんの道を車で、四国をぐるり一周", "saigoku": "日本最古の観音霊場、近畿をめぐる", "bando": "関東一円に散らばる観音霊場へ", "chichibu": "秩父の山あいに集まる34の札所", "tokaido": "日本橋から京へ、旧東海道の宿場を順に", "kokuho": "国宝の本堂や塔を見に行く", "dam100": "堤高100mを超える巨大ダムを見上げる", "tower": "全日本タワー連盟のタワーにのぼる"};
-  const add=(k,t,s,ids)=>{ids=ids.filter(has);if(ids.length<2)return;const c=CATCH[k]||(/^castle/.test(k)?`${t.split(' ')[1]}地方の名城をめぐる`:/^wh/.test(k)?`${t.split(' ')[1]}地方の世界遺産をめぐる`:/^mizu\d/.test(k)?`${t.split(' ')[1]}地方の名水をたずねる`:/^misa\d/.test(k)?`${t.split(' ')[1]}地方の岬の先端へ`:s);L.push({k,t,s,c,ids,img:ids.find(id=>SPOT_IMG[id])})};
+  const add=(k,t,s,ids)=>{ids=ids.filter(has);if(ids.length<2)return;const c=CATCH[k]||(/^castle/.test(k)?`${t.split(' ')[1]}地方の名城をめぐる`:/^wh/.test(k)?`${t.split(' ')[1]}地方の世界遺産をめぐる`:/^mizu\d/.test(k)?`${t.split(' ')[1]}地方の名水をたずねる`:/^misa\d/.test(k)?`${t.split(' ')[1]}地方の岬の先端へ`:/^kokuho\d/.test(k)?`${t.split(' ')[1]}地方の国宝の本堂や塔へ`:/^dam100\d/.test(k)?`${t.split(' ')[1]}地方の巨大ダムを見上げる`:s);const rs=[...new Set(ids.map(id=>regOf(SP(id))).filter(Boolean))];L.push({k,t,s,c,ids,img:ids.find(id=>SPOT_IMG[id]),g:crsGenre(k),r:rs.length===1?rs[0]:'全国'})};
   add('honshu4','本州四端','本州の最北・最南・最東・最西の岬',['top:1:大間崎（本州最北端）','top:2:魹ヶ埼（本州最東端）','top:29:潮岬（本州最南端）','top:34:毘沙ノ鼻（本州最西端）']);
   add('japan4','日本本土四端','本土の最北・最南・最東・最西',['top:0:宗谷岬（日本最北端の地）','top:0:納沙布岬（本土最東端）','top:45:佐多岬（本土最南端）','top:41:神崎鼻（本土最西端）']);
   add('legcir','聖地サーキット','国内レースの舞台になる7か所',LEG.D);
@@ -3105,25 +3113,54 @@ function COURSES(){if(COURSES_C)return COURSES_C;const has=id=>SPOTS.some(x=>x.i
   add('bando','坂東三十三観音','関東の33の観音霊場',byNo(ntHas('坂東三十三観音 第','tera'),'坂東三十三観音'));
   add('chichibu','秩父三十四観音','秩父の34の観音霊場',byNo(ntHas('秩父三十四観音 第','tera'),'秩父三十四観音'));
   add('tokaido','東海道五十三次','旧東海道の53の宿場',byNo(SPOTS.filter(x=>x.cat==='shuku'),'の'));
-  add('kokuho','国宝の寺','国宝の建物がある寺',ntHas('国宝','tera').map(x=>x.id));
-  add('dam100','巨大ダム','堤高100m以上のダム',SPOTS.filter(x=>x.cat==='dam'&&+((String(x.nt||'').match(/堤高([\d.]+)m/)||[])[1]||0)>=100).map(x=>x.id));
+  REG.forEach(([r],i)=>add('kokuho'+i,`国宝の寺 ${r}`,`${r}地方の国宝の建物がある寺`,ntHas('国宝','tera').filter(x=>regOf(x)===r).map(x=>x.id)));
+  REG.forEach(([r],i)=>add('dam100'+i,`巨大ダム ${r}`,`${r}地方の堤高100m以上のダム`,SPOTS.filter(x=>x.cat==='dam'&&regOf(x)===r&&+((String(x.nt||'').match(/堤高([\d.]+)m/)||[])[1]||0)>=100).map(x=>x.id)));
   add('tower','全日本タワー連盟','連盟に加わる全国のタワー',[...ntHas('全日本タワー連盟','tower').map(x=>x.id),'vw:22:東山スカイタワー']);
   REG.forEach(([r],i)=>add('mizu'+i,`名水百選 ${r}`,`${r}地方の名水百選`,SPOTS.filter(x=>x.cat==='mizu'&&regOf(x)===r).map(x=>x.id)));
   REG.forEach(([r],i)=>add('misa'+i,`岬めぐり ${r}`,`${r}地方の岬`,SPOTS.filter(x=>x.cat==='misa'&&regOf(x)===r).map(x=>x.id)));
   return COURSES_C=L}
 const spotDone=id=>spotlog.some(v=>v.id===id);
-function crsLv(c){if(c.lv)return c.lv;const P=c.ids.map(SP).filter(x=>x&&x.la!=null);let w=0;
+const ISLE=/^(沖縄|東京都(八丈|三宅|大島|新島|神津|御蔵|青ヶ島|小笠原|利島|式根)|鹿児島県(屋久|奄美|大島郡|熊毛|西之表|中種子|南種子)|長崎県(対馬|壱岐|五島|南松浦|北松浦郡小値賀)|島根県隠岐|新潟県佐渡|北海道(利尻|礼文|奥尻)|山形県酒田市飛島)/;
+function crsInfo(c){if(c.inf)return c.inf;const P=c.ids.map(SP).filter(x=>x&&x.la!=null),n=c.ids.length;
+  const O=P.length?planOrder(P,null):[];let road=0,w=0,gap=0;
+  for(let i=1;i<O.length;i++){const d=dist1(O[i-1],O[i]);road+=d;if(d>gap)gap=d}
   for(let i=0;i<P.length;i++)for(let j=i+1;j<P.length;j++){const d=dist1(P[i],P[j]);if(d>w)w=d}
-  const n=c.ids.length,a=n<=5?1:n<=12?2:n<=30?3:n<=60?4:5,b=w<80?1:w<200?2:w<500?3:w<1000?4:5;
-  return c.lv=Math.max(1,Math.min(5,Math.round((a+b)/2)))}
+  road*=1.3; // 直線→道のり
+  const isle=P.filter(x=>ISLE.test(x.ad||'')).length,sea=isle&&isle<P.length?1:0; // 本土と島をまたぐ
+  // かかる時間：走る（平均45km/h）＋見る（1か所30分）＋島へ渡る（1回半日）
+  const h=road/45+n*0.5+isle*(sea?4:0)+(sea?4:0);
+  let lv=h<=5?1:h<=12?2:h<=30?3:h<=72?4:5;
+  if(lv<5&&(w>=1200||gap>=400))lv++; // 端から端まで遠い・1区間がとても長い（飛行機やフェリーが要る）
+  return c.inf={lv:Math.max(1,Math.min(5,lv)),h,road,n,w,isle}}
+const crsLv=c=>crsInfo(c).lv;
+const crsDays=h=>h<=8?`約${Math.max(1,Math.round(h))}時間`:`約${Math.round(h/8)}日`;
 const crsStars=c=>{const v=crsLv(c);return `<span class="crslv" aria-label="難易度${v}">${'★'.repeat(v)}<i>${'★'.repeat(5-v)}</i></span>`};
 const crsProg=c=>c.ids.filter(spotDone).length;
 const courseDone=()=>COURSES().filter(c=>crsProg(c)===c.ids.length).length;
-function openCourses(back){const L=COURSES();
-  openSheet(`<div class="sheettitle">テーマ別ツアー</div><p class="note" style="margin:0 4px 10px">全部回るとツアー制覇。制覇した数でバッジがもらえます。★は難易度（スポットの数と範囲の広さ）。</p>
-   <div class="list">${L.map(c=>{const n=crsProg(c),T=c.ids.length;return `<button class="li press crsli" data-crs="${c.k}">${c.img?`<span class="lthumb cth"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(SPOT_IMG[c.img])}?width=200" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('ng')"></span>`:''}<div class="t"><b>${esc(c.t)}${n===T?' <span class="chip crsok">制覇</span>':''}</b>${crsStars(c)}<span class="crsc">${esc(c.c)}</span><div class="crsbar"><i style="width:${Math.round(n/T*100)}%"></i></div></div><span class="d">${n}/${T}</span></button>`}).join('')}</div>
+// ツアーの種類（絞り込み用）
+const CRS_G=[['drive','ドライブ'],['tera','寺社・巡礼'],['cas','城'],['wh','世界遺産'],['nat','自然'],['town','街道・タワー']];
+const crsGenre=k=>/^(honshu4|japan4|legcir|legtg|hakone|shutoko|gunma_tg)$/.test(k)?'drive':/^(sea_torii|view_jin|henro|saigoku|bando|chichibu|kokuho)/.test(k)?'tera':/^castle/.test(k)?'cas':/^wh/.test(k)?'wh':/^(mizu|misa|dam100)/.test(k)?'nat':'town';
+function openCourses(back){const F=Object.assign({g:'',r:'',by:'lv',nd:0},store.get('crsF',{})||{});
+  const L=COURSES(),regs=['全国',...REG.map(r=>r[0])].filter(r=>L.some(c=>c.r===r));
+  const chip=(k,v,lab,on)=>`<button class="crsfc press${on?' on':''}" data-f="${k}" data-v="${esc(v)}">${lab}</button>`;
+  const row=c=>{const n=crsProg(c),T=c.ids.length;return `<button class="li press crsli" data-crs="${c.k}">${c.img?`<span class="lthumb cth"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(SPOT_IMG[c.img])}?width=200" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('ng')"></span>`:''}<div class="t"><b>${esc(c.t)}${n===T?' <span class="chip crsok">制覇</span>':''}</b>${crsStars(c)}<span class="crsc">${esc(c.c)}</span><div class="crsbar"><i style="width:${Math.round(n/T*100)}%"></i></div></div><span class="d">${n}/${T}</span></button>`};
+  const draw=()=>{const V=L.filter(c=>(!F.g||c.g===F.g)&&(!F.r||c.r===F.r)&&(!F.nd||crsProg(c)<c.ids.length));let h='';
+    if(!V.length)h='<p class="note" style="text-align:center;margin:16px 0">条件に合うツアーはありません</p>';
+    else if(F.by==='lv'){for(let v=1;v<=5;v++){const G=V.filter(c=>crsLv(c)===v);if(G.length)h+=`<div class="sec crslvsec"><span class="crslv">${'★'.repeat(v)}<i>${'★'.repeat(5-v)}</i></span>${['','気軽に','1日で','週末に','連休で','じっくり'][v]}<span class="chip">${G.length}</span></div><div class="list">${G.map(row).join('')}</div>`}}
+    else for(const [g,lab] of CRS_G){const G=V.filter(c=>c.g===g);if(G.length)h+=`<div class="sec">${lab}<span class="chip">${G.length}</span></div><div class="list">${G.map(row).join('')}</div>`}
+    $('#crsL').innerHTML=h;$('#crsN').textContent=`${V.length}本`;
+    $$('#sh .crsfc').forEach(b=>b.classList.toggle('on',String(F[b.dataset.f])===b.dataset.v));
+    $$('#crsL [data-crs]').forEach(b=>b.onclick=()=>{closeSheet();setTimeout(()=>openCourse(b.dataset.crs,()=>openCourses(back)),260)})};
+  openSheet(`<div class="sheettitle">テーマ別ツアー</div><p class="note" style="margin:0 4px 8px">全部回るとツアー制覇。制覇した数でバッジがもらえます。★は難易度（スポットの数・スポット同士の距離・広さ・島へ渡るかから、全部回るのにかかる時間の目安）。</p>
+   <div class="crsf"><div class="crsfr">${chip('by','lv','難易度ごと')}${chip('by','g','種類ごと')}${chip('nd','1','未制覇だけ')}</div>
+   <div class="crsfr">${chip('g','','すべて')}${CRS_G.map(([k,l])=>chip('g',k,l)).join('')}</div>
+   <div class="crsfr">${chip('r','','全地方')}${regs.map(r=>chip('r',r,r)).join('')}</div></div>
+   <div class="sec" style="margin-top:6px">ツアー<span class="chip" id="crsN"></span></div><div id="crsL"></div>
    ${PHCRED}<div class="row" style="margin-top:12px"><button class="btn sub press" data-close>閉じる</button></div>`);
-  bindClose(back);$$('#sh [data-crs]').forEach(b=>b.onclick=()=>{closeSheet();setTimeout(()=>openCourse(b.dataset.crs,()=>openCourses(back)),260)})}
+  bindClose(back);
+  $$('#sh .crsfc').forEach(b=>b.onclick=()=>{const k=b.dataset.f;let v=b.dataset.v;if(k==='nd')v=F.nd?0:1;F[k]=k==='nd'?v:v;store.set('crsF',F);draw()});
+  draw()}
+
 /* ツアーをGoogleマップで回る：行っていない所だけ（切替で全部）を近い順に並べ、10か所ずつ道順にする（2026-11-17） */
 function tourGoHtml(c){const all=!!store.get('tgoAll',0),h=here&&here.la!=null?here:null;
   const O=planOrder(c.ids.map(SP).filter(x=>x&&x.la!=null&&(all||!spotDone(x.id))),h),ch=[];
@@ -3134,7 +3171,7 @@ function tourGoHtml(c){const all=!!store.get('tgoAll',0),h=here&&here.la!=null?h
    ${ch.map((L,i)=>`<a class="btn press tgob" href="${planUrl(L)}" target="_blank" rel="noopener">${NAVI}${ch.length>1?`${i*PLAN_MAX+1}〜${i*PLAN_MAX+L.length}か所目を開く`:`${L.length}か所をGoogleマップで開く`}</a>`).join('')}`
    :`<p class="note" style="margin:4px">${c.ids.length?'このツアーのスポットはすべて行きました':'回れるスポットがありません'}</p>`}`}
 function openCourse(k,back){const c=COURSES().find(c=>c.k===k);if(!c)return;const n=crsProg(c);
-  openSheet(`<div class="sheettitle">${esc(c.t)}</div><p class="crslvrow">難易度 ${crsStars(c)}</p><p class="crsc big">${esc(c.c)}</p><p class="note" style="margin:0 4px 6px">${esc(c.s)} · ${n}/${c.ids.length}${n===c.ids.length?' · 制覇しました':''}</p><div class="crsbar big"><i style="width:${Math.round(n/c.ids.length*100)}%"></i></div><div id="tgo">${tourGoHtml(c)}</div><div class="sec" style="margin-top:12px">スポット</div>
+  openSheet(`<div class="sheettitle">${esc(c.t)}</div><p class="crslvrow">難易度 ${crsStars(c)}<span>全部で${crsDays(crsInfo(c).h)}・道のり約${Math.round(crsInfo(c).road/10)*10}km${crsInfo(c).isle?'・島あり':''}</span></p><p class="crsc big">${esc(c.c)}</p><p class="note" style="margin:0 4px 6px">${esc(c.s)} · ${n}/${c.ids.length}${n===c.ids.length?' · 制覇しました':''}</p><div class="crsbar big"><i style="width:${Math.round(n/c.ids.length*100)}%"></i></div><div id="tgo">${tourGoHtml(c)}</div><div class="sec" style="margin-top:12px">スポット</div>
    <div class="list">${c.ids.map(id=>{const x=SP(id);return `<button class="li press" data-spot="${esc(id)}">${listMark(x,spotDone(id))}<div class="t"><b>${esc(x.n)}</b><span>${CAT[x.cat].n} · ${esc(x.ad||x.pref)}</span></div>${spotDone(id)?'<span class="chip crsok">済</span>':here&&x.la!=null?`<span class="d">${fmtKm(dist(here,x))}</span>`:''}</button>`}).join('')}</div>
    ${PHCRED}<div class="row" style="margin-top:12px"><button class="btn sub press" data-close>戻る</button></div>`);
   bindClose(back);$$('#sh [data-spot]').forEach(b=>b.onclick=()=>{closeSheet();setTimeout(()=>openSpot(b.dataset.spot,()=>openCourse(k,back)),260)});
