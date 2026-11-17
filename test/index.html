@@ -568,6 +568,14 @@ textarea{width:100%;box-sizing:border-box;margin-top:6px;padding:10px 12px;borde
 .thl{margin-top:12px;padding:12px 14px;border-radius:16px;background:linear-gradient(135deg,rgba(255,200,90,.16),rgba(255,120,170,.12));display:grid;gap:8px}
 .thlh{font-size:12px;font-weight:800;letter-spacing:.06em;color:var(--accent)}
 .thr{display:flex;gap:10px;align-items:center}.thi{font-size:20px;width:28px;text-align:center;flex:none}.thr b{display:block;font-size:13px}.thr span{font-size:12px;color:var(--muted)}
+
+/* マイスタンプの今日の天気（2026-11-17） */
+.hwx{margin:10px 0 0;padding:10px 14px;border-radius:16px;background:var(--surface);display:grid;gap:3px}.hwx:empty{display:none}
+.hwx1{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}.hwxi{font-size:22px;line-height:1;align-self:center}.hwx1 b{font-size:13px;color:var(--muted)}.hwxt{font-weight:800;font-size:16px}
+.hwx .hi{color:#e8551c;font-weight:800;font-family:var(--mono)}.hwx .lo{color:#3b82f6;font-weight:800;font-family:var(--mono)}.hwxp{font-size:12.5px;color:var(--muted)}
+.hwx2{font-size:12px;color:var(--muted)}.hwx2 b{color:var(--ink);font-family:var(--mono)}.hwx2 small{display:block;font-size:10px;opacity:.6;margin-top:1px}.hwxice{color:#3b82f6;font-weight:700}
+.hwxb{border:0;background:none;color:var(--ink);font:700 14px var(--sans);display:flex;align-items:center;gap:8px;cursor:pointer;padding:2px 0;width:100%}.hwxb small{font-weight:500;font-size:11px;color:var(--muted);margin-left:auto}
+.hwxn{font-size:12px;color:var(--muted)}
 [hidden]{display:none!important}
 body{margin:0}img{max-width:100%}
 html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -1714,7 +1722,7 @@ const views={
     <div><button class="chip carchip press" id="carb" aria-label="ガレージ（今日の車を選ぶ）">${CARI}${esc(carLabel(me))}${me.garage.length>1?`<small>${me.garage.length}台</small>`:''}<i aria-hidden="true">▾</i></button> <span class="chip">${esc(me.pref)}</span></div>
     ${inEvent()?`<div class="note" style="color:rgba(255,255,255,.85)">今日はイベント限定のフチで交換されます</div>`:''}
     ${myPins().length?`<div style="margin-top:6px">${pinRow(myPins())}</div>`:''}
-    <div class="mstats"><span><b>${log.length}</b>交換回数</span><span><b>${ppl.length}</b>会った人</span><span><b>${kc}</b>EX</span></div></div>
+    <div class="mstats"><span><b>${log.length}</b>交換回数</span><span><b>${ppl.length}</b>会った人</span><span><b>${kc}</b>EX</span></div></div><div class="hwx" id="hwx" aria-live="polite"></div>
   ${me.def?`<button class="newsrow press" id="mkFirst"><span class="ntag" style="--nc:var(--accent)">はじめに</span><b>自分の車の写真でスタンプを作る</b><span class="val" aria-hidden="true">›</span></button>`:''}
   ${supTop()}${newsTop()}${openRow()}
   <button class="btn sub press shareb" id="shareb" style="margin-top:10px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px;margin-right:6px"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>プロフィールをSNSでシェア</button>
@@ -3045,6 +3053,24 @@ function flyStamp(){if(calm())return;const to=document.querySelector('.tab[data-
   setTimeout(()=>{to.classList.remove('bump');void to.offsetWidth;to.classList.add('bump')},720+(sts.length-1)*70)}
 // 結果画面の「コレクションに入れる」に飛ぶ動きをつなぐ（試作・ベータの1対1／みんなで交換で共通）
 function flyBind(){const fb=$('#res [data-close][data-go=col]');if(!fb||!$('#res .peta'))return;const oc=fb.onclick;fb.onclick=e=>{if(Date.now()-sheetAt<500)return;flyStamp();oc&&oc(e)}}
+/* ===== マイスタンプの今日の天気（2026-11-17） ===== */
+const WXI=c=>c===0?'☀️':c<=2?'🌤️':c===3?'☁️':c<=48?'🌫️':c<=67?'🌧️':c<=77?'❄️':c<=82?'🌦️':c<=86?'🌨️':'⛈️';
+function hwxPlace(pos){const R=/^(.{2,3}?[都道府県])?(?:[^市区町村\s]+?郡)?([^\s]+?[市区町村])/,L=[];for(const x of SPOTS){if(x.la==null)continue;const d=dist1(pos,x);if(d<30)L.push([d,x])}L.sort((a,b)=>a[0]-b[0]);if(!L.length)return '';
+  for(const [d,x] of L.slice(0,12)){const m=String(x.ad||'').match(R);if(m)return (m[1]||String(x.pref||'').split('・')[0])+m[2]}return String(L[0][1].pref||'').split('・')[0]}
+function homeWx(ask){const el=$('#hwx');if(!el)return;
+  const sv=store.get('wxpos1',null),pos=here&&!here.demo&&here.la!=null?{la:here.la,lo:here.lo}:sv&&Date.now()-sv.at<216e5?sv:null;
+  const btn=()=>{el.innerHTML=`<button class="hwxb press" id="hwxb">${WXI(1)} 今日の天気を見る<small>現在地を使います</small></button>`;$('#hwxb').onclick=()=>homeWx(true)};
+  const getPos=()=>{if(!navigator.geolocation)return el.remove();el.innerHTML='<small class="hwxn">現在地を確かめています…</small>';
+    navigator.geolocation.getCurrentPosition(p=>{store.set('wxpos1',{la:p.coords.latitude,lo:p.coords.longitude,at:Date.now()});homeWx()},()=>{if($('#hwx'))$('#hwx').innerHTML='<small class="hwxn">位置情報が使えないため、天気を出せませんでした</small>'},{maximumAge:6e5,timeout:15000})};
+  if(!pos){if(ask)return getPos();
+    try{navigator.permissions.query({name:'geolocation'}).then(r=>r.state==='granted'?getPos():btn(),btn)}catch(e){btn()}return}
+  const k=pos.la.toFixed(2)+','+pos.lo.toFixed(2),st=sunTimes(pos.la,pos.lo),pl=hwxPlace(pos);
+  const put=w=>{const e=$('#hwx');if(!e||!w)return;const d=w.daily,c=d.weather_code[0],mn=d.temperature_2m_min[0],pp=d.precipitation_probability_max&&d.precipitation_probability_max[0];
+    e.innerHTML=`<div class="hwx1"><span class="hwxi" aria-hidden="true">${WXI(c)}</span><b>今日の天気</b><span class="hwxt">${WXN(c)}</span><span class="hi">${Math.round(d.temperature_2m_max[0])}℃</span><span class="lo">${Math.round(mn)}℃</span>${pp!=null?`<span class="hwxp">雨${pp}%</span>`:''}</div>
+      <div class="hwx2">${st?`日の入り <b>${st.set}</b>`:''}${pl?` · ${esc(pl)}付近`:''}${mn<=3?' · <span class="hwxice">路面凍結に注意</span>':''}<small>天気：Open-Meteo.com</small></div>`};
+  if(WX[k]&&Date.now()-WX[k].at<18e5)return put(WX[k].w);
+  if(!el.innerHTML)el.innerHTML='<small class="hwxn">天気を読み込んでいます…</small>';
+  fetch(`https://api.open-meteo.com/v1/forecast?latitude=${pos.la}&longitude=${pos.lo}&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Asia%2FTokyo&forecast_days=2`).then(r=>r.json()).then(w=>{if(!w.daily)throw 0;WX[k]={w,at:Date.now()};put(w)}).catch(()=>{const e=$('#hwx');if(e)e.innerHTML='<small class="hwxn">天気を読み込めませんでした</small>'})}
 function render(){
   clearInterval(modeTimer);
   if(tab==='rw'&&lastTab!=='rw'){newShown=unseen();seenB=gotKeys();store.set('seen2',seenB)}else if(tab!=='rw')newShown=[];
@@ -3056,7 +3082,7 @@ function render(){
   if(tab==='me'){$('#gear').onclick=openSettings;$('#bell').onclick=openNews}
   const v=$('#view');v.innerHTML=views[tab]();
   if(lastTab!==tab){v.classList.remove('enter','fromL');void v.offsetWidth;if(TABO.indexOf(tab)<TABO.indexOf(lastTab))v.classList.add('fromL');v.classList.add('enter');motionIn(v);$('#scroll').scrollTop=0;$('#navbar').classList.remove('on');lastTab=tab}
-  bindEv();
+  bindEv();if(tab==='me')homeWx();
   if($('#ttlb'))$('#ttlb').onclick=openTitles;if($('#frb'))$('#frb').onclick=openFrames;if($('#rpghelp'))$('#rpghelp').onclick=openRpgHelp;if($('#rpgKm'))totalKm().then(k=>{const e=$('#rpgKm');if(e)e.textContent=kmFmt(k)});if($('#jobb'))$('#jobb').onclick=openJobs;checkLevelUp();checkSets();hydratePho();
   $('.tab[data-t=rw]').classList.toggle('dot',tab!=='rw'&&unseen().length>0);
   $$('[data-p]').forEach(b=>b.onclick=()=>detail(b.dataset.p));
