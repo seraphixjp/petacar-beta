@@ -625,6 +625,10 @@ textarea{width:100%;box-sizing:border-box;margin-top:6px;padding:10px 12px;borde
 .tfr.run .tfi{font-size:13px;opacity:.8}.tfr.run .tfb{color:var(--muted);font-size:13px;border-left:3px dotted var(--line,rgba(127,127,127,.4));padding-left:10px;margin-left:-19px}
 .tfb small{color:var(--muted);font-size:12px;margin-left:4px}.tfr.ends .tfb b{font-size:14px}
 .tfm{display:inline-flex;align-items:center;gap:6px;padding:0;border:0;background:none;color:inherit;font:inherit;cursor:pointer;text-align:left}.tfm b{font-size:14px}
+
+/* ツアーをGoogleマップで（2026-11-17） */
+.tgochk{display:flex;align-items:center;gap:8px;padding:6px 4px;font-size:14px}.tgochk input{width:18px;height:18px}
+.tgob{display:flex;align-items:center;justify-content:center;gap:6px;margin:6px 0;text-decoration:none}.tgob svg{width:18px;height:18px}
 [hidden]{display:none!important}
 body{margin:0}img{max-width:100%}
 html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -831,10 +835,10 @@ const BADGES=[
   {k:'sup1',m:'',ic:'heart',num:'1',t:'サポーター',s:'ペタカー!サポーターになる（サポーター限定）',f:s=>s.supm||0,g:1,tier:'sp'},
   {k:'sup6',m:'',ic:'heart',num:'6',t:'半年のサポーター',s:'サポーターだった月が6か月（サポーター限定）',f:s=>s.supm||0,g:6,tier:'sp'},
   {k:'sup12',m:'',ic:'heart',num:'12',t:'1年のサポーター',s:'サポーターだった月が12か月（サポーター限定）',f:s=>s.supm||0,g:12,tier:'sp'},
-  {k:'crs1',m:'',ic:'flag',num:'1',t:'はじめてのコース制覇',s:'テーマ別コースを1つ制覇（全部のスポットを記録）',f:s=>s.crs||0,g:1,tier:'br'},
-  {k:'crs3',m:'',ic:'flag',num:'3',t:'コース3つ制覇',s:'テーマ別コースを制覇した数',f:s=>s.crs||0,g:3,tier:'si'},
-  {k:'crs8',m:'',ic:'crown',num:'8',t:'コース8つ制覇',s:'テーマ別コースを制覇した数',f:s=>s.crs||0,g:8,tier:'go'},
-  {k:'crs15',m:'',ic:'crown',num:'15',t:'コースマスター',s:'テーマ別コースを制覇した数',f:s=>s.crs||0,g:15,tier:'pt'},
+  {k:'crs1',m:'',ic:'flag',num:'1',t:'はじめてのツアー制覇',s:'テーマ別ツアーを1つ制覇（全部のスポットを記録）',f:s=>s.crs||0,g:1,tier:'br'},
+  {k:'crs3',m:'',ic:'flag',num:'3',t:'ツアー3つ制覇',s:'テーマ別ツアーを制覇した数',f:s=>s.crs||0,g:3,tier:'si'},
+  {k:'crs8',m:'',ic:'crown',num:'8',t:'ツアー8つ制覇',s:'テーマ別ツアーを制覇した数',f:s=>s.crs||0,g:8,tier:'go'},
+  {k:'crs15',m:'',ic:'crown',num:'15',t:'ツアーマスター',s:'テーマ別ツアーを制覇した数',f:s=>s.crs||0,g:15,tier:'pt'},
   {k:'set1',m:'',ic:'flag',num:'1',t:'はじめてのチャレンジ',s:'達成したチャレンジの数',f:s=>s.setc||0,g:1,tier:'br'},
   {k:'set3',m:'',ic:'flag',num:'3',t:'チャレンジ3つ',s:'達成したチャレンジの数',f:s=>s.setc||0,g:3,tier:'si'},
   {k:'set6',m:'',ic:'flag',num:'6',t:'チャレンジ6つ',s:'達成したチャレンジの数',f:s=>s.setc||0,g:6,tier:'go'},
@@ -1834,7 +1838,7 @@ const views={
   const vis=spotSet();
   return `<div class="group zhead zbg" style="background-image:linear-gradient(90deg,rgba(12,16,22,.9) 0%,rgba(12,16,22,.72) 55%,rgba(12,16,22,.35) 100%),url(chara/bg_expl.jpg)"><div class="big">${[...vis].filter(id=>!id.startsWith('rw:')).length}<small>/${SPOTS.filter(x=>x.cat!=='st').length}</small></div><div class="zt2"><b>行ったスポット</b></div>
     <details class="catdet"><summary>種類別の数を見る</summary><div class="catrow">${Object.entries(CAT).map(([k,c])=>`<span class="chip">${c.n} ${SPOTS.filter(x=>x.cat===k&&vis.has(x.id)).length}/${SPOTS.filter(x=>x.cat===k).length}</span>`).join('')}</div></details></div>
-  <div class="spnav"><button class="press" id="srchb">${SRCHI}<span>探す</span></button><button class="press" id="spmapb">${MAPI}<span>地図</span></button><button class="press" id="crsb">${FLAGI}<span>コース</span></button><button class="press" id="mapb">${JPI}<span>制覇マップ</span></button></div>
+  <div class="spnav"><button class="press" id="srchb">${SRCHI}<span>探す</span></button><button class="press" id="spmapb">${MAPI}<span>地図</span></button><button class="press" id="crsb">${FLAGI}<span>ツアー</span></button><button class="press" id="mapb">${JPI}<span>制覇マップ</span></button></div>
   ${busySpots().length?`<div class="sec">近くでいま人がいるスポット<span class="chip">${busyScope()} · 2時間以内</span></div><div class="list">${busySpots().map(([x,n,d])=>`<button class="li press" data-spot="${esc(x.id)}">${listMark(x,spotDays(x.id)>0)}<div class="t"><b>${esc(x.n)}</b><span>${CAT[x.cat].n} · ${esc(x.ad||x.pref)}</span></div><span class="nowc big">${n}人</span>${d!=null?`<span class="d">${fmtKm(d)}</span>`:''}</button>`).join('')}</div>`:''}
   ${wantSection()}<div class="sec">近くのスポット${here?`<span class="chip">${esc(here.label)}から</span><button class="seclink" id="locate">更新</button>`:''}</div>
   ${here?`<div class="list">${nearest(5).map(([x,d])=>`<button class="li press" data-spot="${esc(x.id)}">${listMark(x,spotDays(x.id)>0)}<div class="t"><b>${esc(x.n)}${nowTag(x.id)}</b><span>${CAT[x.cat].n} · ${esc(x.ad||x.pref)}</span></div><span class="d">${fmtKm(d)}</span></button>`).join('')}</div>`
@@ -1959,7 +1963,7 @@ const UPD11_SLIDES=[['レインボーライン','Mikata_five_lakes_20110505_-_pa
 // Commons の撮影者とライセンスを読む（スポット詳細と共通。読めなければ「Wikimedia Commons」だけ）
 function commonsCred(f){if(spCredCache[f])return Promise.resolve(spCredCache[f]);return fetch('https://commons.wikimedia.org/w/api.php?action=query&prop=imageinfo&iiprop=extmetadata&format=json&origin=*&titles='+encodeURIComponent('File:'+f)).then(r=>r.json()).then(j=>{const pg=Object.values(j.query.pages)[0],m=(pg.imageinfo&&pg.imageinfo[0].extmetadata)||{},tx=h=>{const d=document.createElement('div');d.innerHTML=h||'';return d.textContent.trim().replace(/\s+/g,' ').slice(0,60)};const c={a:tx(m.Artist&&m.Artist.value),l:tx(m.LicenseShortName&&m.LicenseShortName.value)||'ライセンスはリンク先',u:(m.LicenseUrl&&m.LicenseUrl.value)||''};spCredCache[f]=c;return c})}
 function showUpd11(force){if((!force&&store.get('upd15',0))||$('#upd11'))return;store.set('upd15',1);
-  const F=[["クラスに相棒", "格が上がると姿も変わります"], ["ジョブを自由に転職", "スポットに行けば転職できます。格はジョブごとに上がります"], ["写真と紹介文", "約3,000か所のスポットに写真と紹介文がつきました"], ["絶景とダムカード", "夕日・夜景の名所と、ダムカードの配布情報"], ["天気と凍結注意", "今日・明日の天気、日の出・日の入り、路面凍結の注意"], ["コースと行きたいリスト", "テーマ別コースの制覇と、気になるスポットの登録"]];
+  const F=[["クラスに相棒", "格が上がると姿も変わります"], ["ジョブを自由に転職", "スポットに行けば転職できます。格はジョブごとに上がります"], ["写真と紹介文", "約3,000か所のスポットに写真と紹介文がつきました"], ["絶景とダムカード", "夕日・夜景の名所と、ダムカードの配布情報"], ["天気と凍結注意", "今日・明日の天気、日の出・日の入り、路面凍結の注意"], ["ツアーと行きたいリスト", "テーマ別ツアーの制覇と、気になるスポットの登録"]];
   const el=document.createElement('div');el.id='upd11';el.className='upd11';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');el.setAttribute('aria-label','旅する相棒アップデートのお知らせ');
   el.innerHTML=`<div class="u11in"><div class="u11top"><span class="u11ver">Ver 1.5</span><span class="u11big">【大型アップデート】</span><h1>旅する相棒<small>アップデート</small></h1></div>
    <figure class="u11hero" id="u11hero">${UPD11_SLIDES.map(([n,f],i)=>`<div class="u11s${i?'':' cur'}" data-i="${i}"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(f)}?width=900" alt="" referrerpolicy="no-referrer" ${i?'loading="lazy"':''}><b style="font-size:min(60px,calc((min(100vw,480px) - 48px) / ${n.length+.4}))">${n}</b></div>`).join('')}<figcaption id="u11cred">写真：Wikimedia Commons</figcaption><div class="u11dots">${UPD11_SLIDES.map((_,i)=>`<i class="${i?'':'on'}"></i>`).join('')}</div></figure>
@@ -2003,7 +2007,7 @@ const gnav=x=>`https://www.google.com/maps/dir/?api=1&destination=${x.la},${x.lo
 // マイスタンプの「近くのスポット」：現在地が分かっていれば近い2か所、まだならスポット一覧と同じ「探す」ボタン
 // マイスタンプ：1.1 の観光機能への入口（行きたいリスト・コース・ドライブプラン）
 function tourCard(){const n=wantSet().size,L=COURSES(),d=courseDone();
-  return `<div class="tourc"><button class="press" id="tcWant">${STARI}<b>行きたいリスト</b><span>${n?n+'か所':'未登録'}</span></button><button class="press" id="tcCrs">${FLAGI}<b>コース</b><span>制覇 ${d}/${L.length}</span></button><button class="press" id="tcPlan">${NAVI}<b>ドライブプラン</b><span>${n?'作る':'リストから'}</span></button></div>`}
+  return `<div class="tourc"><button class="press" id="tcWant">${STARI}<b>行きたいリスト</b><span>${n?n+'か所':'未登録'}</span></button><button class="press" id="tcCrs">${FLAGI}<b>ツアー</b><span>制覇 ${d}/${L.length}</span></button><button class="press" id="tcPlan">${NAVI}<b>ドライブプラン</b><span>${n?'作る':'リストから'}</span></button></div>`}
 function nearMeCard(){return ''} // 2026-11-16 マイスタンプから「近くのスポット」を外した（鈴木さん）。元は nearMeBase() // 観光の入口カード（tourCard）は2026-11-17 鈴木さんの判断で外した
 function nearMeBase(){
   if(!here)return `<div class="sec">近くのスポット</div><button class="btn sub press" id="locate2">${MAPI}現在地から近くのスポットを探す</button>`;
@@ -3062,15 +3066,25 @@ const spotDone=id=>spotlog.some(v=>v.id===id);
 const crsProg=c=>c.ids.filter(spotDone).length;
 const courseDone=()=>COURSES().filter(c=>crsProg(c)===c.ids.length).length;
 function openCourses(back){const L=COURSES();
-  openSheet(`<div class="sheettitle">テーマ別コース</div><p class="note" style="margin:0 4px 10px">全部回るとコース制覇。制覇した数でバッジがもらえます。</p>
+  openSheet(`<div class="sheettitle">テーマ別ツアー</div><p class="note" style="margin:0 4px 10px">全部回るとツアー制覇。制覇した数でバッジがもらえます。</p>
    <div class="list">${L.map(c=>{const n=crsProg(c),T=c.ids.length;return `<button class="li press crsli" data-crs="${c.k}">${c.img?`<span class="lthumb cth"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(SPOT_IMG[c.img])}?width=200" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('ng')"></span>`:''}<div class="t"><b>${esc(c.t)}${n===T?' <span class="chip crsok">制覇</span>':''}</b><span class="crsc">${esc(c.c)}</span><div class="crsbar"><i style="width:${Math.round(n/T*100)}%"></i></div></div><span class="d">${n}/${T}</span></button>`}).join('')}</div>
    ${PHCRED}<div class="row" style="margin-top:12px"><button class="btn sub press" data-close>閉じる</button></div>`);
   bindClose(back);$$('#sh [data-crs]').forEach(b=>b.onclick=()=>{closeSheet();setTimeout(()=>openCourse(b.dataset.crs,()=>openCourses(back)),260)})}
+/* ツアーをGoogleマップで回る：行っていない所だけ（切替で全部）を近い順に並べ、10か所ずつ道順にする（2026-11-17） */
+function tourGoHtml(c){const all=!!store.get('tgoAll',0),h=here&&here.la!=null?here:null;
+  const O=planOrder(c.ids.map(SP).filter(x=>x&&x.la!=null&&(all||!spotDone(x.id))),h),ch=[];
+  for(let i=0;i<O.length;i+=PLAN_MAX)ch.push(O.slice(i,i+PLAN_MAX));
+  return `<div class="sec" style="margin-top:12px">Googleマップで回る</div>
+   <label class="tgochk"><input type="checkbox" id="tgoAll" ${all?'checked':''}><span>行ったスポットも入れる</span></label>
+   ${O.length?`<p class="note" style="margin:4px 4px 8px">${all?'':'まだ行っていない'}${O.length}か所を、${h?'いまいる場所から':''}近い順の道順にします。${ch.length>1?`Googleマップで一度に回れるのは${PLAN_MAX}か所までなので、${ch.length}回に分けています。`:''}</p>
+   ${ch.map((L,i)=>`<a class="btn press tgob" href="${planUrl(L)}" target="_blank" rel="noopener">${NAVI}${ch.length>1?`${i*PLAN_MAX+1}〜${i*PLAN_MAX+L.length}か所目を開く`:`${L.length}か所をGoogleマップで開く`}</a>`).join('')}`
+   :`<p class="note" style="margin:4px">${c.ids.length?'このツアーのスポットはすべて行きました':'回れるスポットがありません'}</p>`}`}
 function openCourse(k,back){const c=COURSES().find(c=>c.k===k);if(!c)return;const n=crsProg(c);
-  openSheet(`<div class="sheettitle">${esc(c.t)}</div><p class="crsc big">${esc(c.c)}</p><p class="note" style="margin:0 4px 6px">${esc(c.s)} · ${n}/${c.ids.length}${n===c.ids.length?' · 制覇しました':''}</p><div class="crsbar big"><i style="width:${Math.round(n/c.ids.length*100)}%"></i></div>
+  openSheet(`<div class="sheettitle">${esc(c.t)}</div><p class="crsc big">${esc(c.c)}</p><p class="note" style="margin:0 4px 6px">${esc(c.s)} · ${n}/${c.ids.length}${n===c.ids.length?' · 制覇しました':''}</p><div class="crsbar big"><i style="width:${Math.round(n/c.ids.length*100)}%"></i></div><div id="tgo">${tourGoHtml(c)}</div><div class="sec" style="margin-top:12px">スポット</div>
    <div class="list">${c.ids.map(id=>{const x=SP(id);return `<button class="li press" data-spot="${esc(id)}">${listMark(x,spotDone(id))}<div class="t"><b>${esc(x.n)}</b><span>${CAT[x.cat].n} · ${esc(x.ad||x.pref)}</span></div>${spotDone(id)?'<span class="chip crsok">済</span>':here&&x.la!=null?`<span class="d">${fmtKm(dist(here,x))}</span>`:''}</button>`}).join('')}</div>
    ${PHCRED}<div class="row" style="margin-top:12px"><button class="btn sub press" data-close>戻る</button></div>`);
-  bindClose(back);$$('#sh [data-spot]').forEach(b=>b.onclick=()=>{closeSheet();setTimeout(()=>openSpot(b.dataset.spot,()=>openCourse(k,back)),260)})}
+  bindClose(back);$$('#sh [data-spot]').forEach(b=>b.onclick=()=>{closeSheet();setTimeout(()=>openSpot(b.dataset.spot,()=>openCourse(k,back)),260)});
+  const tg=()=>{const e=$('#tgoAll');if(e)e.onchange=()=>{store.set('tgoAll',e.checked?1:0);$('#tgo').innerHTML=tourGoHtml(c);tg()}};tg()}
 
 /* ===== ドライブプラン：行きたいリストから選んで、近い順に回るナビを Googleマップで開く ===== */
 const PLAN_MAX=10; // Googleマップの経由地は目的地を含めて10か所まで
@@ -3259,7 +3273,7 @@ const WXT={
  /* --- 車の手入れ（ときどき） --- */
  care:['ウォッシャー液が減っていたら補充しておきましょう','タイヤの空気圧は月に一度のチェックがおすすめです','ライトのレンズがくもっていたら、磨くと夜道が見やすくなります','車内の換気を時々すると、窓のくもりやにおいを防げます','ガソリンは半分を切ったら早めに入れておくと安心です','エアコンのフィルターは1年に一度の交換が目安です','洗車のあとは窓ガラスの内側も拭くと、夜の視界がすっきりします','ワイパーのゴムは1年くらいで交換すると拭きムラが減ります'],
  /* --- アプリの楽しみ方（ときどき） --- */
- app:['行ったスポットは旅のしおりに残ります。今日の一日を振り返ってみては','スポットの近くに着いたら、印を押すのを忘れずに','近くにペタカー!の人がいたら、スタンプを交換してみましょう','「行きたい」に登録したスポットを、今日回ってみては','まだ行ったことのない県のスポットを探してみましょう','コースを選ぶと、名所をまとめて巡れます']};
+ app:['行ったスポットは旅のしおりに残ります。今日の一日を振り返ってみては','スポットの近くに着いたら、印を押すのを忘れずに','近くにペタカー!の人がいたら、スタンプを交換してみましょう','「行きたい」に登録したスポットを、今日回ってみては','まだ行ったことのない県のスポットを探してみましょう','ツアーを選ぶと、名所をまとめて巡れます']};
 function wxPick(k,v){const L=WXT[k];if(!L||!L.length)return '';const d=today()+k+(new Date().getHours()>>2);let h=0;for(let i=0;i<d.length;i++)h=(h*31+d.charCodeAt(i))>>>0;return L[h%L.length].replace('{t}',v||'')}
 function wxTips(c,hi,lo,pp,st,x={}){const T=[],now=new Date(),m=now.getMonth()+1,hr=now.getHours(),wd=now.getDay(),dry=pp==null||pp<30,wet=pp!=null&&pp>=60,clear=c<=2&&dry,P=k=>{const t=wxPick(k,st&&st.set);if(t&&!T.includes(t))T.push(t)};
   // 危険・注意
