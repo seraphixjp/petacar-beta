@@ -581,6 +581,11 @@ textarea{width:100%;box-sizing:border-box;margin-top:6px;padding:10px 12px;borde
 .hwxtip{margin-top:4px;padding:7px 10px;border-radius:12px;background:var(--fill);font-size:12.5px;font-weight:600;line-height:1.5;display:flex;gap:6px;align-items:flex-start}
 .hwxtip span{flex:1}.hwxtip span.in{animation:tipin .45s ease}@keyframes tipin{from{opacity:0;transform:translateY(6px)}}
 .hwxsrc{font-size:10px;color:var(--muted);opacity:.6}
+
+/* 車種図鑑の新しい車種（2026-11-17） */
+.zt{position:relative}.zdot{position:absolute;top:6px;right:6px;width:11px;height:11px;border-radius:50%;background:var(--ng);border:2px solid var(--surface);z-index:2;font-style:normal}
+.zkban .zdot{top:10px;right:12px;width:12px;height:12px;border-color:rgba(10,12,16,.9)}
+.zknew{font-style:normal;font-size:11px;font-weight:800;margin-left:8px;padding:1px 7px;border-radius:999px;background:var(--ng);color:#fff;vertical-align:1px}
 [hidden]{display:none!important}
 body{margin:0}img{max-width:100%}
 html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -1179,6 +1184,14 @@ function exStats(){const byD={},byP={};log.forEach(l=>{(byD[l.d]=byD[l.d]||new S
 const HI_KEYS=['setc','r3','r4','r5','zkfull','mkMax','same','sameMk','myCars','ekiFull','gmEki','legD','mu','gunsai','dayMax','months','gapMax','rare','gpMax'];
 let hiS=store.get('hi2',{})||{};
 function hiMerge(s){let ch=false;const o={...s};HI_KEYS.forEach(k=>{const v=+s[k]||0,h=+hiS[k]||0;if(v>h){hiS[k]=v;ch=true}o[k]=Math.max(v,h)});if(ch)store.set('hi2',hiS);return o}
+// 新しく載った車種（まだ開いていない）
+let zkSeen=null;
+function zkSeenSet(){if(!zkSeen){const v=store.get('zkseen1',null);if(Array.isArray(v))zkSeen=new Set(v);else{zkSeen=new Set(Object.keys(zukanMap()).filter(k=>!k.startsWith('その他|')));store.set('zkseen1',[...zkSeen])}}return zkSeen}
+const zkNew=()=>{const S=zkSeenSet();return Object.keys(zukanMap()).filter(k=>!k.startsWith('その他|')&&!S.has(k))};
+function zkRead(key){const S=zkSeenSet();if(S.has(key))return;S.add(key);store.set('zkseen1',[...S]);
+  $$(`[data-car="${CSS.escape(key)}"] .zdot,[data-zc] .zdot`).forEach(e=>{const b=e.closest('[data-car],[data-zc]');if(b&&(b.dataset.car===key||(b.dataset.zc&&key.endsWith('|'+b.dataset.zc))))e.remove()});
+  const n=zkNew().length;$$('.zkban .zdot').forEach(e=>{if(!n)e.remove()});const t=$('.tab[data-t=col]');if(t)t.classList.toggle('dot',n>0)}
+const ZDOT='<i class="zdot" aria-label="新しい車種"></i>';
 function zukanStats(){const z=zukanMap(),keys=Object.keys(z).filter(k=>!k.startsWith('その他|'));
   const rs=keys.map(k=>{const[m,c]=k.split('|');return rarity(m,c)});
   const mkN={};keys.forEach(k=>{const m=k.split('|')[0];mkN[m]=(mkN[m]||0)+1});
@@ -1710,7 +1723,7 @@ const TITLES={me:['マイスタンプ',''],ex:['交換','近くにいる人と�
 // コレクションの切り替えボタンのアイコンと、公式協力店（協力店が無い間は開発中の画面）
 const svgI=d=>`<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
 const COLI={stamp:svgI('<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/>'),bag:svgI('<path d="M5 8h14l-1.2 12H6.2z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/>'),shop:svgI('<path d="M4 9.5 5.5 4h13L20 9.5"/><path d="M5 9.5V20h14V9.5"/><path d="M10 20v-5h4v5"/>'),cam:svgI('<path d="M4 8h3l1.5-2h7L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>'),book:svgI('<path d="M5 4.5h10a3 3 0 0 1 3 3V20H8a3 3 0 0 1-3-3z"/><path d="M5 17a3 3 0 0 1 3-3h10"/>')};
-function zkBanner(){const st=zukanStats();return `<button class="zkban press" data-cv="zukan" aria-pressed="${colView==='zukan'}" style="background-image:linear-gradient(90deg,rgba(10,12,16,.92) 0%,rgba(10,12,16,.7) 42%,rgba(10,12,16,.05) 80%),url(chara/zukan_bg.webp)"><span class="zkt">${COLI.book}車種図鑑</span><span class="zkd">出会った車が図鑑に載ります</span><span class="zkn"><b>${st.zk}</b> / ${ZTOTAL} 車種</span><i aria-hidden="true">›</i></button>`}
+function zkBanner(){const st=zukanStats();return `<button class="zkban press" data-cv="zukan" aria-pressed="${colView==='zukan'}" style="background-image:linear-gradient(90deg,rgba(10,12,16,.92) 0%,rgba(10,12,16,.7) 42%,rgba(10,12,16,.05) 80%),url(chara/zukan_bg.webp)"><span class="zkt">${COLI.book}車種図鑑</span><span class="zkd">出会った車が図鑑に載ります</span><span class="zkn"><b>${st.zk}</b> / ${ZTOTAL} 車種${zkNew().length?`<em class="zknew">新しい車種 ${zkNew().length}</em>`:''}</span><i aria-hidden="true">›</i>${zkNew().length?ZDOT:''}</button>`}
 const RWI={job:svgI('<path d="M4 12h16M14 6l6 6-6 6"/><path d="M4 6h6M4 18h6"/>'),ttl:svgI('<path d="M4 7h16v6a8 8 0 0 1-16 0z"/><path d="M9 7V4h6v3"/>'),fr:svgI('<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3"/>'),help:svgI('<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .9-1 1.7"/><path d="M12 17h.01"/>'),bd:svgI('<circle cx="12" cy="9" r="5.5"/><path d="M8.5 13.5 7 21l5-2.5 5 2.5-1.5-7.5"/>'),set:svgI('<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><path d="M14.5 16.5l2 2 3.5-4"/>'),cls:svgI('<circle cx="12" cy="7.5" r="3.5"/><path d="M5 20c.8-4 3.6-6 7-6s6.2 2 7 6"/><path d="M16.5 3.5l1 1.8 2 .3-1.5 1.4.4 2-1.9-1-1.9 1 .4-2-1.5-1.4 2-.3z"/>')};
 function petaStore(){return `<div class="petast"><div class="pslogo">${COLI.shop}</div><b>公式協力店</b><p>ペタカー!の公式協力店です。訪れると、ここでしか手に入らない特別な特典が……？</p><span class="chip">現在開発中</span><p class="note">オープンしたら、お知らせでご案内します。</p></div>`}
 
@@ -2117,9 +2130,9 @@ function zukan(){
   if(zkMk!=='all'&&zkMk!=='got'&&!CARS[zkMk])zkMk='all';
   let L=(zkMk==='all'||zkMk==='got'?mk:[zkMk]).flatMap(m=>CARS[m].map(c=>[m,c]));
   if(zkMk==='got')L=L.filter(([m,c])=>z[m+'|'+c]);
-  L=[...L.filter(([m,c])=>z[m+'|'+c]),...L.filter(([m,c])=>!z[m+'|'+c])];
+  const NW=new Set(zkNew());L=[...L.filter(([m,c])=>NW.has(m+'|'+c)),...L.filter(([m,c])=>z[m+'|'+c]&&!NW.has(m+'|'+c)),...L.filter(([m,c])=>!z[m+'|'+c])];
   const cnt=m=>CARS[m].filter(c=>z[m+'|'+c]).length;
-  const tile=([m,c])=>{const o=z[m+'|'+c],r=rarity(m,c);return `<button class="zt press r${r}${o?' got':''}" data-car="${esc(m+'|'+c)}">${carPic(m,c,!!o)}<b>${esc(c)}</b>${zkMk==='all'||zkMk==='got'?`<small class="zmk">${esc(m)}</small>`:''}${stars(r,!!o)}<span>${o?`${o.length}人`:'未発見'}</span></button>`};
+  const tile=([m,c])=>{const o=z[m+'|'+c],r=rarity(m,c);return `<button class="zt press r${r}${o?' got':''}" data-car="${esc(m+'|'+c)}">${NW.has(m+'|'+c)?ZDOT:''}${carPic(m,c,!!o)}<b>${esc(c)}</b>${zkMk==='all'||zkMk==='got'?`<small class="zmk">${esc(m)}</small>`:''}${stars(r,!!o)}<span>${o?`${o.length}人`:'未発見'}</span></button>`};
   return `<div class="group zhead"><div class="big">${st.zk}<small>/${ZTOTAL}</small></div><b>見つけた車種</b>
     <div class="note">${st.r4?`★4以上のレア車 ${st.r4}車種 · `:''}出会った車が図鑑に載ります。車種を押すと解説が読めます。${st.zkfull?`コンプリートしたメーカー ${st.zkfull}`:'1つのメーカーを全部集めるとプラチナバッジです。'}</div></div>
   <div class="sortbar zkmk" role="group" aria-label="メーカーで絞り込む">${[['all',`すべて ${ZTOTAL}`],['got',`見つけた ${st.zk}`],...mk.map(m=>[m,`${m} ${cnt(m)}/${CARS[m].length}`])].map(([k,t])=>`<button class="sortchip press" data-zkmk="${esc(k)}" aria-pressed="${zkMk===k}">${esc(t)}</button>`).join('')}</div>
@@ -2129,7 +2142,7 @@ function zukan(){
 // 解説（どんな車 a・歴史 h・型式 k）は別ファイル。最初に開いたときだけ読み込む
 let ZDESC=null,zdescP=null;
 const zdesc=()=>ZDESC?Promise.resolve(ZDESC):(zdescP=zdescP||fetch('zukan_desc.json').then(r=>r.ok?r.json():{}).catch(()=>({})).then(d=>(ZDESC=d)));
-function openCar(key,back){const [m,c]=key.split('|');const z=zukanMap(),o=z[key],r=rarity(m,c);
+function openCar(key,back){const [m,c]=key.split('|');zkRead(key);const z=zukanMap(),o=z[key],r=rarity(m,c);
   openSheet(`<div class="zcar">${carPic(m,c,true)}</div><b style="font-size:20px;display:block;text-align:center;margin-top:8px">${esc(m)} ${esc(c)}</b><div style="text-align:center">${stars(r,true)}</div>
    <div id="zcDesc" class="zcdesc"><p class="note">解説を読み込んでいます…</p></div>
    ${o?`<div class="sec" style="margin-top:14px">出会ったオーナー ${o.length}人</div><div class="list">${o.map(id=>{const p=person(id);return p?`<button class="li press" data-op="${id}">${stamp(p,{size:44})}<div class="t"><b>${supM(p)}${esc(p.name)}</b><span>${esc(p.pref)} · ♥${daysWith(id)}</span></div></button>`:''}).join('')}</div>`:''}
@@ -2141,7 +2154,7 @@ function openCar(key,back){const [m,c]=key.split('|');const z=zukanMap(),o=z[key
 function openMaker(m){
   const z=zukanMap(),L=CARS[m],got=L.filter(c=>z[m+'|'+c]).length;
   openSheet(`<b style="font-size:18px;display:block;text-align:center">${esc(m)}</b><p class="note" style="text-align:center;margin:4px 0 12px">${got}/${L.length} 車種</p>
-   <div class="zgrid">${[...L.filter(c=>z[m+'|'+c]),...L.filter(c=>!z[m+'|'+c])].map(c=>{const o=z[m+'|'+c];const r=rarity(m,c);return o?`<button class="zt got press r${r}" data-zc="${esc(c)}">${carPic(m,c,true)}<b>${esc(c)}</b>${stars(r)}<span>${o.length}人</span></button>`:`<div class="zt r${r}">${carPic(m,c,false)}<b>${esc(c)}</b>${stars(r,false)}<span>未発見</span></div>`}).join('')}</div>
+   <div class="zgrid">${[...L.filter(c=>z[m+'|'+c]),...L.filter(c=>!z[m+'|'+c])].map(c=>{const o=z[m+'|'+c];const r=rarity(m,c);return o?`<button class="zt got press r${r}" data-zc="${esc(c)}">${zkNew().includes(m+'|'+c)?ZDOT:''}${carPic(m,c,true)}<b>${esc(c)}</b>${stars(r)}<span>${o.length}人</span></button>`:`<div class="zt r${r}">${carPic(m,c,false)}<b>${esc(c)}</b>${stars(r,false)}<span>未発見</span></div>`}).join('')}</div>
    <button class="btn sub press" style="margin-top:14px" data-close>閉じる</button>`);
   bindClose();
   $$('[data-zc]').forEach(b=>b.onclick=()=>{const o=z[m+'|'+b.dataset.zc];if(o.length===1){detail(o[0]);return}
@@ -3183,7 +3196,7 @@ function render(){
   if(lastTab!==tab){v.classList.remove('enter','fromL');void v.offsetWidth;if(TABO.indexOf(tab)<TABO.indexOf(lastTab))v.classList.add('fromL');v.classList.add('enter');motionIn(v);$('#scroll').scrollTop=0;$('#navbar').classList.remove('on');lastTab=tab}
   bindEv();if(tab==='me')homeWx();
   if($('#ttlb'))$('#ttlb').onclick=openTitles;if($('#frb'))$('#frb').onclick=openFrames;if($('#rpghelp'))$('#rpghelp').onclick=openRpgHelp;if($('#rpgKm'))totalKm().then(k=>{const e=$('#rpgKm');if(e)e.textContent=kmFmt(k)});if($('#jobb'))$('#jobb').onclick=openJobs;checkLevelUp();checkSets();hydratePho();
-  $('.tab[data-t=rw]').classList.toggle('dot',tab!=='rw'&&unseen().length>0);
+  $('.tab[data-t=rw]').classList.toggle('dot',tab!=='rw'&&unseen().length>0);$('.tab[data-t=col]').classList.toggle('dot',zkNew().length>0);
   $$('[data-p]').forEach(b=>b.onclick=()=>detail(b.dataset.p));
   if(tab==='me'){$$('.nearme [data-spot]').forEach(b=>b.onclick=()=>openSpot(b.dataset.spot));if($('#locate2'))$('#locate2').onclick=()=>locate();if($('#nearAll'))$('#nearAll').onclick=()=>{tab='sp';render()};if($('#tcWant'))$('#tcWant').onclick=()=>{tab='sp';render();setTimeout(()=>{const e=$('#planb');if(e)e.closest('.sec').scrollIntoView({behavior:'smooth',block:'start'});else toast('スポットの詳細で「行きたい」を押すと、ここに集まります')},120)};if($('#tcCrs'))$('#tcCrs').onclick=()=>openCourses();if($('#tcPlan'))$('#tcPlan').onclick=()=>{planSel=null;openPlan()};if($('#supTop'))$('#supTop').onclick=()=>openSup();$$('[data-nice]').forEach(b=>b.onclick=()=>sendNice(b.dataset.nice));if($('#shareb'))$('#shareb').onclick=openShare;$('#mk').onclick=openCrop;if($('#mkFirst'))$('#mkFirst').onclick=openCrop;if($('#qcard'))$('#qcard').onclick=openQuests;$('#hito').onclick=openHito;if($('#nmb'))$('#nmb').onclick=openName;$('#carb').onclick=()=>openGarage(render);if($('#grb'))$('#grb').onclick=()=>openGarage(render);if($('#newsTop'))$('#newsTop').onclick=()=>openNewsItem($('#newsTop').dataset.n);if($('#openRow'))$('#openRow').onclick=()=>{tab='ex';render()};$('#bgb').onclick=openBg;if($('#wrapb'))$('#wrapb').onclick=openWrap;if($('#tripb'))$('#tripb').onclick=()=>{const n=tripOf(today()).spots.length;n?openTripDay(today()):openTrip()};$('#allrec').onclick=()=>{colView='stamp';store.set('colv2',colView);colSort='recent';store.set('sort2',colSort);tab='col';render()}}
   if(tab==='col'||tab==='sp'){$$('[data-shop]').forEach(b=>b.onclick=()=>openShop(b.dataset.shop));if($('#demoShop'))$('#demoShop').onclick=demoShop}
