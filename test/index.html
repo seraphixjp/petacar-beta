@@ -661,15 +661,11 @@ textarea{width:100%;box-sizing:border-box;margin-top:6px;padding:10px 12px;borde
 .threc{flex:1;min-width:0;display:grid;font-size:10.5px;color:#f3d77a;text-align:right}.threc b{font-size:13px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.threc .crslv{font-size:11px}
 .thgo{font-size:26px;line-height:1;color:#f3d77a}
 
-/* トップを豪華に（2026-11-17） */
-.member{border:1.5px solid rgba(212,175,55,.75);box-shadow:0 10px 30px rgba(0,0,0,.35),0 0 0 1px rgba(255,236,160,.18) inset,0 0 24px rgba(212,175,55,.18)}
-.member::after{content:'';position:absolute;inset:0;pointer-events:none;border-radius:inherit;background:linear-gradient(115deg,transparent 30%,rgba(255,240,190,.16) 45%,transparent 60%);background-size:250% 100%;animation:mshine 7s ease-in-out infinite}
-@keyframes mshine{0%,70%{background-position:130% 0}100%{background-position:-60% 0}}
-@media (prefers-reduced-motion:reduce){.member::after{animation:none;display:none}}
+/* トップ（2026-11-17・金縁は外した） */
 .mexp{width:min(260px,82%);display:grid;gap:3px;margin-top:-2px}.mexpb{height:6px;border-radius:99px;background:rgba(0,0,0,.45);overflow:hidden;box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}
 .mexpb i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#b8892a,#f3d77a,#fff3c4)}.mexp small{font-size:10.5px;color:rgba(255,255,255,.8)}.mexp small b{color:#f3d77a;font-family:var(--mono)}
-.mband{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;margin-top:2px;padding:8px 10px;border-radius:14px;background:linear-gradient(90deg,rgba(212,175,55,.22),rgba(0,0,0,.4),rgba(212,175,55,.22));border:1px solid rgba(243,215,122,.35);font-size:11.5px;font-weight:700;color:rgba(255,255,255,.88);backdrop-filter:blur(6px)}
-.mband span{display:inline-flex;align-items:center;gap:5px}.mband svg{width:14px;height:14px;color:#f3d77a}.mband b{font:800 16px var(--mono);color:#fff}.mband i{width:1px;height:18px;background:rgba(243,215,122,.4)}
+.mband{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;margin-top:2px;padding:8px 10px;border-radius:14px;background:rgba(0,0,0,.42);font-size:11.5px;font-weight:700;color:rgba(255,255,255,.88);backdrop-filter:blur(6px)}
+.mband span{display:inline-flex;align-items:center;gap:5px}.mband svg{width:14px;height:14px;color:rgba(255,255,255,.8)}.mband b{font:800 16px var(--mono);color:#fff}.mband i{width:1px;height:18px;background:rgba(255,255,255,.25)}
 .htiles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0 2px}
 .htile{display:grid;justify-items:center;gap:3px;padding:12px 4px 10px;border-radius:16px;border:1px solid rgba(255,255,255,.12);color:#fff;cursor:pointer;font:inherit;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,.18);position:relative;overflow:hidden}
 .htile::before{content:'';position:absolute;inset:0;background:radial-gradient(120% 80% at 50% 0%,rgba(255,255,255,.22),transparent 60%);pointer-events:none}
@@ -680,6 +676,11 @@ textarea{width:100%;box-sizing:border-box;margin-top:6px;padding:10px 12px;borde
 /* 出典・クレジットは小さく（2026-11-17） */
 .spdesc small,.phcred,.zcsrc,.hwxsrc,.tripcr,.spr2c,#spCred,#u11cred,.srcsm{font-size:8.5px!important;opacity:.6;letter-spacing:0}
 .spimg figcaption{font-size:8.5px!important}
+
+/* SNSのアイコン（2026-11-17） */
+.snsi{display:inline-grid;place-items:center;width:38px;height:38px;border-radius:50%;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,.25),inset 0 0 0 1.5px rgba(255,255,255,.35)}
+.snsrow{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.brand img{width:100%;height:100%;display:block;border-radius:22%}
 [hidden]{display:none!important}
 body{margin:0}img{max-width:100%}
 html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -731,7 +732,7 @@ setTimeout(function () {
   <div id="evbar"></div>
   <div class="scroll" id="scroll">
     <div class="navbar" id="navbar"><div><b id="navt"></b></div></div>
-    <header class="lt"><div class="lth"><span class="brand" role="img" aria-label="ペタカー!"><svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" rx="22" fill="#e8551c"/><text x="44" y="60" text-anchor="middle" font-size="22" textLength="64" lengthAdjust="spacingAndGlyphs" fill="#fff" transform="rotate(-8 50 50)" font-family="Dela Gothic One,Hiragino Sans,sans-serif">ペタカー</text><text x="77" y="60" font-size="22" fill="#121820" transform="rotate(-8 50 50)" font-family="Dela Gothic One,sans-serif">!</text><path d="M18 74h64" stroke="#121820" stroke-width="4" stroke-linecap="round" stroke-dasharray="2 8"/></svg></span><h1 id="ttl"></h1><span id="hact"></span></div><p id="sub"></p></header>
+    <header class="lt"><div class="lth"><span class="brand" role="img" aria-label="ペタカー!"><img src="data:image/webp;base64,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" alt="" width="100" height="100" decoding="async"></span><h1 id="ttl"></h1><span id="hact"></span></div><p id="sub"></p></header>
     <main id="view"></main>
   </div>
   <nav class="tabs">
@@ -1880,7 +1881,6 @@ const views={
     ${myPins().length?`<div style="margin-top:6px">${pinRow(myPins())}</div>`:''}
     <div class="mstats"><span><b>${log.length}</b>交換回数</span><span><b>${ppl.length}</b>会った人</span><span><b>${kc}</b>EX</span></div>
     <div class="mband"><span>${PINI}スポット <b>${[...spotSet()].filter(id=>!id.startsWith('rw:')).length.toLocaleString()}</b> か所</span><i></i><span>${NAVI}総移動 <b>${kmFmt(kmSum())}</b> km</span></div></div><div class="hwx" id="hwx" aria-live="polite"></div>
-  ${homeTiles()}
   ${me.def?`<button class="newsrow press" id="mkFirst"><span class="ntag" style="--nc:var(--accent)">はじめに</span><b>自分の車の写真でスタンプを作る</b><span class="val" aria-hidden="true">›</span></button>`:''}
   ${supTop()}${newsTop()}${openRow()}
   <button class="btn sub press shareb" id="shareb" style="margin-top:10px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px;margin-right:6px"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>プロフィールをSNSでシェア</button>
@@ -3627,7 +3627,19 @@ function snsNorm(v){v=String(v||'').trim();if(!v)return '';if(!/^https?:\/\//i.t
 function snsName(url){try{const h=new URL(url).hostname.replace(/^www\./,'');const m=SNS_NAMES.find(([r])=>r.test(h));return m?m[1]:h}catch(e){return 'リンク'}}
 const LINKI='<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>';
 const mySns=()=>settings.showSns?(settings.sns||[]).map(snsNorm).filter(Boolean).slice(0,2):[];
-const snsRow=list=>list&&list.length?`<div class="snsrow">${list.map(u=>`<a class="snsl press" href="${esc(u)}" target="_blank" rel="noopener noreferrer nofollow">${LINKI}${esc(snsName(u))}</a>`).join('')}</div>`:'';
+/* SNSのアイコン（2026-11-17） */
+const SNS_IC={
+ X:['#000','<path fill="#fff" d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93zm-1.29 19.5h2.04L6.49 3.24H4.3z"/>'],
+ Instagram:['linear-gradient(45deg,#f9a03f,#e1306c 50%,#833ab4)','<rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="#fff" stroke-width="2.2"/><circle cx="12" cy="12" r="4.2" fill="none" stroke="#fff" stroke-width="2.2"/><circle cx="17.4" cy="6.6" r="1.4" fill="#fff"/>'],
+ YouTube:['#ff0000','<rect x="2" y="5" width="20" height="14" rx="4" fill="#fff"/><path d="M10 9v6l5.2-3z" fill="#ff0000"/>'],
+ TikTok:['#000','<path d="M14.5 3c.4 2.4 1.9 3.9 4.5 4.1v3c-1.7 0-3.2-.5-4.5-1.4v6.1A5.3 5.3 0 1 1 9.2 9.6v3.1a2.3 2.3 0 1 0 2.3 2.3V3z" fill="#25f4ee" transform="translate(-.7 -.5)"/><path d="M14.5 3c.4 2.4 1.9 3.9 4.5 4.1v3c-1.7 0-3.2-.5-4.5-1.4v6.1A5.3 5.3 0 1 1 9.2 9.6v3.1a2.3 2.3 0 1 0 2.3 2.3V3z" fill="#fe2c55" transform="translate(.7 .5)"/><path d="M14.5 3c.4 2.4 1.9 3.9 4.5 4.1v3c-1.7 0-3.2-.5-4.5-1.4v6.1A5.3 5.3 0 1 1 9.2 9.6v3.1a2.3 2.3 0 1 0 2.3 2.3V3z" fill="#fff"/>'],
+ Threads:['#000','<text x="12" y="17.5" text-anchor="middle" font-size="17" font-weight="700" fill="#fff" font-family="Arial,sans-serif">@</text>'],
+ Facebook:['#1877f2','<path fill="#fff" d="M13.4 21v-7.4h2.5l.4-2.9h-2.9V8.9c0-.8.2-1.4 1.4-1.4h1.6V4.9c-.3 0-1.2-.1-2.3-.1-2.3 0-3.8 1.4-3.8 3.9v2.1H7.7v2.9h2.6V21z"/>'],
+ 'みんカラ':['#e95513','<text x="12" y="16.8" text-anchor="middle" font-size="13" font-weight="800" fill="#fff" font-family="Hiragino Sans,sans-serif">みん</text>'],
+ Bluesky:['#1185fe','<path fill="#fff" d="M6.3 4.6C8.6 6.3 11 9.8 12 11.7c1-1.9 3.4-5.4 5.7-7.1 1.6-1.2 4.3-2.2 4.3.9 0 .6-.4 5.2-.6 5.9-.7 2.6-3.3 3.2-5.6 2.8 4 .7 5 3 2.8 5.2-4.2 4.3-6-1.1-6.5-2.5L12 16l-.1.9c-.5 1.4-2.3 6.8-6.5 2.5-2.2-2.2-1.2-4.5 2.8-5.2-2.3.4-4.9-.2-5.6-2.8C2.4 10.7 2 6.1 2 5.5c0-3.1 2.7-2.1 4.3-.9z"/>'],
+ note:['#41c9b4','<text x="12" y="17" text-anchor="middle" font-size="15" font-weight="800" fill="#fff" font-family="Arial,sans-serif">n</text>']};
+const snsIcon=u=>{const n=snsName(u),d=SNS_IC[n];return d?{n,bg:d[0],svg:`<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">${d[1]}</svg>`}:{n,bg:'#5b6573',svg:LINKI.replace('width="14" height="14"','width="18" height="18"').replace('stroke="currentColor"','stroke="#fff"')}};
+const snsRow=list=>list&&list.length?`<div class="snsrow">${list.map(u=>{const c=snsIcon(u);return `<a class="snsi press" href="${esc(u)}" target="_blank" rel="noopener noreferrer nofollow" style="background:${c.bg}" aria-label="${esc(c.n)}を開く" title="${esc(c.n)}">${c.svg}</a>`}).join('')}</div>`:'';
 function openSns(){
   const v=settings.sns||['',''];
   openSheet(`<b style="font-size:18px;display:block;text-align:center">SNSリンク</b><p class="note" style="text-align:center;margin:4px 0 12px">2つまで載せられます。プロフィールを見た人がタップすると開きます。</p>
