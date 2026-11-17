@@ -741,6 +741,27 @@ textarea{width:100%;box-sizing:border-box;margin-top:6px;padding:10px 12px;borde
   .scroll{padding-left:max(16px,calc((100% - 720px) / 2));padding-right:max(16px,calc((100% - 720px) / 2))}
   .sheet{justify-content:center}.sheet>div{max-width:720px;max-height:96%}
 }
+
+/* 地図の種類アイコン（2026-11-18）：大きさは今までの丸と同じ（まだ：直径約18/14/10px、行った：約12/9/7px） */
+.smpk{background:none;border:0;display:grid;place-items:center}
+.smpk .mk{display:grid;place-items:center;width:18px;height:18px;border-radius:50%;background:var(--c);border:2px solid #fff;box-sizing:border-box;box-shadow:0 1px 3px rgba(0,0,0,.35)}
+.smpk .mk svg{width:11px;height:11px;fill:none;stroke:#fff;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.smpk .mk.on{width:12px;height:12px;border-width:1.5px;opacity:.85}.smpk .mk.on svg{width:7px;height:7px;stroke-width:3}
+.smpk .mk.w{border-color:#f5b301;border-width:3px}
+[data-zb="1"] .smpk .mk{width:14px;height:14px}[data-zb="1"] .smpk .mk svg{width:8px;height:8px;stroke-width:3}[data-zb="1"] .smpk .mk.on{width:9px;height:9px}[data-zb="1"] .smpk .mk.on svg{display:none}
+[data-zb="0"] .smpk .mk{width:10px;height:10px;border-width:1.5px}[data-zb="0"] .smpk .mk svg,[data-zb="0"] .smpk .mk.on svg{display:none}[data-zb="0"] .smpk .mk.on{width:7px;height:7px;border-width:1px}
+/* カードのボタン */
+.smcb{display:flex;gap:6px;align-items:center;flex:none}
+.smstar,.smnav{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--muted);display:grid;place-items:center;font-size:18px;cursor:pointer;text-decoration:none;padding:0}
+.smstar.on{color:#f5b301;border-color:#f5b301}
+.smnav{color:var(--accent)}.smnav svg{width:20px;height:20px;margin:0}
+.smwchip[aria-pressed="true"]{background:#f5b301!important;color:#14181f!important}
+/* この辺りの一覧 */
+.smlb{position:absolute;right:10px;bottom:calc(66px + env(safe-area-inset-bottom,0px));z-index:500;width:44px;height:44px;border-radius:50%;border:0;background:var(--bg);color:var(--ink);box-shadow:0 2px 10px rgba(0,0,0,.25);display:grid;place-items:center;cursor:pointer}
+.smlist{position:absolute;left:0;right:0;bottom:0;max-height:62%;z-index:700;background:var(--bg);border-radius:20px 20px 0 0;box-shadow:0 -6px 24px rgba(0,0,0,.3);overflow:auto;padding:6px 14px calc(14px + env(safe-area-inset-bottom,0px));animation:up .25s cubic-bezier(.2,.8,.2,1)}
+.smlh{position:sticky;top:0;background:var(--bg);display:flex;align-items:baseline;gap:8px;padding:10px 0 8px;z-index:1}.smlh b{font-size:15px}.smlh span{font-size:12px;color:var(--muted);flex:1}
+.smlx{border:0;background:var(--surface);color:var(--ink);width:30px;height:30px;border-radius:50%;font-size:18px;cursor:pointer}
+@media (orientation:landscape) and (max-height:699px){.smlist{left:50%;right:auto;width:min(720px,100%);transform:translateX(-50%);max-height:80%}}
 [hidden]{display:none!important}
 body{margin:0}img{max-width:100%}
 html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -1428,7 +1449,7 @@ function openPref(pf){
 /* ===== スポットの地図（2026-10-25 テスター要望）
    Leaflet＋国土地理院の淡色地図。種類の絞り込みはスポット一覧と共通（spotCat）。鉄道駅は「鉄道駅」を選んだときだけ出す。
    行ったところは種類の色で塗りつぶし、まだのところは白抜き。現在地は表示に使うだけで保存しない ===== */
-let smOnly=false; // 地図で「行っていないところだけ」を表示中（2026-11-08 行ったところだけ→行っていないところだけに変更）（アプリを開いている間だけ覚える）
+let smOnly=false,smWant=false; // 地図で「行っていないところだけ」を表示中（2026-11-08 行ったところだけ→行っていないところだけに変更）（アプリを開いている間だけ覚える）
 let smMk=[],smRd=null,smSt=null; // 地図の点はすべてこの1枚に描く（描画面が2枚になると上の面がタップを奪い、2回目から点を押しても名前が出なかった）
 let LF=null,smMap=null,smLayer=null,smMe=null,smSel=null,smWatch=null,smFollow=true,smHead=null,smPrev=null; // smFollow：現在地に合わせて地図を動かし続ける（指で動かしたら止め、現在地ボタンで戻す）
 const smR=(on,z)=>z<=7?(on?2.6:4.2):z<=9?(on?3.6:6.2):(on?5:8); // まだ行っていない所を大きく、行った所（灰色）を小さく（2026-11-17 鈴木さん） // 広い範囲では点を小さくして混み合いを減らす
@@ -1442,7 +1463,7 @@ function loadLeaflet(){
       const j2=document.createElement('script');j2.src='https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.min.js';j2.onload=j2.onerror=()=>ok(window.L);document.head.appendChild(j2)};js.onerror=()=>{LF=null;ng(new Error('leaflet'))};document.head.appendChild(js)});
   return LF;
 }
-const smList=()=>SPOTS.filter(x=>x.la!=null&&(spotCat==='all'?x.cat!=='st':x.cat===spotCat));
+const smList=()=>SPOTS.filter(x=>x.la!=null&&(spotCat==='all'?x.cat!=='st':x.cat===spotCat)&&(!smWant||wantSet().has(x.id)));
 /* 地図の下地：OpenFreeMap（OpenStreetMapの地図・等高線なし・登録不要で無料）を MapLibre で描く。
    WebGLが使えない・ライブラリや地図の設定が取れないときは、地理院の淡色地図に切り替える */
 const MLURL={js:'https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.min.js',css:'https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.min.css',lf:'https://cdn.jsdelivr.net/npm/@maplibre/maplibre-gl-leaflet@0.0.22/leaflet-maplibre-gl.min.js'};
@@ -1501,13 +1522,16 @@ function openSpotMap(focusId){
   $('#smap').innerHTML=`<div class="smap" role="dialog" aria-modal="true" aria-label="スポットの地図">
     <div class="smapc" id="smapc"><div class="smmsg">地図を読み込んでいます…</div></div>
     <div class="smtop"><button class="smx press" id="smx" aria-label="地図を閉じる">×</button>
-     <div class="smchips" role="group" aria-label="種類">${cats.map(([k,t])=>`<button class="sortchip press" data-smc="${k}" aria-pressed="${spotCat===k}">${k==='all'?'':`<i style="background:${CAT[k].c}"></i>`}${t}</button>`).join('')}</div></div>
+     <div class="smchips" role="group" aria-label="種類"><button class="sortchip press smwchip" id="smWant" aria-pressed="${smWant}">★ 行きたい</button>${cats.map(([k,t])=>`<button class="sortchip press" data-smc="${k}" aria-pressed="${spotCat===k}">${k==='all'?'':`<i style="background:${CAT[k].c}"></i>`}${t}</button>`).join('')}</div></div>
     <div class="smleg" id="smleg"></div>
     <button class="smloc press" id="smloc" aria-label="現在地を表示"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3.2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="7.5"/></svg></button>
-    <div id="smcard"></div></div>`;
+    <button class="smlb press" id="smlb" aria-label="この辺りのスポットを一覧で見る"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1.2" fill="currentColor"/><circle cx="4" cy="12" r="1.2" fill="currentColor"/><circle cx="4" cy="18" r="1.2" fill="currentColor"/></svg></button>
+    <div id="smcard"></div><div id="smlist"></div></div>`;
   $('#smx').onclick=closeSpotMap;
   $$('[data-smc]').forEach(b=>b.onclick=()=>{spotCat=b.dataset.smc;spotLim=40;$$('[data-smc]').forEach(o=>o.setAttribute('aria-pressed',o===b));smCard(null);smDraw(true)});
   $('#smloc').onclick=smLocate;
+  $('#smWant').onclick=()=>{smWant=!smWant;$('#smWant').setAttribute('aria-pressed',smWant);smCard(null);smDraw(true);if(smWant&&!wantSet().size)toast('行きたいリストはまだ空です。スポットのカードの「★」で追加できます')};
+  $('#smlb').onclick=smListOpen;
   const ac=$('[data-smc][aria-pressed="true"]');if(ac)ac.scrollIntoView({inline:'center',block:'nearest'});
   loadLeaflet().then(L=>{
     if(!$('#smapc'))return;
@@ -1516,7 +1540,7 @@ function openSpotMap(focusId){
     smRd=L.canvas({padding:.3,tolerance:6});smBase(L);
     smMap.attributionControl.setPrefix(false);
     smMap.on('click',()=>smCard(null));
-    smMap.on('zoomend',()=>{const z=smMap.getZoom();smMk.forEach(m=>m.setRadius(smR(m.options.on,z)))});smMap.on('moveend',smStDraw);
+    smMap.on('zoomend',smZoomCls);smZoomCls();smMap.on('moveend',smStDraw);
     smMap.on('dragstart',()=>smSetFollow(false));
     const f=focusId&&SP(focusId);smFollow=!f; // スポットから開いたときは、そのスポットを見せる
     if(f&&f.la!=null)smMap.setView([f.la,f.lo],13);
@@ -1538,6 +1562,19 @@ function smStDraw(){
   SPOTS.forEach(x=>{if(x.cat!=='st'||x.la==null||!b.contains([x.la,x.lo]))return;const on=vis.has(x.id);
     L.circleMarker([x.la,x.lo],{renderer:smRd,radius:4,weight:1.5,color:CAT.st.c,fillColor:on?'#9aa0a6':'#fff',fillOpacity:1,opacity:1}).on('click',e=>{L.DomEvent.stopPropagation(e);smCard(x.id)}).addTo(smSt)});
   if(smSt.bringToBack)smSt.bringToBack()}
+/* 地図の縮尺に合わせて点の大きさを切り替える（今までの丸と同じ大きさ。2026-11-18） */
+function smZoomCls(){if(!smMap)return;const z=smMap.getZoom();smMap.getContainer().dataset.zb=z<=7?0:z<=9?1:2}
+/* この辺りの一覧（2026-11-18）：見えている範囲のスポットを近い順に */
+function smListOpen(){
+  if(!smMap)return;const b=smMap.getBounds(),c=smMap.getCenter(),o=here||{la:c.lat,lo:c.lng},vis=spotSet();
+  const L=smList().filter(x=>b.contains([x.la,x.lo])).map(x=>[x,dist(o,x)]).sort((a,b)=>a[1]-b[1]);
+  const el=$('#smlist');if(!el)return;smCard(null);
+  el.innerHTML=`<div class="smlist"><div class="smlh"><b>この辺りのスポット</b><span>${L.length}か所${here?' · いまいる場所から近い順':' · 地図の真ん中から近い順'}</span><button class="smlx press" id="smlx" aria-label="一覧を閉じる">×</button></div>
+   <div class="list">${L.length?L.slice(0,40).map(([x,d])=>`<button class="li press" data-sml="${esc(x.id)}">${listMark(x,vis.has(x.id))}<div class="t"><b>${esc(x.n)}</b><span>${CAT[x.cat].n} · ${esc(x.ad||x.pref)}</span></div><span class="d">${fmtKm(d)}</span></button>`).join(''):'<p class="note" style="text-align:center;margin:18px 0">この範囲にはありません。地図を動かすか、引いて見てください。</p>'}</div>
+   ${L.length>40?`<p class="note" style="text-align:center">近い40か所を表示しています</p>`:''}</div>`;
+  $('#smlx').onclick=()=>{el.innerHTML=''};
+  $$('[data-sml]').forEach(t=>t.onclick=()=>{const x=SP(t.dataset.sml);el.innerHTML='';smSetFollow(false);smMap.setView([x.la,x.lo],Math.max(smMap.getZoom(),14));smCard(x.id)});
+}
 function smDraw(fit){
   if(!smMap)return;
   if(smLayer)smLayer.remove();
@@ -1547,15 +1584,17 @@ function smDraw(fit){
   const cl=L.markerClusterGroup?L.markerClusterGroup({showCoverageOnHover:false,spiderfyOnMaxZoom:false,disableClusteringAtZoom:12,maxClusterRadius:70,chunkedLoading:true,
     iconCreateFunction:g=>{const n=g.getChildCount(),d=n<10?28:n<100?34:n<1000?40:46;return L.divIcon({html:`<span>${n}</span>`,className:'smcl',iconSize:[d,d]})}}):null;
   if(cl)smLayer.addLayer(cl);
-  const add=x=>{const on=vis.has(x.id),c=CAT[x.cat].c;
-    const m=L.circleMarker([x.la,x.lo],{renderer:rd,radius:smR(on,z),weight:wantSet().has(x.id)?3.5:on?1.5:2,on,color:wantSet().has(x.id)?'#f5b301':'#fff',fillColor:on?'#9aa0a6':c,fillOpacity:on?.75:1,opacity:1}) // 行ったところは灰色、まだのところを種類の色ではっきり（次に行く所が目立つように）
+  const W=wantSet();
+  const add=x=>{const on=vis.has(x.id),c=CAT[x.cat];
+    // 種類のアイコン（大きさは地図の縮尺ごとに CSS で今までの丸と同じに）。行ったところは灰色、まだのところは種類の色
+    const m=L.marker([x.la,x.lo],{icon:L.divIcon({className:'smpk',html:`<i class="mk${on?' on':''}${W.has(x.id)?' w':''}" style="--c:${on?'#9aa0a6':c.c}"><svg viewBox="0 0 24 24" aria-hidden="true">${ICONS[c.ic]||''}</svg></i>`,iconSize:[22,22],iconAnchor:[11,11]}),keyboard:false,zIndexOffset:on?-100:0})
      .on('click',e=>{L.DomEvent.stopPropagation(e);smCard(x.id)});smMk.push(m);(on||!cl?smLayer:cl).addLayer(m)};
   list.filter(x=>!vis.has(x.id)).forEach(add);if(!smOnly)list.filter(x=>vis.has(x.id)).forEach(add); // 行ったところを上に。絞り込み中は行っていないところだけ
   const n=list.filter(x=>vis.has(x.id)).length;
   $('#smleg').innerHTML=`<span><i style="background:#9aa0a6;box-shadow:0 0 0 2px #fff"></i>行った ${n}</span><span><i style="background:var(--accent);box-shadow:0 0 0 1.5px #fff;width:7px;height:7px"></i>まだ ${list.length-n}</span><button class="smonly press" id="smOnly" aria-pressed="${smOnly}">行っていないところだけ</button>`;
   $('#smOnly').onclick=()=>{smOnly=!smOnly;smCard(null);smDraw(false)};
   smStDraw();
-  if(fit&&list.length&&spotCat!=='all'&&spotCat!=='st'){const b=window.L.latLngBounds(list.map(x=>[x.la,x.lo]));if(!b.contains(smMap.getCenter())||smMap.getZoom()<6){smSetFollow(false);smMap.fitBounds(b,{padding:[30,30],maxZoom:11})}}
+  if(fit&&list.length&&(smWant||(spotCat!=='all'&&spotCat!=='st'))){const b=window.L.latLngBounds(list.map(x=>[x.la,x.lo]));if(!b.contains(smMap.getCenter())||smMap.getZoom()<6){smSetFollow(false);smMap.fitBounds(b,{padding:[30,30],maxZoom:11})}}
 }
 function smCard(id){
   if(smSel){smSel.remove();smSel=null}
@@ -1563,8 +1602,9 @@ function smCard(id){
   if(!id){el.innerHTML='';return}
   const x=SP(id),n=spotDays(id);
   smSel=window.L.circleMarker([x.la,x.lo],{renderer:smRd,radius:13,weight:3,color:CAT[x.cat].c,fill:false,interactive:false}).addTo(smMap);
-  el.innerHTML=`<div class="smcard">${spotMark(x,n>0,44)}<div class="t"><b>${esc(x.n)}</b><span>${CAT[x.cat].n} · ${esc(x.pref)}${here?` · 約${fmtKm(dist(here,x))}`:''}</span><span>${n?`${n}回行きました`:'まだ行ったことがありません'}</span></div><button class="btn press" id="smgo">詳しく</button></div>`;
+  el.innerHTML=`<div class="smcard">${spotMark(x,n>0,44)}<div class="t"><b>${esc(x.n)}</b><span>${CAT[x.cat].n} · ${esc(x.pref)}${here?` · 約${fmtKm(dist(here,x))}`:''}</span><span>${n?`${n}回行きました`:'まだ行っていません'}</span></div><div class="smcb"><button class="smstar press${wantSet().has(id)?' on':''}" id="smstar" aria-label="行きたいリスト" aria-pressed="${wantSet().has(id)}">★</button><a class="smnav press" id="smnav" href="https://www.google.com/maps/dir/?api=1&destination=${x.la},${x.lo}&travelmode=driving" target="_blank" rel="noopener" aria-label="Googleマップで道案内">${NAVI}</a><button class="btn press" id="smgo">詳しく</button></div></div>`;
   $('#smgo').onclick=()=>openSpot(id,()=>{smDraw(false);smCard(id)});
+  $('#smstar').onclick=()=>{const on=toggleWant(id);toast(on?'行きたいリストに入れました':'行きたいリストから外しました');smDraw(false);smCard(id)};
 }
 function smShowMe(){
   if(!smMap||!here)return;
@@ -3947,7 +3987,7 @@ function provText(){const p=(C.providers&&C.providers())||[];const n=p.map(x=>x=
      <button class="srow press" style="width:100%;border:0;background:none;cursor:pointer;text-align:left" data-doc="guide"><div class="t"><b>コミュニティガイドライン</b><span>安全に交換するためのルール</span></div><span class="val">›</span></button>
      <button class="srow press" style="width:100%;border:0;background:none;cursor:pointer;text-align:left" data-doc="contact"><div class="t"><b>お問い合わせ・不具合の報告</b></div><span class="val">›</span></button>
      <button class="srow press" style="width:100%;border:0;background:none;cursor:pointer;text-align:left" data-doc="credits"><div class="t"><b>データと素材の出典</b></div><span class="val">›</span></button>
-     <div class="srow"><div class="t"><b>バージョン</b></div><span class="val" style="font-family:var(--mono)">Web版・11/17更新</span></div></div>
+     <div class="srow"><div class="t"><b>バージョン</b></div><span class="val" style="font-family:var(--mono)">Web版・11/18更新</span></div></div>
    <div class="sec">アカウント</div>
    <div class="set"><div class="srow"><div class="t"><b>ログイン方法</b><span>${provText()}</span></div></div>${linkRows()}
      <button class="srow press" style="width:100%;border:0;background:none;cursor:pointer;text-align:left" id="logout"><div class="t"><b>ログアウト</b></div></button>
