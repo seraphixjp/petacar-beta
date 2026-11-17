@@ -555,6 +555,19 @@ textarea{width:100%;box-sizing:border-box;margin-top:6px;padding:10px 12px;borde
 .pgn{min-width:40px;height:40px;padding:0 10px;border:0;border-radius:12px;background:var(--surface);color:var(--ink);font:700 15px var(--mono);cursor:pointer}
 .pgn[aria-current=page]{background:var(--accent);color:#fff}.pgn:disabled{opacity:.35;cursor:default}
 .pgdot{color:var(--muted);padding:0 2px}
+
+/* 旅のしおり：ガイド・ハイライト・天気（2026-11-17） */
+.tlg{margin-top:6px;display:grid;gap:6px}
+.tlgi{display:block;padding:0;border:0;border-radius:12px;overflow:hidden;background:var(--fill);aspect-ratio:16/9;cursor:pointer}.tlgi img{width:100%;height:100%;object-fit:cover;display:block}
+.tlg p{margin:0;font-size:12.5px;line-height:1.6;color:var(--ink);opacity:.85}
+.tgs{display:flex;flex-wrap:wrap;gap:4px}.tgs i{font-style:normal;font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:999px;background:var(--fill);color:var(--muted)}
+.tgs i.tgv{background:#f7d9b8;color:#8a4a0e}.tgs i.tgv.vw1{background:#d4dcf5;color:#2b3f7a}.tgs i.tgd{background:#d6ecf7;color:#14587a}
+.twx{text-align:center;margin:-4px 0 10px;font-size:13px;display:grid;gap:2px;min-height:18px}
+.twx1{display:flex;justify-content:center;align-items:baseline;gap:6px}.twxi{font-weight:800}.twx .hi{color:#e8551c;font-weight:700}.twx .lo{color:#3b82f6;font-weight:700}.twxp{color:var(--muted);font-size:12px}
+.twx2{color:var(--muted);font-size:12px}.twx2 b{color:var(--ink);font-family:var(--mono)}.twx small{color:var(--muted);opacity:.7;font-size:10px}
+.thl{margin-top:12px;padding:12px 14px;border-radius:16px;background:linear-gradient(135deg,rgba(255,200,90,.16),rgba(255,120,170,.12));display:grid;gap:8px}
+.thlh{font-size:12px;font-weight:800;letter-spacing:.06em;color:var(--accent)}
+.thr{display:flex;gap:10px;align-items:center}.thi{font-size:20px;width:28px;text-align:center;flex:none}.thr b{display:block;font-size:13px}.thr span{font-size:12px;color:var(--muted)}
 [hidden]{display:none!important}
 body{margin:0}img{max-width:100%}
 html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -2574,22 +2587,56 @@ function openTrip(){const L=tripDays();
    <button class="btn sub press" style="margin-top:14px" data-close>閉じる</button>`);
   bindClose();bindRouteRow();$('#rtLogB').onclick=()=>{closeSheet();setTimeout(()=>openRouteLog(null,openTrip),260)};$$('#sh [data-day]').forEach(b=>b.onclick=()=>{closeSheet();setTimeout(()=>openTripDay(b.dataset.day,openTrip),260)});
 }
+/* --- 旅のしおり：観光ガイド・ハイライト・天気（2026-11-17） --- */
+const descHead=t=>{t=String(t||'');const i=t.indexOf('。');const h=i>0&&i<90?t.slice(0,i+1):t.slice(0,70)+(t.length>70?'…':'');return h};
+function tripGuide(id){const x=SP(id),f=SPOT_FAC[id],dc=SPOT_DC[id],vw=SPOT_VIEW[id],im=SPOT_IMG[id],ds=SPOT_DESC[id];
+  const tags=[...(vw?[...new Set(vw.map(v=>v[0]))].map(k=>`<i class="tgv vw${k}">${k?'夜景の名所':'夕日の名所'}</i>`):[]),...(dc?['<i class="tgd">ダムカード</i>']:[]),
+    ...(f?Object.keys(FAC_ICON).filter(k=>(f.f||[]).includes(k)).slice(0,4).map(k=>`<i>${esc(FAC_ICON[k])}</i>`):[])];
+  if(!im&&!ds&&!tags.length)return '';
+  return `<div class="tlg">${im?`<button class="tlgi press" data-spot="${esc(id)}" aria-label="${esc(x.n)}の詳細"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(im)}?width=360" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.remove()"></button>`:''}${ds?`<p>${esc(descHead(ds))}</p>`:''}${tags.length?`<div class="tgs">${tags.join('')}</div>`:''}</div>`}
+// その日のハイライト（記録から分かることだけ）
+function tripHigh(t){const d=t.d,H=[];
+  const before=spotlog.filter(v=>v.d<d&&SP(v.id)&&SP(v.id).cat!=='st');
+  const oldPref=new Set(before.map(v=>SP(v.id).pref.split('・')[0])),oldSpot=new Set(before.map(v=>v.id));
+  const np=t.prefs.filter(x=>!oldPref.has(x));if(np.length&&before.length)H.push(['🗾',`初めての都道府県`,np.join('・')]);
+  const ns=t.spots.filter(v=>!oldSpot.has(v.id)&&SP(v.id).cat!=='st');if(ns.length)H.push(['📍','初めて行ったスポット',`${ns.length}か所`]);
+  const fm=new Set(log.filter(l=>l.d<d).map(l=>l.pid)),nf=t.ppl.filter(p=>!fm.has(p.id));if(nf.length)H.push(['🤝','初めて会った人',nf.length>2?`${nf.slice(0,2).map(p=>esc(p.name)).join('・')} ほか${nf.length-2}人`:nf.map(p=>esc(p.name)).join('・')]);
+  const k=t.ex.filter(l=>l.kira),r=t.ex.filter(l=>l.rare&&!l.kira);
+  if(k.length)H.push(['✨','EXが出た',k.map(l=>esc((person(l.pid)||{}).name||'')).join('・')]);else if(r.length)H.push(['⭐','レアが出た',r.map(l=>esc((person(l.pid)||{}).name||'')).join('・')]);
+  const rc=t.ppl.filter(p=>rarity(p.maker,p.car)>=4);if(rc.length)H.push(['🚗','レア車に会えた',rc.map(p=>esc(p.car)).join('・')]);
+  const vs=t.spots.filter(v=>SPOT_VIEW[v.id]);if(vs.length)H.push(['🌅','夕日・夜景の名所へ',vs.slice(0,2).map(v=>esc(SP(v.id).n)).join('・')+(vs.length>2?` ほか${vs.length-2}か所`:'')]);
+  if(!H.length)return '';
+  return `<div class="thl"><div class="thlh">この日のハイライト</div>${H.map(([ic,a,b])=>`<div class="thr"><span class="thi" aria-hidden="true">${ic}</span><div><b>${a}</b><span>${b}</span></div></div>`).join('')}</div>`}
+// その日の天気：最初に位置の分かるスポットの場所で。過去の日は端末に保存（同じ日は二度読まない）
+const TWX=store.get('twx1',{});
+function tripWx(t){const el=$('#twx');if(!el)return;const v=t.spots.map(v=>SP(v.id)).find(x=>x&&x.la!=null);if(!v){el.remove();return}
+  const st=sunTimes(v.la,v.lo,new Date(t.d+'T12:00:00')),sun=st?`日の出 <b>${st.rise}</b> · 日の入り <b>${st.set}</b>`:'';
+  const put=w=>{const e=$('#twx');if(!e)return;e.innerHTML=`<div class="twx1">${w?`<span class="twxi">${WXN(w.c)}</span><span class="hi">${w.hi}℃</span>/<span class="lo">${w.lo}℃</span>`:''}${w&&w.p!=null&&w.p>=1?`<span class="twxp">雨 ${w.p}mm</span>`:''}</div>${sun?`<div class="twx2">${sun}</div>`:''}<small>${esc(v.n)}付近${w?' · 天気：Open-Meteo.com':''}</small>`};
+  const key=t.d+'|'+v.la.toFixed(2)+','+v.lo.toFixed(2),isT=t.d===today();
+  if(TWX[key])return put(TWX[key]);put(null);
+  const ago=(Date.parse(today())-Date.parse(t.d))/864e5;if(ago<0)return;
+  // 2日以上前は過去の記録（archive）、今日・昨日は予報（forecast）。読めなければもう片方で
+  const F='https://api.open-meteo.com/v1/forecast',A='https://archive-api.open-meteo.com/v1/archive',hosts=ago<=1?[F,A]:[A,F];
+  const get=i=>fetch(`${hosts[i]}?latitude=${v.la}&longitude=${v.lo}&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=Asia%2FTokyo&start_date=${t.d}&end_date=${t.d}`,{signal:AbortSignal.timeout?AbortSignal.timeout(8000):undefined}).then(r=>r.json()).then(j=>{const d=j.daily;if(!d||d.weather_code[0]==null)throw 0;return j}).catch(e=>{if(i<hosts.length-1)return get(i+1);throw e});
+  get(0).then(j=>{const d=j.daily;
+    const w={c:d.weather_code[0],hi:Math.round(d.temperature_2m_max[0]),lo:Math.round(d.temperature_2m_min[0]),p:d.precipitation_sum&&d.precipitation_sum[0]!=null?Math.round(d.precipitation_sum[0]):null};
+    if(!isT){TWX[key]=w;const ks=Object.keys(TWX);if(ks.length>400)delete TWX[ks[0]];store.set('twx1',TWX)}put(w)}).catch(()=>{})}
 function openTripDay(d,back){const t=tripOf(d),isT=d===today();
   openSheet(`<div class="triphead"><span class="yk">TRIP NOTE</span><b>${+d.slice(5,7)}月${+d.slice(8)}日（${wdOf(d)}）</b><span>${d.slice(0,4)}年${t.prefs.length?' · '+esc(t.prefs.join('・')):''}</span></div>
-   <div class="mapstat trips"><div><b>${t.spots.length}</b><small>か所</small><span>スポット</span></div><div id="tkm"><b>${t.km<1?'—':t.km<10?t.km.toFixed(1):Math.round(t.km)}</b><small>${t.km<1?'':'km'}</small><span>移動</span></div><div><b>${t.ppl.length}</b><small>人</small><span>交換</span></div><div><b>${t.pass}</b><small>人</small><span>すれ違い</span></div></div>
+   ${t.spots.length?'<div class="twx" id="twx"></div>':''}<div class="mapstat trips"><div><b>${t.spots.length}</b><small>か所</small><span>スポット</span></div><div id="tkm"><b>${t.km<1?'—':t.km<10?t.km.toFixed(1):Math.round(t.km)}</b><small>${t.km<1?'':'km'}</small><span>移動</span></div><div><b>${t.ppl.length}</b><small>人</small><span>交換</span></div><div><b>${t.pass}</b><small>人</small><span>すれ違い</span></div></div>
    <p class="note" id="tkmn" style="text-align:center;margin:6px 0 0">${t.km>=1?'移動はスポットどうしを直線で結んだ距離の目安です':''}</p>
-   <div class="tripmap" id="tmap" hidden></div>
+   ${tripHigh(t)}<div class="tripmap" id="tmap" hidden></div>
    ${isT?`<div class="rtnow">${settings.route?`<span class="livedot"></span>ドライブを記録中（開いている間だけ） · <b id="rtn">${d===rtDay?rtPts.length:'…'}</b>点`:`<button class="seclink press" id="rtOn" style="margin:0">ドライブの記録をオンにする</button>`}</div>`:''}
    ${t.spots.length?`<div class="sec" style="margin-top:14px">行ったところ</div><div class="tline">${t.spots.map(v=>{const x=SP(v.id),ph=t.photos.filter(p=>p.spot===v.id);
      const lg=t.legs.find(g=>g.to===v.id);
-     return `${lg?`<div class="tleg">↓ ${kmTxt(lg.k)}</div>`:''}<div class="tl"><span class="tlt">${v.t?hm(v.t):''}</span><button class="tlm press" data-spot="${esc(v.id)}">${spotMark(x,true,38)}</button><div class="t"><b>${esc(x.n)}</b><span>${CAT[x.cat].n} · ${esc(x.pref)}</span>
+     return `${lg?`<div class="tleg">↓ ${kmTxt(lg.k)}</div>`:''}<div class="tl"><span class="tlt">${v.t?hm(v.t):''}</span><button class="tlm press" data-spot="${esc(v.id)}">${spotMark(x,true,38)}</button><div class="t"><b>${esc(x.n)}</b><span>${CAT[x.cat].n} · ${esc(x.pref)}</span>${tripGuide(v.id)}
        ${ph.length||isT?`<div class="tlp">${ph.map(p=>`<button class="press" data-phoo="${esc(p.id)}">${phoStamp(p,52)}</button>`).join('')}${isT&&!ph.length?`<button class="seclink press" data-shot="${esc(v.id)}" style="margin:0">${CAMI}撮る</button>`:''}</div>`:''}</div></div>`}).join('')}</div>`:''}
    ${t.ppl.length?`<div class="sec" style="margin-top:14px">交換した人</div><div class="tppl">${t.ppl.map(p=>{const l=t.ex.find(e=>e.pid===p.id);return `<button class="cell press" data-tp="${p.id}">${stamp(p,{size:56,ev:l.ev,sz:l.sz,fr:l.fr,kira:l.kira,rare:l.rare,v:l.v,im:l.im,rg:l.rg})}<span class="n">${supM(p)}${esc(p.name)}</span></button>`}).join('')}</div>`:''}
    ${t.pass?`<div class="sec" style="margin-top:14px">すれ違った人${t.niceS+t.niceG?`<span class="chip">♥ 送った${t.niceS}・届いた${t.niceG}</span>`:''}</div><div class="list">${t.passes.map(x=>{const p=person(x.pid),sp=SP(x.spot);
      return `<button class="li press" data-tp="${p.id}">${stamp(p,{size:40})}<div class="t"><b>${supM(p)}${esc(p.name)}</b><span>${sp?esc(sp.n)+' · ':''}${x.dt}分ちがい</span></div><span class="nicest${x.nice&&x.got?' both':x.nice||x.got?' one':''}">${x.nice&&x.got?'♥ お互いにナイス！':x.got?'♥ ナイス！が届いた':x.nice?'♥ ナイス！を送った':''}</span></button>`}).join('')}</div>`:''}
    <div class="row" style="margin-top:16px"><button class="btn sub press" data-close>閉じる</button><button class="btn press" id="tripImg">SNS用の画像にする</button></div>
    <button class="linkbtn" id="rtDel" style="padding:10px;display:none"><span class="danger">この日のルートを消す</span></button>`);
-  bindClose(back);hydratePho();
+  bindClose(back);hydratePho();tripWx(t);
   if($('#rtOn'))$('#rtOn').onclick=()=>{setRoute(true);toast('ドライブの記録をはじめました（開いている間だけ）');closeSheet();setTimeout(()=>openTripDay(d,back),260)};
   rtGet(d).then(async pts=>{t.route=pts;if(!$('#tmap'))return;const sps=t.spots.map(v=>SP(v.id));if($('#rtn'))$('#rtn').textContent=pts.length;
     if(pts.length>=2){const k=rtKm(pts);t.km=k;$('#tkm').innerHTML=`<b>${k<10?k.toFixed(1):Math.round(k)}</b><small>km</small><span>移動</span>`;$('#tkmn').textContent='移動はドライブの記録（2分か500mごとの点）から計算した、おおよその距離です';$('#rtDel').style.display='block'}
