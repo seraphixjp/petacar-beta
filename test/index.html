@@ -609,6 +609,11 @@ textarea{width:100%;box-sizing:border-box;margin-top:6px;padding:10px 12px;borde
 .spr2t .spcown{position:static;justify-self:start;margin-top:2px}
 .spr2s{flex:none;filter:drop-shadow(0 2px 6px rgba(0,0,0,.45))}
 .spr2c{position:absolute;top:6px;right:10px;font-size:9.5px;opacity:.75;text-shadow:0 1px 2px rgba(0,0,0,.7)}
+
+/* フォト・カード見直し（2026-11-17） */
+.spr2{padding-bottom:18px}.spr2c{top:auto;bottom:4px;left:14px;right:auto;font-size:8px;opacity:.6}
+.spr2.big{min-height:170px;margin-top:4px}.spr2.big .spr2t b{font-size:21px}
+.spcgot .spr2{text-align:left}
 [hidden]{display:none!important}
 body{margin:0}img{max-width:100%}
 html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -1799,7 +1804,7 @@ const views={
   if(colView==='zukan')return seg+zukan();
   if(colView==='shop')return seg+(SHOPS.length?shopsView():petaStore());
   if(colView==='pho')return seg+photoEntry()+phoView()+keptView();
-  if(colView==='card')return seg+cardView();
+  if(colView==='card')return seg+photoEntry()+cardView()+keptView();
   return seg+views.colStamps();
  },
  sp(){
@@ -3063,31 +3068,38 @@ function spExtra(id){let h='';const d=SPOT_DC[id],vw=SPOT_VIEW[id];
   return h}
 /* ===== スポットカード（2026-11-17） ===== */
 const cardImg=(id,w=360)=>SPOT_IMG[id]?`https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(SPOT_IMG[id])}?width=${w}`:'';
-// 記録したスポットのカード：{id, first, last, n, own}（own＝自分で撮ったフォトスタンプの最新）
-function myCards(){const m={};spotlog.forEach(v=>{const x=SP(v.id);if(!x||x.cat==='st')return;const o=m[v.id]||(m[v.id]={id:v.id,first:v.d,last:v.d,n:0});o.n++;if(v.d<o.first)o.first=v.d;if(v.d>o.last)o.last=v.d});
-  const L=Object.values(m).filter(o=>SPOT_IMG[o.id]||phoOfSpot(o.id).length);L.forEach(o=>{const ph=phoOfSpot(o.id);o.own=ph.length?ph[ph.length-1]:null});return L}
+// カード＝自分で撮った（登録した）フォトスタンプ。背景はそのスポットの写真
 let cardSort='new';
-// 丸いスタンプ：自分の写真があればフォトスタンプ、無ければスポットの写真を丸く切り抜いたもの
-const cardStamp=(id,d,size)=>{const x=SP(id);return `<div class="stamp ev pho" style="width:${size}px;font-size:${size/7}px"><img src="${cardImg(id,240)}" alt="" loading="lazy" referrerpolicy="no-referrer">${phoFrame(x,d)}</div>`};
-function cardTile(o){const x=SP(o.id),c=CAT[x.cat],bg=cardImg(o.id,640),ph=phoOfSpot(o.id);
-  return `<div class="spr2 press${o.own?' own':''}" role="button" tabindex="0" data-card="${esc(o.id)}" style="--cc:${c.c};${bg?`background-image:linear-gradient(90deg,rgba(10,12,16,.86) 0%,rgba(10,12,16,.62) 46%,rgba(10,12,16,.12) 100%),url(&quot;${bg}&quot;)`:`background:linear-gradient(120deg,${c.c},#11161c 90%)`}">
-   ${bg?'<small class="spr2c">出典：Wikimedia Commons</small>':''}
-   <span class="spr2t"><small class="spr2k">${c.n} · ${esc(String(x.pref||'').split('・')[0])}</small><b>${esc(x.n)}</b><span class="spr2d">${dotD(o.own?o.own.d:o.first)}${o.n>1?`<i>${o.n}回</i>`:''}${ph.length>1?`<i>フォト${ph.length}枚</i>`:''}</span>${o.own?'<em class="spcown">自分の写真</em>':''}</span>
-   <span class="spr2s"${o.own?` data-pho="${esc(o.own.id)}"`:''}>${o.own?phoStamp(o.own,92):SPOT_IMG[o.id]?cardStamp(o.id,o.first,92):''}</span></div>`}
-function cardView(){const L=myCards(),tot=SPOTS.filter(x=>x.cat!=='st'&&SPOT_IMG[x.id]).length,own=pholog.length;
-  const S={new:(a,b)=>b.last.localeCompare(a.last),old:(a,b)=>a.first.localeCompare(b.first),pref:(a,b)=>String(SP(a.id).pref).localeCompare(String(SP(b.id).pref),'ja')||b.last.localeCompare(a.last),cat:(a,b)=>String(SP(a.id).cat).localeCompare(String(SP(b.id).cat))||b.last.localeCompare(a.last),own:(a,b)=>(!!b.own-!!a.own)||b.last.localeCompare(a.last)};
+// 横長のカード（一覧・大きく見る画面・届いた手紙で共通）。st＝右の丸いスタンプ、sub＝日付の横に出す一言
+function cardFace(spot,d,st,o={}){const x=SP(spot),c=x?CAT[x.cat]:{c:'#e8551c',n:'スポット'},bg=x?cardImg(spot,o.big?960:640):'';
+  return `<div class="spr2${o.big?' big':''}${o.cls?' '+o.cls:''}"${o.attr||''} style="--cc:${c.c};${bg?`background-image:linear-gradient(90deg,rgba(10,12,16,.86) 0%,rgba(10,12,16,.62) 46%,rgba(10,12,16,.12) 100%),url(&quot;${bg}&quot;)`:`background:linear-gradient(120deg,${c.c},#11161c 90%)`}">
+   <span class="spr2t"><small class="spr2k">${c.n}${x?` · ${esc(String(x.pref||'').split('・')[0])}`:''}</small><b>${esc(x?x.n:'スポット')}</b><span class="spr2d">${dotD(d)}${o.sub?`<i>${o.sub}</i>`:''}</span></span>
+   <span class="spr2s">${st}</span>${bg?'<small class="spr2c">写真：Wikimedia Commons</small>':''}</div>`}
+const cardTile=p=>cardFace(p.spot,p.d,phoStamp(p,o2(p)),{attr:` role="button" tabindex="0" data-cardp="${esc(p.id)}"`,cls:'press'});
+const o2=()=>92;
+function cardView(){const L=pholog.slice();
+  const S={new:(a,b)=>(b.t||0)-(a.t||0),old:(a,b)=>(a.t||0)-(b.t||0),pref:(a,b)=>String((SP(a.spot)||{}).pref).localeCompare(String((SP(b.spot)||{}).pref),'ja')||(b.t||0)-(a.t||0),cat:(a,b)=>String((SP(a.spot)||{}).cat).localeCompare(String((SP(b.spot)||{}).cat))||(b.t||0)-(a.t||0)};
   L.sort(S[cardSort]||S.new);
-  return `<div class="group zhead zbg" style="background-image:linear-gradient(90deg,rgba(12,16,22,.9) 0%,rgba(12,16,22,.72) 55%,rgba(12,16,22,.35) 100%),url(chara/bg_trip.jpg)"><div class="big">${L.length}<small>/${tot}</small></div><b>フォト・カード</b>
-    <div class="note">スポットを記録すると、そのスポットのカードが手に入ります。記録したその日なら、自分で撮った写真のフォトスタンプに変えられます${own?`（フォトスタンプ ${own}枚）`:''}。写真はこの端末の中だけに保存されます。</div></div>
-  <div class="sortbar" role="group" aria-label="並び替え">${[['new','最近行った順'],['old','初めて行った順'],['own','自分の写真'],['pref','都道府県順'],['cat','種類順']].map(([k,t])=>`<button class="sortchip press" data-csort="${k}" aria-pressed="${cardSort===k}">${t}</button>`).join('')}</div>
-  ${L.length?`<div class="spr2l">${L.map(cardTile).join('')}</div><p class="note" style="text-align:center;margin-top:10px">写真の撮影者とライセンスは、カードを押すとスポットの詳細に表示されます</p>`
-    :'<p class="note" style="text-align:center;margin:20px 0">まだカードがありません。スポットに行って印を押すと、カードが手に入ります。</p>'}`}
+  return `<div class="group zhead zbg" style="background-image:linear-gradient(90deg,rgba(12,16,22,.9) 0%,rgba(12,16,22,.72) 55%,rgba(12,16,22,.35) 100%),url(chara/bg_trip.jpg)"><div class="big">${L.length}<small>枚</small></div><b>フォト・カード</b>
+    <div class="note">スポットを記録した日に、その場で撮った写真をフォトスタンプにすると、そのスポットの写真を背景にしたカードになります。手紙で友だちにも送れます。写真はこの端末の中だけに保存されます。</div></div>
+  ${L.length>1?`<div class="sortbar" role="group" aria-label="並び替え">${[['new','新しい順'],['old','古い順'],['pref','都道府県順'],['cat','種類順']].map(([k,t])=>`<button class="sortchip press" data-csort="${k}" aria-pressed="${cardSort===k}">${t}</button>`).join('')}</div>`:''}
+  ${L.length?`<div class="spr2l">${L.map(cardTile).join('')}</div>`
+    :'<p class="note" style="text-align:center;margin:20px 0">まだカードがありません。スポットを記録したら、スポットの画面の「フォトスタンプを作る」から撮るとカードになります。</p>'}`}
+// カードを大きく見る：手紙で送る・フォトスタンプ（入れ直し・保存）・スポットの詳細
+function openCard(pid,back){const p=pholog.find(v=>v.id===pid);if(!p)return;const x=SP(p.spot),sendOk=typeof openSendLetter==='function';
+  openSheet(`${cardFace(p.spot,p.d,phoStamp(p,120),{big:1})}
+   <p class="note" style="text-align:center;margin:8px 0 0">${SPOT_IMG[p.spot]?'背景の写真の撮影者とライセンスは、スポットの詳細に出ています':''}</p>
+   ${sendOk?`<button class="btn press" id="cdSend" style="margin-top:12px">✉️ カードを手紙で送る</button>`:''}
+   <div class="row" style="margin-top:10px"><button class="btn sub press" id="cdPho">フォトスタンプ</button>${x?'<button class="btn sub press" id="cdSpot">スポットの詳細</button>':''}</div>
+   <button class="btn sub press" style="margin-top:10px" data-close>閉じる</button>`);
+  bindClose(back);hydratePho();const re=()=>openCard(pid,back);
+  if($('#cdSend'))$('#cdSend').onclick=()=>openSendLetter(pid,re);
+  $('#cdPho').onclick=()=>{closeSheet();setTimeout(()=>openPho(pid,re),260)};
+  if($('#cdSpot'))$('#cdSpot').onclick=()=>{closeSheet();setTimeout(()=>openSpot(p.spot,re),260)}}
 // 記録した直後のスポット画面に出す「カードを手に入れた」
-function cardGot(id){const x=SP(id);if(!x||!SPOT_IMG[id]||!spotlog.some(v=>v.id===id&&v.d===today()))return '';const own=phoOfSpot(id).filter(p=>p.d===today()).pop();
-  return `<div class="spcgot"><div class="spcgh">${COLI.card}<b>スポットカードを手に入れました</b></div>
-    <div class="spcgi">${own?`<img data-pho="${esc(own.id)}" alt="">`:`<img src="${cardImg(id,480)}" alt="" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('ng')">`}</div>
-    <p class="note">${own?'自分で撮った写真がカードになっています。':'今日だけ、カードの写真を自分で撮った写真に変えられます。'}</p>
-    ${own?'':`<button class="btn sub press" id="cardShot">${CAMI}自分の写真に変える</button>`}</div>`}
+function cardGot(id){const x=SP(id);if(!x||!spotlog.some(v=>v.id===id&&v.d===today()))return '';const own=phoOfSpot(id).filter(p=>p.d===today()).pop();
+  if(own)return `<div class="spcgot"><div class="spcgh">${COLI.card}<b>今日のフォト・カード</b></div>${cardFace(id,own.d,phoStamp(own,84),{attr:` role="button" tabindex="0" data-cardp="${esc(own.id)}"`,cls:'press'})}</div>`;
+  return ''} // 撮る案内はスポット画面の「フォトスタンプを作る」と重なるので出さない
 function openSpot(id,back){
   const x=SP(id),c=CAT[x.cat],vs=spotlog.filter(v=>v.id===id).map(v=>v.d).sort().reverse(),done=vs[0]===today();
   openSheet(`${spHead(x,id,vs)}${cardGot(id)}${SPOT_DESC[id]?`<p class="spdesc">${esc(SPOT_DESC[id])}<small>出典：Wikipedia日本語版などの公開情報をもとに要約</small></p>`:''}${x.gone?`<div class="spwin">このスポットは閉園したため、一覧から外しました。新しく記録することはできません。</div>`:''}${SPOT_WIN.includes(id)&&winNow()?`<div class="spwin">冬季は閉鎖・通行止めになる区間があります。出かける前に道路情報を確認してください</div>`:''}</div>
@@ -3098,13 +3110,13 @@ function openSpot(id,back){
    ${x.la!=null?(()=>{const t=sunTimes(x.la,x.lo);return `<div class="spinfo"><div id="spWx" class="spwx"><small>天気を読み込んでいます…</small></div>${t?`<div class="spsun">日の出 <b>${t.rise}</b> · 日の入り <b>${t.set}</b><small>（今日・計算値）</small></div>`:''}</div>`})():''}
    ${phoSpotRow(id)?`<div class="sec" style="margin-top:14px">フォトスタ</div>${phoSpotRow(id)}`:''}${nearOf(x).length?`<div class="sec" style="margin-top:14px">ついでに寄れるスポット</div><div class="list">${nearOf(x).map(([y,d])=>`<button class="li press" data-near="${esc(y.id)}">${listMark(y,spotDone(y.id))}<div class="t"><b>${esc(y.n)}</b><span>${CAT[y.cat].n} · ${esc(y.ad||y.pref)}</span></div><span class="d">${fmtKm(d)}</span></button>`).join('')}</div>${PHCRED}`:''}<div class="row" style="margin-top:12px"><button class="btn sub press" data-close>閉じる</button><button class="btn press" id="spIn" ${done?'disabled':''}>${done?'今日は記録済み':'ここにいる（位置で確認）'}</button></div>
    <p class="note" style="text-align:center;margin-top:10px">${PASSCAT[x.cat]?(x.cat==='tg'?'峠は通過するだけで印が押されます。':'近くを通るだけで印が押されます。停まらなくて大丈夫です。'):`スポットに着いたら「ここにいる」を押してください。位置で確かめてから印を押します。${settings.autoIn?'（自動記録オン：アプリを開いている間は、着いたら自動で押されます）':''}`}</p>`);
-  bindClose(back);bindPhoSpot(id);spImgCredit(id);spWeather(x);hydratePho();const csb=$('#cardShot');if(csb)csb.onclick=()=>{closeSheet();setTimeout(()=>openPhoto(id,()=>openSpot(id,back)),260)};
+  bindClose(back);bindPhoSpot(id);spImgCredit(id);spWeather(x);hydratePho();const csb=$('#cardShot');if(csb)csb.onclick=()=>{closeSheet();setTimeout(()=>openPhoto(id,()=>openSpot(id,back)),260)};$$('#sh [data-cardp]').forEach(b=>b.onclick=()=>{closeSheet();setTimeout(()=>openCard(b.dataset.cardp,()=>openSpot(id,back)),260)});
   const wb=$('#spWant');if(wb)wb.onclick=()=>{const on=toggleWant(id);wb.classList.toggle('on',on);wb.querySelector('span').textContent=on?'行きたい済':'行きたい';toast(on?'行きたいリストに追加しました':'行きたいリストから外しました')};
   $$('#sh [data-near]').forEach(b=>b.onclick=()=>{closeSheet();setTimeout(()=>openSpot(b.dataset.near,()=>openSpot(id,back)),260)});
   const cp=$('#spCopy');if(cp)cp.onclick=()=>{const t=x.n+' '+(x.ad||x.pref);try{navigator.clipboard.writeText(t).then(()=>toast('コピーしました'),()=>toast(t))}catch(e){toast(t)}};
   if(x.gone){const g=$('#spIn');if(g){g.disabled=true;g.textContent='閉園しました'}}
   const b=$('#spIn');if(b&&!done)b.onclick=()=>betaCheckin(x,b,()=>{const before=gotList(myStats()).map(q=>q.k);spotlog.push({id,d:today(),t:Date.now()});saveSpots();onSpotRecorded(id);sfx.chime();
-    const nb=gotList(myStats()).filter(q=>!before.includes(q.k));closeSheet();render();toast(nb.length?`バッジ獲得：${nb.map(q=>q.t).join('・')}`:SPOT_IMG[id]?`${x.n} の印を押しました · スポットカードを手に入れました`:`${x.n} の印を押しました`);setTimeout(()=>{if(!$('#sh'))openSpot(id,back)},700)});
+    const nb=gotList(myStats()).filter(q=>!before.includes(q.k));closeSheet();render();toast(nb.length?`バッジ獲得：${nb.map(q=>q.t).join('・')}`:`${x.n} の印を押しました`);setTimeout(()=>{if(!$('#sh'))openSpot(id,back)},700)});
 }
 /* ===== 画面の動き（2026-11-17 試作） ===== */
 const TABO=['me','col','ex','sp','rw'];
@@ -3251,7 +3263,7 @@ function render(){
   $$('[data-p]').forEach(b=>b.onclick=()=>detail(b.dataset.p));
   if(tab==='me'){$$('.nearme [data-spot]').forEach(b=>b.onclick=()=>openSpot(b.dataset.spot));if($('#locate2'))$('#locate2').onclick=()=>locate();if($('#nearAll'))$('#nearAll').onclick=()=>{tab='sp';render()};if($('#tcWant'))$('#tcWant').onclick=()=>{tab='sp';render();setTimeout(()=>{const e=$('#planb');if(e)e.closest('.sec').scrollIntoView({behavior:'smooth',block:'start'});else toast('スポットの詳細で「行きたい」を押すと、ここに集まります')},120)};if($('#tcCrs'))$('#tcCrs').onclick=()=>openCourses();if($('#tcPlan'))$('#tcPlan').onclick=()=>{planSel=null;openPlan()};if($('#supTop'))$('#supTop').onclick=()=>openSup();$$('[data-nice]').forEach(b=>b.onclick=()=>sendNice(b.dataset.nice));if($('#shareb'))$('#shareb').onclick=openShare;$('#mk').onclick=openCrop;if($('#mkFirst'))$('#mkFirst').onclick=openCrop;if($('#qcard'))$('#qcard').onclick=openQuests;$('#hito').onclick=openHito;if($('#nmb'))$('#nmb').onclick=openName;$('#carb').onclick=()=>openGarage(render);if($('#grb'))$('#grb').onclick=()=>openGarage(render);if($('#newsTop'))$('#newsTop').onclick=()=>openNewsItem($('#newsTop').dataset.n);if($('#openRow'))$('#openRow').onclick=()=>{tab='ex';render()};$('#bgb').onclick=openBg;if($('#wrapb'))$('#wrapb').onclick=openWrap;if($('#tripb'))$('#tripb').onclick=()=>{const n=tripOf(today()).spots.length;n?openTripDay(today()):openTrip()};$('#allrec').onclick=()=>{colView='stamp';store.set('colv2',colView);colSort='recent';store.set('sort2',colSort);tab='col';render()}}
   if(tab==='col'||tab==='sp'){$$('[data-shop]').forEach(b=>b.onclick=()=>openShop(b.dataset.shop));if($('#demoShop'))$('#demoShop').onclick=demoShop}
-  if(tab==='col'){$$('[data-cv]').forEach(b=>b.onclick=()=>{colView=b.dataset.cv;store.set('colv2',colView);render()});$$('[data-csort]').forEach(b=>b.onclick=()=>{cardSort=b.dataset.csort;render()});$$('[data-card]').forEach(b=>{b.onclick=e=>{if(e.target.closest('[data-pho]'))return;openSpot(b.dataset.card)};b.onkeydown=e=>{if(e.key==='Enter')openSpot(b.dataset.card)}});$$('[data-maker]').forEach(b=>b.onclick=()=>openMaker(b.dataset.maker));$$('[data-car]').forEach(b=>b.onclick=()=>openCar(b.dataset.car));$$('[data-zkmk]').forEach(b=>b.onclick=()=>{zkMk=b.dataset.zkmk;zkLim=60;render()});if($('#zkMore'))$('#zkMore').onclick=()=>{zkLim+=60;render()};$$('#view [data-pho]').forEach(b=>b.onclick=()=>openPho(b.dataset.pho))}
+  if(tab==='col'){$$('[data-cv]').forEach(b=>b.onclick=()=>{colView=b.dataset.cv;store.set('colv2',colView);render()});$$('[data-csort]').forEach(b=>b.onclick=()=>{cardSort=b.dataset.csort;render()});$$('#view [data-cardp]').forEach(b=>{b.onclick=e=>{e.stopPropagation();openCard(b.dataset.cardp)};b.onkeydown=e=>{if(e.key==='Enter')openCard(b.dataset.cardp)}});$$('[data-maker]').forEach(b=>b.onclick=()=>openMaker(b.dataset.maker));$$('[data-car]').forEach(b=>b.onclick=()=>openCar(b.dataset.car));$$('[data-zkmk]').forEach(b=>b.onclick=()=>{zkMk=b.dataset.zkmk;zkLim=60;render()});if($('#zkMore'))$('#zkMore').onclick=()=>{zkLim+=60;render()};$$('#view [data-pho]').forEach(b=>b.onclick=()=>openPho(b.dataset.pho))}
   if(tab==='sp'){$$('[data-spot]').forEach(b=>b.onclick=()=>openSpot(b.dataset.spot));if($('#mapb'))$('#mapb').onclick=openMap;if($('#crsb'))$('#crsb').onclick=()=>openCourses();if($('#srchb'))$('#srchb').onclick=()=>{const q=$('#spq');if(q){q.scrollIntoView({behavior:'smooth',block:'center'});setTimeout(()=>q.focus({preventScroll:true}),350)}};if($('#planb'))$('#planb').onclick=()=>{planSel=null;openPlan()};if($('#spmapb'))$('#spmapb').onclick=()=>openSpotMap();bindSpList();$('#locate').onclick=locate;if($('#demoArr'))$('#demoArr').onclick=demoArrive;if($('#autoOn'))$('#autoOn').onclick=()=>askAlways(render);$$('[data-ss]').forEach(b=>b.onclick=()=>{spotSort=b.dataset.ss;spotLim=40;render()});$$('[data-cat]').forEach(b=>b.onclick=()=>{spotCat=b.dataset.cat;spotLim=40;render()});
     $('#spq').oninput=e=>{spotQ=e.target.value;spotLim=40;$('#spl').innerHTML=spList();bindSpList()};$('#sppref').onchange=e=>{spotPref=e.target.value;spotLim=40;$('#spl').innerHTML=spList();bindSpList()}}
   if(tab==='col'){$$('[data-sort]').forEach(b=>b.onclick=()=>{colSort=b.dataset.sort;store.set('sort2',colSort);colPage=0;render()});$$('#cgrid [data-pg]').forEach(b=>b.onclick=()=>{colPage=+b.dataset.pg;colRedraw(true)});
@@ -4126,7 +4138,7 @@ function openShotList(){const L=todaySpots();if(!L.length)return;
 const nearMeCard0=nearMeCard;nearMeCard=()=>nearMeCard0()+(todaySpots().length?`<button class="btn sub press" id="homeShot" style="margin-top:10px">${CAMI}フォトスタンプを撮る</button>`:'');
 /* --- コレクションの「フォトスタ」：もらった手紙のうち、コレクションしたもの（交換数やバッジには数えない） --- */
 function keptView(){const L=mails.filter(m=>m.kept&&!blocked.has(m.from)).slice().reverse();if(!L.length)return '';
-  return `<div class="sec">もらったフォトスタ<span class="chip">${L.length}枚</span></div><div class="grid">${L.map(m=>{const p=person(m.from),x=SP(m.spot);return `<button class="cell press" data-keptml="${esc(m.id)}">${mailStamp(m,84)}<span class="n">${esc(x?x.n.replace(/^道の駅\s*/,''):'スポット')}</span><span class="s">${esc(p?p.name:'退会したユーザー')}</span></button>`}).join('')}</div>`}
+  return `<div class="sec">もらったカード<span class="chip">${L.length}枚</span></div><div class="spr2l">${L.map(m=>{const p=person(m.from);return cardFace(m.spot,m.d,mailStamp(m,92),{attr:` role="button" tabindex="0" data-keptml="${esc(m.id)}"`,cls:'press',sub:esc(p?p.name+'さんから':'退会したユーザー')})}).join('')}</div>`}
 /* --- 保存の上限（2026-11-06 鈴木さん）：スタンプ300・フォトスタンプ100、サポーターはスタンプ1,500・フォトスタンプ2,000。
    持っている分は消さない（超えていても追加だけ止める）。課金できない版（Android・Web）はサポーターと同じ枠。枠は記録の文書1つ（約1MB）に収まる数 --- */
 const STAMP_FREE=300,STAMP_SUP=1500,PHO_FREE=100,PHO_SUP=2000;
@@ -4177,13 +4189,13 @@ const mailLeft=()=>Math.max(0,MAIL_DAY-mailSentToday());
 function openSendLetter(pid,back){const p=pholog.find(v=>v.id===pid);if(!p)return;
   const ids=met().filter(id=>!blocked.has(id)&&person(id)&&!person(id).ghost&&id!=='demo'),left=mailLeft();
   openSheet(`<b style="font-size:20px;display:block;text-align:center">手紙を送る</b>
-   <p class="note" style="text-align:center;margin:4px 0 12px">交換したことがある人に、このフォトスタンプを送ります<br>${left?`今日はあと${left}通送れます（1日${MAIL_DAY}通まで）`:''}</p>
+   <p class="note" style="text-align:center;margin:4px 0 12px">交換したことがある人に、このカードを送ります<br>${left?`今日はあと${left}通送れます（1日${MAIL_DAY}通まで）`:''}</p>
    ${!left?`<p class="note" style="text-align:center">今日の手紙は${MAIL_DAY}通送りました。また明日送れます。</p>`:ids.length?`<div class="list">${ids.map(id=>{const q=person(id);return `<button class="li press" data-to="${esc(id)}"><span class="oav">${stamp(q,{size:36})}</span><div class="t"><b>${esc(q.name)}</b><span>${esc(q.maker||'')} ${esc(q.car||'')}</span></div><span class="val">›</span></button>`}).join('')}</div>`:'<p class="note" style="text-align:center">まだ送れる相手がいません。スタンプを交換すると送れるようになります。</p>'}
    <button class="btn sub press" style="margin-top:12px" data-close>戻る</button>`);
   bindClose(()=>openPho(pid,back));
   $$('#sh [data-to]').forEach(b=>b.onclick=()=>confirmLetter(p,b.dataset.to,back))}
 function confirmLetter(p,to,back){const q=person(to),x=SP(p.spot);
-  openSheet(`<div class="result">${phoStamp(p,170)}<b style="font-size:19px">${esc(q.name)} さんに送ります</b><div class="note">${esc(x?x.n:'スポット')} · ${dotD(p.d)}</div></div>
+  openSheet(`${cardFace(p.spot,p.d,phoStamp(p,120),{big:1})}<div class="result" style="padding-top:6px"><b style="font-size:19px">${esc(q.name)} さんにカードを送ります</b></div>
    <div class="set" style="margin-top:12px"><div class="srow"><div class="t"><b>すぐ届きます</b><span>今いる場所が相手に伝わります。知られたくないときは、その場を離れてから送ってください</span></div></div>
     <div class="srow"><div class="t"><b>ナンバーや人の顔が写っていませんか？</b><span>送った写真は相手のスマホに残ります。写っているときは送らないでください</span></div></div>
     <div class="srow"><div class="t"><b>手紙は1日${MAIL_DAY}通まで</b><span>今日はあと${mailLeft()}通送れます。交換の数やバッジには数えません</span></div></div></div>
@@ -4226,13 +4238,13 @@ function openMails(back){const L=mails.filter(m=>!blocked.has(m.from)).slice().r
   $$('#sh [data-ml]').forEach(b=>b.onclick=()=>openMail(b.dataset.ml,back))}
 function openMail(id,back){const m=mails.find(v=>v.id===id);if(!m)return;const p=person(m.from),x=SP(m.spot);
   if(!m.read){m.read=true;saveMails();refreshMailBtn()}
-  openSheet(`<div class="result">${mailStamp(m,200)}<b style="font-size:20px">${esc(p?p.name:'退会したユーザー')} さんから</b><div class="note">${esc(x?x.n:'スポット')} · ${dotD(m.d)}</div></div>
+  openSheet(`${cardFace(m.spot,m.d,mailStamp(m,120),{big:1})}<div class="result" style="padding-top:6px"><b style="font-size:18px">${esc(p?p.name:'退会したユーザー')} さんからのカード</b></div>
    <button class="btn press" id="mlKeep" style="margin-top:14px"${m.kept?' disabled':''}>${m.kept?'コレクション済み':'コレクションする'}</button>
    <div class="row" style="margin-top:10px"><button class="btn sub press" id="mlBack">戻る</button><button class="btn sub press" id="mlDel"><span class="danger">削除</span></button></div>
    <div class="saferow"><button class="linkbtn press" id="mlRep">通報してブロック</button></div>`);
   hydratePho();
   $('#mlBack').onclick=()=>openMails(back);
-  $('#mlKeep').onclick=()=>{if(m.kept)return;m.kept=true;saveMails();render();const b=$('#mlKeep');if(b){b.disabled=true;b.textContent='コレクション済み'}toast('コレクションの「フォトスタ」に入れました')};
+  $('#mlKeep').onclick=()=>{if(m.kept)return;m.kept=true;saveMails();render();const b=$('#mlKeep');if(b){b.disabled=true;b.textContent='コレクション済み'}toast('コレクションの「フォト・カード」に入れました')};
   const rm=()=>{mails=mails.filter(v=>v.id!==id);saveMails();PDB.del(mailKey(id)).catch(()=>{});delete phoCache[mailKey(id)];refreshMailBtn()};
   let armed=false;$('#mlDel').onclick=()=>{if(!armed){armed=true;$('#mlDel .danger').textContent='もう一度押すと削除';return}rm();render();openMails(back);toast('削除しました')};
   let armR=false;$('#mlRep').onclick=async()=>{if(!armR){armR=true;$('#mlRep').textContent='この写真を運営に送って通報します。もう一度押してください';return}
