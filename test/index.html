@@ -681,6 +681,12 @@ textarea{width:100%;box-sizing:border-box;margin-top:6px;padding:10px 12px;borde
 .snsi{display:inline-grid;place-items:center;width:38px;height:38px;border-radius:50%;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,.25),inset 0 0 0 1.5px rgba(255,255,255,.35)}
 .snsrow{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
 .brand img{width:100%;height:100%;display:block;border-radius:22%}
+
+/* 使い方の絵（2026-11-17） */
+.onbic{display:inline-grid;place-items:center;width:96px;height:96px;border-radius:28px;background:var(--c);color:#fff;margin:0 6px;box-shadow:0 10px 24px rgba(0,0,0,.25)}.onbic svg{width:54px;height:54px}.onbic{font-size:50px;line-height:1}
+.onbstar{margin-top:10px;font-size:26px;letter-spacing:4px;color:#d4af37;text-shadow:0 0 8px rgba(212,175,55,.5)}
+.onbsp{display:grid;grid-template-columns:repeat(3,auto);gap:10px;justify-content:center}
+.onbflow{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:12px}.onbflow i{font-style:normal;font-size:12.5px;font-weight:700;background:var(--fill);border-radius:999px;padding:5px 10px}
 [hidden]{display:none!important}
 body{margin:0}img{max-width:100%}
 html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -2073,7 +2079,12 @@ function showOnb(){
   const S=[
     {a:`<div class="duo">${stamp(POOL_DEMO[0],{size:118})}${stamp(me,{size:118})}<div class="peta">ペタッ!</div></div>`,h:'会ったときだけ、ペタッ',p:'オフ会や道の駅で会った人と、その場でスタンプを交換します。ネット越しの交換はできません。'},
     {a:`<span class="shake"><svg width="130" height="130" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.3" stroke-linecap="round"><rect x="7.5" y="3" width="9" height="18" rx="2.2"/><path d="M11 18h2"/><path d="M4 8.5c-1.2 2-1.2 5 0 7M20 8.5c1.2 2 1.2 5 0 7M1.8 7c-1.8 3-1.8 7 0 10M22.2 7c1.8 3 1.8 7 0 10"/></svg></span>`,h:'2人で同時にシェイク',p:'交換をはじめて相手を選んだら、2人で同時にスマホを振ります。タイミングがそろうとスタンプが貼られます。'},
-    {a:`<div style="display:flex;align-items:center;gap:6px">${medal(B('p30'),74)}${medal(B('zk100'),96)}${medal(B('eki100'),74)}</div>`,h:'集めるほど楽しくなる',p:'会った車は車種図鑑に、行った道の駅やサーキットはスポットに残ります。記録がたまるとバッジがもらえます。'}];
+    {a:`<div style="display:flex;align-items:center;gap:6px">${medal(B('p30'),74)}${medal(B('zk100'),96)}${medal(B('eki100'),74)}</div>`,h:'集めるほど強くなる',p:'会った車は車種図鑑に、行った場所はスポットに残ります。記録するたびに経験値がたまってレベルが上がり、バッジや称号ももらえます。'},
+    {a:`<div class="onbsp">${['tg','eki','jin','cir','dam','misa'].map(c=>{const x=SPOTS.find(v=>v.cat===c);return x?spotMark(x,true,54):''}).join('')}</div>`,h:'着いたら自動で記録',p:`峠・道の駅・神社・サーキットなど全国${(Math.floor(SPOTS.filter(x=>x.cat!=='st').length/100)*100).toLocaleString()}か所以上。近くに着くと記録されます。峠やダムは通り過ぎるだけ、ほかは1分いれば印が押されます。`},
+    {a:`<span class="onbic" style="--c:#b8892a">${FLAGI}</span><div class="onbstar">★★★★★</div>`,h:'ツアーで名所をめぐる',p:`四国八十八箇所、日本100名城、名水百選など${COURSES().length}本。★の数は難易度の目安です。まだ行っていない所を、Googleマップでまとめて道順にできます。`},
+    {a:`<span class="onbic" style="--c:#2f6fa3">${MAPI}</span><div class="onbflow"><i>🏁 出発</i><i>🚗 走行</i><i>📍 スポット</i><i>☕ 停車</i></div>`,h:'旅のしおりが自動でできる',p:'その日に走った道、寄ったスポット、停まった場所が時刻順に残ります。走っている途中でも、今日の流れを見返せます。'},
+    {a:`<span class="onbic" style="--c:#2c9c8f">${WXI(1)}</span><span class="onbic" style="--c:#b1456f">${STARI}</span>`,h:'出かける前にも',p:'スポットごとの天気・日の出と日の入り・路面凍結の注意がわかります。気になる場所は「行きたい」に入れておくと、ドライブプランが作れます。'},
+    {a:`<span class="onbic" style="--c:#4f6478"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span>`,h:'位置情報の使い方',p:'交換の相手が近くにいるかの判定、スポットの記録、天気、ドライブの記録に使います。交換の相手に距離や現在地は伝わりません。自動記録は設定でいつでも止められます。'}];
   $('#onb').innerHTML=`<div class="onb" role="dialog" aria-modal="true" aria-label="ペタカーの使い方"><button class="skip" id="onbskip">スキップ</button>
    <div class="slides" id="slides">${S.map(x=>`<section class="slide"><div class="art">${x.a}</div><h2>${x.h}</h2><p>${x.p}</p></section>`).join('')}</div>
    <div class="dots">${S.map((_,i)=>`<i class="${i?'':'on'}"></i>`).join('')}</div><button class="btn press" id="onbnext">次へ</button></div>`;
