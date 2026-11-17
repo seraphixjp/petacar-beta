@@ -614,6 +614,17 @@ textarea{width:100%;box-sizing:border-box;margin-top:6px;padding:10px 12px;borde
 .spr2{padding-bottom:18px}.spr2c{top:auto;bottom:4px;left:14px;right:auto;font-size:8px;opacity:.6}
 .spr2.big{min-height:170px;margin-top:4px}.spr2.big .spr2t b{font-size:21px}
 .spcgot .spr2{text-align:left}
+
+/* ドライブの流れ（2026-11-17） */
+.tfsum{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:6px 0 10px}.tfsum div{background:var(--fill);border-radius:12px;padding:8px 4px;text-align:center;display:grid;gap:1px}
+.tfsum b{font:800 16px var(--mono)}.tfsum b small{font-size:10px;margin-left:1px}.tfsum span{font-size:10.5px;color:var(--muted)}
+.tflow{position:relative;display:grid;gap:2px}
+.tfr{display:grid;grid-template-columns:44px 26px 1fr;align-items:center;gap:6px;min-height:34px}
+.tfr .tlt{font:700 12px var(--mono);color:var(--muted);text-align:right}
+.tfi{display:grid;place-items:center;font-size:16px;position:relative}
+.tfr.run .tfi{font-size:13px;opacity:.8}.tfr.run .tfb{color:var(--muted);font-size:13px;border-left:3px dotted var(--line,rgba(127,127,127,.4));padding-left:10px;margin-left:-19px}
+.tfb small{color:var(--muted);font-size:12px;margin-left:4px}.tfr.ends .tfb b{font-size:14px}
+.tfm{display:inline-flex;align-items:center;gap:6px;padding:0;border:0;background:none;color:inherit;font:inherit;cursor:pointer;text-align:left}.tfm b{font-size:14px}
 [hidden]{display:none!important}
 body{margin:0}img{max-width:100%}
 html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -2599,7 +2610,7 @@ async function rtAdd(la,lo,acc,t){if(!(acc<=200)||!isFinite(la)||!isFinite(lo))r
   if(rtDay!==d){rtPts=await rtGet(d);rtDay=d;const q=rtPts[rtPts.length-1];rtLast=q?{la:q[0],lo:q[1],t:q[2]}:null}
   if(rtLast){const k=dist(rtLast,{la,lo}),dt=t-rtLast.t;if(k<RT_KM&&!(dt>=RT_MS&&k>=.05))return} // 停まっている間は点を増やさない
   rtPts.push([+la.toFixed(4),+lo.toFixed(4),t]);rtLast={la,lo,t};try{await PDB.rput(d,rtPts)}catch(e){}
-  const e=$('#rtn');if(e)e.textContent=rtPts.length}
+  const e=$('#rtn');if(e)e.textContent=rtPts.length;if(window.__tripLive&&d===today())window.__tripLive()}
 function rtStart(){if(rtWatch!=null||!settings.route||document.hidden||!navigator.geolocation)return;
   rtWatch=navigator.geolocation.watchPosition(p=>rtAdd(p.coords.latitude,p.coords.longitude,p.coords.accuracy||0,p.timestamp||Date.now()),
     e=>{if(e.code===1){rtStop();settings.route=false;saveSet();const sw=$('#rtSw');if(sw)sw.setAttribute('aria-checked','false');toast('位置の利用が許可されていないため、ドライブの記録を止めました')}},{enableHighAccuracy:true,maximumAge:20000,timeout:60000})}
@@ -2680,11 +2691,39 @@ function tripWx(t){const el=$('#twx');if(!el)return;const v=t.spots.map(v=>SP(v.
   get(0).then(j=>{const d=j.daily;
     const w={c:d.weather_code[0],hi:Math.round(d.temperature_2m_max[0]),lo:Math.round(d.temperature_2m_min[0]),p:d.precipitation_sum&&d.precipitation_sum[0]!=null?Math.round(d.precipitation_sum[0]):null};
     if(!isT){TWX[key]=w;const ks=Object.keys(TWX);if(ks.length>400)delete TWX[ks[0]];store.set('twx1',TWX)}put(w)}).catch(()=>{})}
+/* --- ドライブの流れ（2026-11-17） --- */
+const durTxt=ms=>{const m=Math.max(1,Math.round(ms/6e4));return m<60?m+'分':Math.floor(m/60)+'時間'+(m%60?m%60+'分':'')};
+const FLOW_STOP=8*6e4; // 点と点の間が8分以上あいて3km未満なら停車（停まっている間は点が増えないので、出発後の最初の点までの距離ぶんずれる）。3km以上なら記録の途切れ
+function tripFlow(pts,sp,isT){if(!pts||pts.length<2)return '';
+  const P=pts.filter(q=>q&&isFinite(q[2])).slice().sort((a,b)=>a[2]-b[2]);if(P.length<2)return '';
+  const vis=sp.filter(v=>v.t).map(v=>({...v,x:SP(v.id)})).filter(v=>v.x).sort((a,b)=>a.t-b.t),used=new Set();
+  const D=(a,b)=>dist({la:a[0],lo:a[1]},{la:b[0],lo:b[1]}),E=[];let s=0,run=0,km=0,stops=0;
+  const seg=e=>{let k=0;for(let j=s+1;j<=e;j++)k+=D(P[j-1],P[j]);const ms=P[e][2]-P[s][2];if(e>s&&(k>=.3||ms>=3e5)){E.push({t:P[s][2],k:'run',ms,km:k});run+=ms;km+=k}};
+  const spotAt=(t0,t1,q)=>vis.find(v=>!used.has(v)&&v.t>=t0-5*6e4&&v.t<=t1+5*6e4&&(v.x.la==null||D(q,[v.x.la,v.x.lo])<1.5));
+  for(let i=1;i<P.length;i++){const a=P[i-1],b=P[i],dt=b[2]-a[2],d=D(a,b);
+    // 走っている途中で記録したスポット（峠・SAなど通過）
+    for(const v of vis)if(!used.has(v)&&v.t>a[2]&&v.t<=b[2]&&!(dt>=FLOW_STOP&&d<3)){seg(i-1);used.add(v);E.push({t:v.t,k:'spot',v});s=i-1}
+    if(dt>=FLOW_STOP&&d<3){seg(i-1);const v=spotAt(a[2],b[2],a);if(v)used.add(v);E.push({t:a[2],k:'stop',ms:dt,v});stops++;s=i}
+    else if(dt>=FLOW_STOP){seg(i-1);E.push({t:a[2],k:'gap',ms:dt,km:d});s=i}}
+  seg(P.length-1);
+  vis.filter(v=>!used.has(v)&&v.t>=P[0][2]-30*6e4&&v.t<=P[P.length-1][2]+30*6e4).forEach(v=>E.push({t:v.t,k:'spot',v}));
+  E.sort((a,b)=>a.t-b.t);
+  const last=P[P.length-1][2],live=isT&&Date.now()-last<20*6e4,mk=v=>v?`<button class="tfm press" data-spot="${esc(v.id)}">${spotMark(v.x,true,22)}<b>${esc(v.x.n)}</b></button>`:'';
+  const row=(t,ic,body,cl='')=>`<div class="tfr${cl}"><span class="tlt">${t?hm(t):''}</span><span class="tfi">${ic}</span><div class="tfb">${body}</div></div>`;
+  const L=[row(P[0][2],'🏁','<b>出発</b>',' ends')];
+  E.forEach(e=>{if(e.k==='run')L.push(row(0,'🚗',`走行 ${durTxt(e.ms)} · ${kmTxt(e.km)}`,' run'));
+    else if(e.k==='spot')L.push(row(e.t,'📍',mk(e.v)));
+    else if(e.k==='stop')L.push(row(e.t,e.v?'📍':'☕',e.v?`${mk(e.v)}<small>${durTxt(e.ms)}いた</small>`:`<b>停車</b> <small>${durTxt(e.ms)}</small>`));
+    else L.push(row(e.t,'…',`<small>記録が途切れました（${durTxt(e.ms)}・${kmTxt(e.km)}先へ）</small>`,' run'))});
+  L.push(row(last,live?'<span class="livedot"></span>':'🏁',live?'<b>いまここ</b> <small>記録中</small>':isT?`<b>最後の記録</b> <small>${durTxt(Date.now()-last)}前</small>`:'<b>到着</b>',' ends'));
+  return `<div class="sec" style="margin-top:14px">ドライブの流れ</div>
+   <div class="tfsum"><div><b>${hm(P[0][2])}</b><span>出発</span></div><div><b>${durTxt(run)}</b><span>走った時間</span></div><div><b>${km<10?km.toFixed(1):Math.round(km)}<small>km</small></b><span>走った距離</span></div><div><b>${stops}</b><span>停車</span></div></div>
+   <div class="tflow">${L.join('')}</div>`}
 function openTripDay(d,back){const t=tripOf(d),isT=d===today();
   openSheet(`<div class="triphead"><span class="yk">TRIP NOTE</span><b>${+d.slice(5,7)}月${+d.slice(8)}日（${wdOf(d)}）</b><span>${d.slice(0,4)}年${t.prefs.length?' · '+esc(t.prefs.join('・')):''}</span></div>
    ${t.spots.length?'<div class="twx" id="twx"></div>':''}<div class="mapstat trips"><div><b>${t.spots.length}</b><small>か所</small><span>スポット</span></div><div id="tkm"><b>${t.km<1?'—':t.km<10?t.km.toFixed(1):Math.round(t.km)}</b><small>${t.km<1?'':'km'}</small><span>移動</span></div><div><b>${t.ppl.length}</b><small>人</small><span>交換</span></div><div><b>${t.pass}</b><small>人</small><span>すれ違い</span></div></div>
    <p class="note" id="tkmn" style="text-align:center;margin:6px 0 0">${t.km>=1?'移動はスポットどうしを直線で結んだ距離の目安です':''}</p>
-   ${tripHigh(t)}<div class="tripmap" id="tmap" hidden></div>
+   ${tripHigh(t)}<div class="tripmap" id="tmap" hidden></div><div id="tdrv"></div>
    ${isT?`<div class="rtnow">${settings.route?`<span class="livedot"></span>ドライブを記録中（${rtScope(1)}） · <b id="rtn">${d===rtDay?rtPts.length:'…'}</b>点`:`<button class="seclink press" id="rtOn" style="margin:0">ドライブの記録をオンにする</button>`}</div>`:''}
    ${t.spots.length?`<div class="sec" style="margin-top:14px">行ったところ</div><div class="tline">${t.spots.map(v=>{const x=SP(v.id),ph=t.photos.filter(p=>p.spot===v.id);
      const lg=t.legs.find(g=>g.to===v.id);
@@ -2698,7 +2737,9 @@ function openTripDay(d,back){const t=tripOf(d),isT=d===today();
    <button class="linkbtn" id="rtDel" style="padding:10px;display:none"><span class="danger">この日のルートを消す</span></button>`);
   bindClose(back);hydratePho();tripWx(t);if($('#tripAll'))$('#tripAll').onclick=()=>{closeSheet();setTimeout(openTrip,260)};
   if($('#rtOn'))$('#rtOn').onclick=()=>{setRoute(true);toast(`ドライブの記録をはじめました（${rtScope()}）`);closeSheet();setTimeout(()=>openTripDay(d,back),260)};
-  rtGet(d).then(async pts=>{t.route=pts;if(!$('#tmap'))return;const sps=t.spots.map(v=>SP(v.id));if($('#rtn'))$('#rtn').textContent=pts.length;
+  const flowDraw=pts=>{const e=$('#tdrv');if(!e)return false;e.innerHTML=tripFlow(pts,tripOf(d).spots,isT);$$('#tdrv [data-spot]').forEach(b=>b.onclick=()=>{closeSheet();setTimeout(()=>openSpot(b.dataset.spot,()=>openTripDay(d,back)),260)});return true};
+  window.__tripLive=isT?()=>{if(!flowDraw(rtPts)){window.__tripLive=null;return}if(rtPts.length>=2){const k=rtKm(rtPts),e=$('#tkm');if(e)e.innerHTML=`<b>${k<10?k.toFixed(1):Math.round(k)}</b><small>km</small><span>移動</span>`}}:null;
+  rtGet(d).then(async pts=>{t.route=pts;if(!$('#tmap'))return;flowDraw(pts);const sps=t.spots.map(v=>SP(v.id));if($('#rtn'))$('#rtn').textContent=pts.length;
     if(pts.length>=2){const k=rtKm(pts);t.km=k;$('#tkm').innerHTML=`<b>${k<10?k.toFixed(1):Math.round(k)}</b><small>km</small><span>移動</span>`;$('#tkmn').textContent='移動はドライブの記録（2分か500mごとの点）から計算した、おおよその距離です';$('#rtDel').style.display='block'}
     if(pts.length>=2||sps.filter(x=>x.la!=null).length>=2){const cv=await routeMap(pts,sps,680,420);if(cv&&$('#tmap')){$('#tmap').hidden=false;$('#tmap').appendChild(cv)}}});
   let rtArmed=false;$('#rtDel').onclick=async()=>{if(!rtArmed){rtArmed=true;$('#rtDel .danger').textContent='もう一度押すと、この日のルートを消します';return}
