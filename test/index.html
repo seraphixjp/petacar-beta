@@ -1389,7 +1389,7 @@ const save=()=>{if(!me.sample)store.set('me2',me);store.set('log2',log)};
 let tab='me', spView='', lastTab=null, nearUntil=0, nearby=[], incoming=null, inTimer=null, modeTimer=null, qrTimer=null, ciTimer=null;
 let lastTog=0, sheetAt=0, boost=false, colSort=store.get('sort2','love');
 let ci={state:'far',t0:0};
-const inEvent=()=>ci.state==='in';
+const inEvent=()=>false; // 開催中のイベントなし（スバルMEETING太田は2027年に延期・2026-11-18）
 const nearOn=()=>Date.now()<nearUntil;
 const placeOf=l=>l.ev?EVENTS[l.ev].name:(l.place||OUTSIDE);
 const daysWith=id=>log.filter(l=>l.pid===id).length;
