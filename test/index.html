@@ -1796,6 +1796,7 @@ let pins=store.get('pins2',null);
 const PIN_MAX=8;let nearOpen=false;
 const myPins=()=>{const gl=gotList(myStats()),got=gl.map(b=>b.k);if(!pins)pins=gl.slice().sort((a,b)=>TIERS[b.tier].o-TIERS[a.tier].o).slice(0,PIN_MAX).map(b=>b.k);return pins.filter(k=>got.includes(k))};
 let settings=Object.assign({theme:'auto',pubRewards:true,pubStats:true,pubEvents:true,showSns:true,sns:['',''],eventOnly:false,autoIn:false,sound:true,reqFrom:'all',modeMin:5,showOpen:true,pass:true,route:true},store.get('set2',{}));
+if(!settings.rtOn1){settings.route=true;settings.rtOn1=1;try{store.set('set2',settings)}catch(e){}} // 不具合でオフになった人を一度だけオンに戻す（2026-11-18）
 const saveSet=()=>store.set('set2',settings);
 const applyTheme=()=>{const t=settings.theme;if(t==='light'||t==='dark')document.documentElement.dataset.theme=t;else delete document.documentElement.dataset.theme};
 applyTheme();
