@@ -22,7 +22,7 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': 
 const LOGO = `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" rx="22" fill="#e8551c"/><text x="44" y="60" text-anchor="middle" font-size="22" textLength="64" lengthAdjust="spacingAndGlyphs" fill="#fff" transform="rotate(-8 50 50)" font-family="Dela Gothic One,Hiragino Sans,sans-serif">ペタカー</text><text x="77" y="60" font-size="22" fill="#121820" transform="rotate(-8 50 50)" font-family="Dela Gothic One,sans-serif">!</text><path d="M18 74h64" stroke="#121820" stroke-width="4" stroke-linecap="round" stroke-dasharray="2 8"/></svg>`;
 function showGate(html) { gate.hidden = false; gate.innerHTML = `<div class="gbox"><div class="glogo">${LOGO}</div>${html}</div>`; }
 // ストア審査（投稿のあるアプリ）：ログインの前に利用規約への同意を明示する
-const AGREE = '<p class="ghelp">ログインすると、<a href="https://seraphixjp.github.io/petacar-beta/terms.html" target="_blank" rel="noopener">利用規約</a>と<a href="https://seraphixjp.github.io/petacar-beta/privacy.html" target="_blank" rel="noopener">プライバシーポリシー</a>に同意したものとします。不快な写真や名前は禁止で、見つけしだい削除します。</p>';
+const AGREE = '<p class="ghelp">ログインすると、<a href="https://seraphixjp.github.io/petacar-beta/terms.html" target="_blank" rel="noopener">利用規約</a>と<a href="https://seraphixjp.github.io/petacar-beta/privacy.html" target="_blank" rel="noopener">プライバシーポリシー</a>に同意したものとします。不快な写真や名前は禁止です。見つけた場合は削除します。</p>';
 const step = t => showGate(`<p>${esc(t)}</p><div class="gspin"></div>`);
 // ロゴを5回続けてタップすると、審査用のメール／パスワードのログイン欄が出る
 function bindReviewLogin(A, auth, onUser) {

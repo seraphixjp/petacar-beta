@@ -1008,7 +1008,7 @@ const BADGES=[
   {k:'q24',m:'',ic:'flag',num:'24',t:'お題24',s:'お題を達成した数',f:s=>s.qd||0,g:24,tier:'pt',add:1},{k:'q50',m:'',ic:'flag',num:'50',t:'お題マスター',s:'お題を達成した数',f:s=>s.qd||0,g:50,tier:'lg',add:1},
   {k:'qs3',m:'',ic:'flag',num:'3',t:'3か月連続',s:'お題を1つ以上達成した月が続いた数（いちばん長い記録）',f:s=>s.qs||0,g:3,tier:'si',add:1},{k:'qs6',m:'',ic:'flag',num:'6',t:'半年連続',s:'お題を1つ以上達成した月が続いた数（いちばん長い記録）',f:s=>s.qs||0,g:6,tier:'go',add:1},
   {k:'qs12',m:'',ic:'flag',num:'12',t:'皆勤賞',s:'12か月続けて、お題を1つ以上達成',f:s=>s.qs||0,g:12,tier:'pt',add:1},
-  {k:'pf10',m:'',ic:'road',num:'10',t:'10都府県を走る',s:'スポットを記録した都道府県の数',f:s=>s.prefs47||0,g:10,tier:'si'},{k:'pf47',m:'',ic:'road',num:'47',t:'47都道府県制覇',s:'すべての都道府県でスポットを記録',f:s=>s.prefs47||0,g:47,tier:'lg'},
+  {k:'pf10',m:'',ic:'road',num:'10',t:'10都道府県を走る',s:'スポットを記録した都道府県の数',f:s=>s.prefs47||0,g:10,tier:'si'},{k:'pf47',m:'',ic:'road',num:'47',t:'47都道府県制覇',s:'すべての都道府県でスポットを記録',f:s=>s.prefs47||0,g:47,tier:'lg'},
   {k:'legA3',m:'',ic:'mountain',num:'3',t:'群馬の走り屋',s:'北関東・関東の名だたる峠を3か所（榛名・赤城・妙義・碓氷・いろは坂・正丸・定峰・筑波・椿ライン）',f:s=>s.legA||0,g:3,tier:'si'},
   {k:'legA',m:'',ic:'mountain',num:'9',t:'峠の伝説',s:'北関東・関東の名だたる9つの峠をすべて走破（榛名・赤城・妙義・碓氷・いろは坂・正丸・定峰・筑波・椿ライン）',f:s=>s.legA||0,g:9,tier:'lg'},
   {k:'legB2',m:'',ic:'road',num:'2',t:'箱根の公道ランナー',s:'箱根・伊豆の名コースを2か所（ターンパイク・芦ノ湖スカイライン・真鶴・熱海）',f:s=>s.legB||0,g:2,tier:'si'},
@@ -1965,14 +1965,14 @@ function passCard(){if(settings.pass===false)return '';const l=passToday().filte
     <p class="note" style="margin:6px 4px 0">同じスポットに前後30分以内に来た人です。スタンプは、会って交換したときにもらえます</p>`}
 function openRow(){if(incoming&&person(incoming)){const p=person(incoming);return `<button class="newsrow openrow press" id="openRow"><span class="oav">${stamp(p,{size:28})}</span><b>${supM(p)}${esc(p.name)} さんから交換の申し込み</b><span class="val" aria-hidden="true">›</span></button>`}
   const l=openList();if(!l.length||tab==='ex')return '';
-  return `<button class="newsrow openrow press" id="openRow"><span class="oav">${l.slice(0,3).map(id=>stamp(person(id),{size:28})).join('')}</span><b>近くでペタカーを開いている人 ${l.length}人</b><span class="val" aria-hidden="true">›</span></button>`}
+  return `<button class="newsrow openrow press" id="openRow"><span class="oav">${l.slice(0,3).map(id=>stamp(person(id),{size:28})).join('')}</span><b>近くでペタカー!を開いている人 ${l.length}人</b><span class="val" aria-hidden="true">›</span></button>`}
 /* 交換画面の帯と印（2026-11-17） */
 function exMet(n){return n?`<span class="exmet again">再会 ♥${n}</span>`:'<span class="exmet new">はじめて</span>'}
 function exBand(){const t=today(),L=log.filter(l=>l.d===t&&l.pid),n=new Set(L.map(l=>l.pid)).size,st=myStats();
   const B=BADGES.filter(b=>(b.ic==='swap'||b.ic==='people')&&(b.f(st)||0)<b.g).map(b=>[b,b.g-(b.f(st)||0)]).sort((a,b)=>a[1]-b[1])[0];
   return `<div class="exband"><span>${PEOPLEI}今日の交換 <b>${n}</b>人</span>${B?`<i></i><span>あと <b>${B[1]}</b>${B[0].ic==='people'?'人':'回'}で「${esc(B[0].t)}」</span>`:''}</div>`}
 function openSec(){if(!settings.showOpen)return '';const l=openList();
-  if(!l.length)return openNeedPos?`<button class="li press" id="openPos" style="margin-top:16px;border-radius:16px;background:var(--surface)">${PEOPLEI}<div class="t"><b>近くでペタカーを開いている人を探す</b><span>位置情報を使います（だいたいの場所だけ）</span></div><span class="d">›</span></button>`:'';
+  if(!l.length)return openNeedPos?`<button class="li press" id="openPos" style="margin-top:16px;border-radius:16px;background:var(--surface)">${PEOPLEI}<div class="t"><b>近くでペタカー!を開いている人を探す</b><span>位置情報を使います（だいたいの場所だけ）</span></div><span class="d">›</span></button>`:'';
   return `<div class="sec">ペタカーを開いている人 <span class="chip">${l.length}人</span></div>
     <div class="grid">${l.map(id=>{const p=person(id),n=daysWith(id);return `<button class="cell press" data-o="${id}">${favMark(id)}${exMet(n)}${stamp(p,{size:92})}<span class="n">${supM(p)}${esc(p.name)}</span><span class="s">${esc(p.car)}</span></button>`}).join('')}</div>
     <p class="note" style="text-align:center;margin-top:14px">タップすると交換を申し込めます。</p>`}
@@ -2019,7 +2019,7 @@ const KMROW=()=>`<span class="rkm"><i>総移動距離 <b id="rpgKm">${kmFmt(kmSu
 function rpgWindow(st){const r=rpgOf(st),mx=Math.max(100,...r.vals.map(v=>v[1]));
   const pct=r.next?Math.min(100,(r.e-r.cur)/(r.next-r.cur)*100):100;
   return `<div class="rpg" role="group" aria-label="ステータス">${r.top?`<div class="rpgstage" style="background-image:linear-gradient(90deg,rgba(255,255,255,.55),rgba(255,255,255,.18) 45%,rgba(255,255,255,0) 65%),url(chara/bg_${r.top}.jpg)"><div class="hd onimg"><div class="lvn"><small>Lv.</small>${r.L}</div><div><span class="lv">クラス</span><span class="job">${esc(r.cls)}</span>${r.title?`<span class="ttl">称号【${esc(r.title)}】</span>`:''}${KMROW()}</div></div>${charaImg(r)}</div>`:`<div class="hd"><div class="lvn"><small>Lv.</small>${r.L}</div><div><span class="lv">クラス</span><span class="job">${esc(r.cls)}</span>${r.title?`<span class="ttl">称号【${esc(r.title)}】</span>`:''}${KMROW()}</div></div>`}
-   <div class="xp"><i style="width:${pct}%"></i></div><div class="xpn"><span>EXP ${r.e.toLocaleString()}</span><span>${r.next?`つぎのLvまで ${(r.next-r.e).toLocaleString()}`:'最高レベル'}</span></div>${r.nextCls?`<div class="xpn" style="margin-top:2px"><span></span><span>${esc(r.jobN)}があと ${r.nextPts} で「${esc(r.nextCls)}」に上がります</span></div>`:''}
+   <div class="xp"><i style="width:${pct}%"></i></div><div class="xpn"><span>EXP ${r.e.toLocaleString()}</span><span>${r.next?`次のLv.まで ${(r.next-r.e).toLocaleString()}`:'最高レベル'}</span></div>${r.nextCls?`<div class="xpn" style="margin-top:2px"><span></span><span>${esc(r.jobN)}があと ${r.nextPts} で「${esc(r.nextCls)}」に上がります</span></div>`:''}
    <div class="sts">${r.vals.map(([x,v])=>`<span class="${x.k===r.top?'top':''}">${x.n}</span><span class="bar2"><i style="width:${v/mx*100}%"></i></span><span class="v">${v}</span>`).join('')}</div>
    <div class="spnav clsnav"><button class="press" id="jobb">${RWI.job}<span>ジョブチェンジ</span></button><button class="press" id="ttlb">${RWI.ttl}<span>称号</span></button><button class="press" id="frb">${RWI.fr}<span>縁</span></button><button class="press" id="rpghelp">${RWI.help}<span>しくみ</span></button></div></div>`}
 function openTitles(){const st=myStats(),gl=gotList(st).sort((a,b)=>TIERS[b.tier].o-TIERS[a.tier].o);
@@ -2033,7 +2033,7 @@ function openJobs(){const st=myStats(),r=rpgOf({...st,job:-1}),cur=jobIdx()>=0?s
   const how={run:'峠・サーキットなどに行く',trip:'道の駅・PAなどに行く',faith:'神社・寺に行く',expl:'名橋・ダム・名城などに行く',charm:'交換で人に会う',luck:'EXやレアを出す'};
   openSheet(`<b style="font-size:20px;display:block;text-align:center">ジョブをえらぶ</b><p class="note" style="text-align:center">そのジョブのスポットに1か所でも行くと転職できます。格（見習い→一人前→上級→凄腕→伝説）は、そのジョブの経験値で上がります。</p>
    <div class="list jobpick"><button class="li press" data-job="" aria-pressed="${cur===''}"><div class="t"><b>おまかせ<small>一番高いジョブ：${esc(r.best?r.jobs.find(x=>x.k===r.best).cls:'なし')}</small></b></div><span class="d">${cur===''?'使用中':''}</span></button>
-   ${RSTATS.map((x,i)=>{const j=r.jobs[i],ok=j.p>0,nx=CLS_STEP[j.ri+1]?jobNeed(j.ri+1,x.k):null;return `<button class="li press${ok?'':' off'}" data-job="${x.k}" ${ok?'':'disabled'} aria-pressed="${cur===x.k}"><span class="jobimg">${ok?`<img src="${charaSrc(x.k,j.ri)}" alt="" loading="lazy">`:'?'}</span><div class="t"><b>${esc(ok?j.cls:x.cls)}<small>${ok?`ジョブLv.${j.L}・${x.n} ${j.p}${nx?`・つぎの格まであと${nx-j.p}`:''}`:`${how[x.k]}と転職できます`}</small></b></div><span class="d">${cur===x.k?'使用中':ok?'':'未取得'}</span></button>`}).join('')}</div>
+   ${RSTATS.map((x,i)=>{const j=r.jobs[i],ok=j.p>0,nx=CLS_STEP[j.ri+1]?jobNeed(j.ri+1,x.k):null;return `<button class="li press${ok?'':' off'}" data-job="${x.k}" ${ok?'':'disabled'} aria-pressed="${cur===x.k}"><span class="jobimg">${ok?`<img src="${charaSrc(x.k,j.ri)}" alt="" loading="lazy">`:'?'}</span><div class="t"><b>${esc(ok?j.cls:x.cls)}<small>${ok?`ジョブLv.${j.L}・${x.n} ${j.p}${nx?`・つぎの格まであと${nx-j.p}`:''}`:`${how[x.k]}と転職できます`}</small></b></div><span class="d">${cur===x.k?'使用中':ok?'':'未獲得'}</span></button>`}).join('')}</div>
    <button class="btn sub press" style="margin-top:12px" data-close>閉じる</button>`);
   bindClose();$$('[data-job]').forEach(b=>b.onclick=()=>{if(b.disabled)return;settings.job=b.dataset.job;saveSet();syncFrame();closeSheet();render();const n=rpgOf(myStats());toast(`ジョブを「${n.cls}」にしました`)})}
 function openRpgHelp(){openSheet(`<b style="font-size:20px;display:block;text-align:center">クラスのしくみ</b>
@@ -2071,7 +2071,7 @@ const svgI=d=>`<svg viewBox="0 0 24 24" width="20" height="20" fill="none" strok
 const COLI={card:svgI('<rect x="3.5" y="5" width="17" height="14" rx="2"/><path d="M3.5 15l4.5-4 3.5 3 3-2.5 6 4.5"/><circle cx="15.5" cy="9" r="1.6"/>'),stamp:svgI('<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/>'),bag:svgI('<path d="M5 8h14l-1.2 12H6.2z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/>'),shop:svgI('<path d="M4 9.5 5.5 4h13L20 9.5"/><path d="M5 9.5V20h14V9.5"/><path d="M10 20v-5h4v5"/>'),cam:svgI('<path d="M4 8h3l1.5-2h7L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>'),book:svgI('<path d="M5 4.5h10a3 3 0 0 1 3 3V20H8a3 3 0 0 1-3-3z"/><path d="M5 17a3 3 0 0 1 3-3h10"/>')};
 function zkBanner(){const st=zukanStats();return `<button class="zkban press" data-cv="zukan" aria-pressed="${colView==='zukan'}" style="background-image:linear-gradient(90deg,rgba(10,12,16,.92) 0%,rgba(10,12,16,.7) 42%,rgba(10,12,16,.05) 80%),url(chara/zukan_bg.webp)"><span class="zkt">${COLI.book}車種図鑑</span><span class="zkd">出会った車が図鑑に載ります</span><span class="zkn"><b>${st.zk}</b> / ${ZTOTAL} 車種${zkNew().length?`<em class="zknew">新しい車種 ${zkNew().length}</em>`:''}</span><i aria-hidden="true">›</i>${zkNew().length?ZDOT:''}</button>`}
 const RWI={job:svgI('<path d="M4 12h16M14 6l6 6-6 6"/><path d="M4 6h6M4 18h6"/>'),ttl:svgI('<path d="M4 7h16v6a8 8 0 0 1-16 0z"/><path d="M9 7V4h6v3"/>'),fr:svgI('<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3"/>'),help:svgI('<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .9-1 1.7"/><path d="M12 17h.01"/>'),bd:svgI('<circle cx="12" cy="9" r="5.5"/><path d="M8.5 13.5 7 21l5-2.5 5 2.5-1.5-7.5"/>'),set:svgI('<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><path d="M14.5 16.5l2 2 3.5-4"/>'),cls:svgI('<circle cx="12" cy="7.5" r="3.5"/><path d="M5 20c.8-4 3.6-6 7-6s6.2 2 7 6"/><path d="M16.5 3.5l1 1.8 2 .3-1.5 1.4.4 2-1.9-1-1.9 1 .4-2-1.5-1.4 2-.3z"/>')};
-function petaStore(){return `<div class="petast"><div class="pslogo">${COLI.shop}</div><b>公式協力店</b><p>ペタカー!の公式協力店です。訪れると、ここでしか手に入らない特別な特典が……？</p><span class="chip">現在開発中</span><p class="note">オープンしたら、お知らせでご案内します。</p></div>`}
+function petaStore(){return `<div class="petast"><div class="pslogo">${COLI.shop}</div><b>公式協力店</b><p>ペタカー!の公式協力店です。訪れると、ここでしか手に入らない特典が……？</p><span class="chip">準備中</span><p class="note">オープンしたら、お知らせでご案内します。</p></div>`}
 
 const views={
  me(){
@@ -2105,9 +2105,9 @@ const views={
   <div class="${on?'group':''}">${on?`<div class="exlive"><div class="exradar" aria-hidden="true"><i></i><i></i><i></i><svg class="exclock" viewBox="0 0 120 120"><circle cx="60" cy="60" r="54"/><circle id="leftRing" cx="60" cy="60" r="54"/></svg><span class="exme">${stamp(me,{size:70})}</span></div>
     <div class="exlt"><span class="livedot"></span><b>近くの人に表示中</b></div><div class="exleft">あと <span id="left"></span></div><div class="note" style="text-align:center">時間になると自動で終わります</div>
     <button class="btn sm sub press" id="tog" role="switch" aria-checked="true" aria-label="交換を終える" style="margin-top:8px">終える</button></div>`
-   :`<button class="bigex exhero press" id="tog" role="switch" aria-checked="false"><span class="exglow" aria-hidden="true"></span><span class="exme">${stamp(me,{size:76})}<span class="exsw" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h13l-3.5-3.5M20 15H7l3.5 3.5"/></svg></span></span><b>交換をはじめる</b><span>${settings.modeMin}分間、近くで交換をはじめた人と並びます</span></button>
+   :`<button class="bigex exhero press" id="tog" role="switch" aria-checked="false"><span class="exglow" aria-hidden="true"></span><span class="exme">${stamp(me,{size:76})}<span class="exsw" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h13l-3.5-3.5M20 15H7l3.5 3.5"/></svg></span></span><b>交換をはじめる</b><span>${settings.modeMin}分間、近くの人の一覧に表示されます</span></button>
     <button class="li press todaycar" id="todayCar">${CARI}<div class="t"><b>相手に届くのは今日の車</b><span>${esc(carLabel(me))}${me.garage.length>1?` · ガレージ${me.garage.length}台`:''}</span></div><span class="val">変更 ›</span></button>
-    <div class="note" style="text-align:center;margin-top:10px">${settings.showOpen?'はじめる前も、アプリを開いている間は近くの人に出ます。':'はじめるまでは、誰の一覧にも出ません。'}</div>`}
+    <div class="note" style="text-align:center;margin-top:10px">${settings.showOpen?'はじめる前でも、アプリを開いている間は近くの人の一覧に表示されます。':'はじめるまでは、誰の一覧にも出ません。'}</div>`}
     ${incoming?`<div class="incoming"><div style="display:flex;gap:10px;align-items:center">${stamp(person(incoming),{size:44})}<div><b>${esc(person(incoming).name)}</b> さん（${esc(person(incoming).car)}）から交換の申し込み</div></div><div class="row"><button class="btn sub press" id="inNo">断る</button><button class="btn press" id="inYes">受ける</button></div></div>`:''}
     ${on&&partyNear?`<div class="incoming"><div style="display:flex;gap:10px;align-items:center">${stamp(person(partyNear.host),{size:44})}<div><b>${esc(person(partyNear.host).name)}</b> さんが「みんなで交換」をはじめました</div></div><button class="btn press" id="ptJoin">参加する</button></div>`:''}
     ${on?`<button class="li press partyb" id="ptHost">${PEOPLEI}<div class="t"><b>みんなで交換</b><span>3人以上で同時に振って、一度に交換</span></div><span class="d">›</span></button>`:''}
@@ -2283,7 +2283,7 @@ function showOnb(){
     {a:`<div class="duo">${stamp(POOL_DEMO[0],{size:118})}${stamp(me,{size:118})}<div class="peta">ペタッ!</div></div>`,h:'会ったときだけ、ペタッ',p:'オフ会や道の駅で会った人と、その場でスタンプを交換します。ネット越しの交換はできません。'},
     {a:`<span class="shake"><svg width="130" height="130" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.3" stroke-linecap="round"><rect x="7.5" y="3" width="9" height="18" rx="2.2"/><path d="M11 18h2"/><path d="M4 8.5c-1.2 2-1.2 5 0 7M20 8.5c1.2 2 1.2 5 0 7M1.8 7c-1.8 3-1.8 7 0 10M22.2 7c1.8 3 1.8 7 0 10"/></svg></span>`,h:'2人で同時にシェイク',p:'交換をはじめて相手を選んだら、2人で同時にスマホを振ります。タイミングがそろうとスタンプが貼られます。'},
     {a:`<div style="display:flex;align-items:center;gap:6px">${medal(B('p30'),74)}${medal(B('zk100'),96)}${medal(B('eki100'),74)}</div>`,h:'集めるほど強くなる',p:'会った車は車種図鑑に、行った場所はスポットに残ります。記録するたびに経験値がたまってレベルが上がり、バッジや称号ももらえます。'},
-    {a:`<div class="onbsp">${['tg','eki','jin','cir','dam','misa'].map(c=>{const x=SPOTS.find(v=>v.cat===c);return x?spotMark(x,true,54):''}).join('')}</div>`,h:'着いたら自動で記録',p:`峠・道の駅・神社・サーキットなど全国${(Math.floor(SPOTS.filter(x=>x.cat!=='st').length/100)*100).toLocaleString()}か所以上。近くに着くと記録されます。峠やダムは通り過ぎるだけ、ほかは1分いれば印が押されます。`},
+    {a:`<div class="onbsp">${['tg','eki','jin','cir','dam','misa'].map(c=>{const x=SPOTS.find(v=>v.cat===c);return x?spotMark(x,true,54):''}).join('')}</div>`,h:'着いたら自動で記録',p:`峠・道の駅・神社・サーキットなど全国${(Math.floor(SPOTS.filter(x=>x.cat!=='st').length/100)*100).toLocaleString()}か所以上。近くに着くと記録されます。峠・SA・PA・道の駅・神社・サーキットなどは通過するだけ、お寺・お城・テーマパークなどは1分以上いると記録されます。`},
     {a:`<span class="onbic" style="--c:#b8892a">${FLAGI}</span><div class="onbstar">★★★★★</div>`,h:'ツアーで名所をめぐる',p:`四国八十八箇所、日本100名城、名水百選など${COURSES().length}本。★の数は難易度の目安です。まだ行っていない所を、Googleマップでまとめて道順にできます。`},
     {a:`<span class="onbic" style="--c:#2f6fa3">${MAPI}</span><div class="onbflow"><i>🏁 出発</i><i>🚗 走行</i><i>📍 スポット</i><i>☕ 停車</i></div>`,h:'旅のしおりが自動でできる',p:'その日に走った道、寄ったスポット、停まった場所が時刻順に残ります。走っている途中でも、今日の流れを見返せます。'},
     {a:`<span class="onbic" style="--c:#2c9c8f">${WXI(1)}</span><span class="onbic" style="--c:#b1456f">${STARI}</span>`,h:'出かける前にも',p:'スポットごとの天気・日の出と日の入り・路面凍結の注意がわかります。気になる場所は「行きたい」に入れておくと、ドライブプランが作れます。'},
@@ -2524,7 +2524,7 @@ const NAVI='<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
 function askAlways(back){
   openSheet(`<div class="result"><span class="aico big">${NAVI}</span><b style="font-size:20px">着いたら自動で記録</b>
     <div class="note" style="text-align:left">アプリを閉じていても、スポットに着いたことを記録するには、位置情報を<b>「常に許可」</b>にしてください。</div></div>
-   <ul class="perm"><li>使うのは、登録スポットの範囲に<b>入った・出た</b>ことだけです</li><li>走ったルートや現在地は保存しません</li><li>1分以上いたときだけ印が押されます。通り過ぎただけでは押されません</li><li>電池の消費はわずかです（スマホに標準で備わる仕組みを使います）</li></ul>
+   <ul class="perm"><li>使うのは、登録スポットの範囲に<b>入った・出た</b>ことだけです</li><li>走ったルートや現在地は保存しません</li><li>峠・SA・PA・道の駅・神社・サーキットなどは通過するだけ、お寺・お城・テーマパークなどは1分以上いると記録されます</li><li>電池の消費はわずかです（スマホに標準で備わる仕組みを使います）</li></ul>
    <div class="row" style="margin-top:14px"><button class="btn sub press" id="permNo">あとで</button><button class="btn press" id="permYes">許可する</button></div>
    <p class="note" style="text-align:center;margin-top:10px">このあと、スマホの確認画面が表示されます。「常に許可」を選ばなくても、アプリを開いている間はこれまでどおり記録できます。</p>`);
   bindClose();
@@ -2918,7 +2918,7 @@ function tripOf(d){const sp=spotlog.map((v,i)=>({...v,i})).filter(v=>v.d===d&&SP
   const ps=passLog.filter(x=>x.d===d&&person(x.pid)&&!blocked.has(x.pid)).sort((a,b)=>(a.t||0)-(b.t||0));
   return {d,spots,ppl,ex,km,legs,pass:ps.length,passes:ps,niceS:ps.filter(x=>x.nice).length,niceG:ps.filter(x=>x.got).length,photos:phoOfDay(d),prefs:[...new Set(spots.map(v=>SP(v.id).pref.split('・')[0]))]}}
 const kmTxt=k=>k<1?'1km未満':'約'+(k<10?k.toFixed(1):Math.round(k))+'km';
-/* --- ドライブの記録：オンにした人だけ。アプリを開いている間の位置を、2分か500mごとに1点だけ、端末の中（IndexedDB rt）に保存。サーバーには送らない --- */
+/* --- ドライブの記録：オンにした人だけ。アプリを開いている間の位置を、2分か100mごとに1点だけ、端末の中（IndexedDB rt）に保存。サーバーには送らない --- */
 const RT_KM=.1,RT_MS=120e3; // 2026-11-18 500m→100mごと（GPSの取り方は同じ・残す点が増えるだけ）
 let rtWatch=null,rtDay=null,rtPts=[],rtLast=null;
 async function rtGet(d){if(d===rtDay)return rtPts;let a=null;try{a=await PDB.rget(d)}catch(e){}return Array.isArray(a)?a:[]}
@@ -2959,7 +2959,7 @@ async function routeMap(pts,spots,W,H,o={}){const all=[...pts.filter(Boolean).ma
   if(pts.length>1){g.lineJoin=g.lineCap='round';g.beginPath();let mv=true;pts.forEach(p=>{if(!p){mv=true;return}const [x,y]=P(p[0],p[1]);mv?g.moveTo(x,y):g.lineTo(x,y);mv=false});g.strokeStyle='#fff';g.lineWidth=lw+4;g.stroke();g.strokeStyle='#e8551c';g.lineWidth=lw;g.stroke()}
   spots.forEach(x=>{if(x.la==null)return;const [a,b]=P(x.la,x.lo);g.beginPath();g.arc(a,b,o.r||8,0,Math.PI*2);g.fillStyle=CAT[x.cat].c;g.fill();g.lineWidth=3;g.strokeStyle='#fff';g.stroke()});
   g.font=`500 ${o.fs||11}px sans-serif`;g.textAlign='right';g.fillStyle='rgba(0,0,0,.6)';g.fillText('地理院タイル',W-6,H-6);return cv}
-function routeRow(){return `<div class="srow rtrow"><div class="t"><b>ドライブを記録する</b><span>アプリを開いている間の位置を、2分または500mごとに記録して、旅のしおりの地図に使います。記録はこの端末の中だけに保存され、運営にもほかの人にも送られません</span></div><button class="switch" role="switch" aria-checked="${!!settings.route}" id="rtSw" aria-label="ドライブを記録する"></button></div>`}
+function routeRow(){return `<div class="srow rtrow"><div class="t"><b>ドライブを記録する</b><span>アプリを開いている間の位置を、2分または100mごとに記録して、旅のしおりの地図に使います。記録はこの端末の中だけに保存され、運営にもほかの人にも送られません</span></div><button class="switch" role="switch" aria-checked="${!!settings.route}" id="rtSw" aria-label="ドライブを記録する"></button></div>`}
 function bindRouteRow(after){const b=$('#rtSw');if(b)b.onclick=()=>{setRoute(!settings.route);b.setAttribute('aria-checked',!!settings.route);toast(settings.route?`ドライブの記録をはじめました（${rtScope()}）`:'ドライブの記録を止めました');after&&after()}}
 function tripCard(){const t=tripOf(today()),n=t.spots.filter(v=>SP(v.id).cat!=='st').length;
   const bg=tripBg();return `<button class="yrcard trip press" id="tripb" style="background-image:linear-gradient(90deg,rgba(12,18,28,.94) 0%,rgba(12,18,28,.72) 48%,rgba(12,18,28,.25) 100%),url(&quot;${bg}&quot;)"><span class="yk">TRIP NOTE</span><b>${n?`今日の旅のしおり · ${n}か所`:settings.route?'今日の旅のしおり':'旅のしおり'}</b><span class="ys">${n?'行ったスポットと出会いを1日ずつ残します':settings.route?'走った道と出会いを、日記のように1日ずつ残します':'行ったスポットと出会いを、日記のように1日ずつ残します'}</span>
@@ -2984,9 +2984,9 @@ function tripGuide(id){const x=SP(id),f=SPOT_FAC[id],dc=SPOT_DC[id],vw=SPOT_VIEW
 function tripHigh(t){const d=t.d,H=[];
   const before=spotlog.filter(v=>v.d<d&&SP(v.id)&&SP(v.id).cat!=='st');
   const oldPref=new Set(before.map(v=>SP(v.id).pref.split('・')[0])),oldSpot=new Set(before.map(v=>v.id));
-  const np=t.prefs.filter(x=>!oldPref.has(x));if(np.length&&before.length)H.push(['🗾',`初めての都道府県`,np.join('・')]);
+  const np=t.prefs.filter(x=>!oldPref.has(x));if(np.length&&before.length)H.push(['🗾',`はじめての都道府県`,np.join('・')]);
   const ns=t.spots.filter(v=>!oldSpot.has(v.id)&&SP(v.id).cat!=='st');if(ns.length)H.push(['📍','初めて行ったスポット',`${ns.length}か所`]);
-  const fm=new Set(log.filter(l=>l.d<d).map(l=>l.pid)),nf=t.ppl.filter(p=>!fm.has(p.id));if(nf.length)H.push(['🤝','初めて会った人',nf.length>2?`${nf.slice(0,2).map(p=>esc(p.name)).join('・')} ほか${nf.length-2}人`:nf.map(p=>esc(p.name)).join('・')]);
+  const fm=new Set(log.filter(l=>l.d<d).map(l=>l.pid)),nf=t.ppl.filter(p=>!fm.has(p.id));if(nf.length)H.push(['🤝','はじめて会った人',nf.length>2?`${nf.slice(0,2).map(p=>esc(p.name)).join('・')} ほか${nf.length-2}人`:nf.map(p=>esc(p.name)).join('・')]);
   const k=t.ex.filter(l=>l.kira),r=t.ex.filter(l=>l.rare&&!l.kira);
   if(k.length)H.push(['✨','EXが出た',k.map(l=>esc((person(l.pid)||{}).name||'')).join('・')]);else if(r.length)H.push(['⭐','レアが出た',r.map(l=>esc((person(l.pid)||{}).name||'')).join('・')]);
   const rc=t.ppl.filter(p=>rarity(p.maker,p.car)>=4);if(rc.length)H.push(['🚗','レア車に会えた',rc.map(p=>esc(p.car)).join('・')]);
@@ -3047,7 +3047,7 @@ function openTripDay(d,back){const t=tripOf(d),isT=d===today();
        ${ph.length||isT?`<div class="tlp">${ph.map(p=>`<button class="press" data-phoo="${esc(p.id)}">${phoStamp(p,52)}</button>`).join('')}${isT&&!ph.length?`<button class="seclink press" data-shot="${esc(v.id)}" style="margin:0">${CAMI}撮る</button>`:''}</div>`:''}</div></div>`}).join('')}</div>`:''}
    ${t.ppl.length?`<div class="sec" style="margin-top:14px">交換した人</div><div class="tppl">${t.ppl.map(p=>{const l=t.ex.find(e=>e.pid===p.id);return `<button class="cell press" data-tp="${p.id}">${stamp(p,{size:56,ev:l.ev,sz:l.sz,fr:l.fr,kira:l.kira,rare:l.rare,v:l.v,im:l.im,rg:l.rg})}<span class="n">${supM(p)}${esc(p.name)}</span></button>`}).join('')}</div>`:''}
    ${t.pass?`<div class="sec" style="margin-top:14px">すれ違った人${t.niceS+t.niceG?`<span class="chip">♥ 送った${t.niceS}・届いた${t.niceG}</span>`:''}</div><div class="list">${t.passes.map(x=>{const p=person(x.pid),sp=SP(x.spot);
-     return `<button class="li press" data-tp="${p.id}">${stamp(p,{size:40})}<div class="t"><b>${supM(p)}${esc(p.name)}</b><span>${sp?esc(sp.n)+' · ':''}${x.dt}分ちがい</span></div><span class="nicest${x.nice&&x.got?' both':x.nice||x.got?' one':''}">${x.nice&&x.got?'♥ お互いにナイス！':x.got?'♥ ナイス！が届いた':x.nice?'♥ ナイス！を送った':''}</span></button>`}).join('')}</div>`:''}
+     return `<button class="li press" data-tp="${p.id}">${stamp(p,{size:40})}<div class="t"><b>${supM(p)}${esc(p.name)}</b><span>${sp?esc(sp.n)+' · ':''}${x.dt}分差</span></div><span class="nicest${x.nice&&x.got?' both':x.nice||x.got?' one':''}">${x.nice&&x.got?'♥ お互いにナイス！':x.got?'♥ ナイス！が届いた':x.nice?'♥ ナイス！を送った':''}</span></button>`}).join('')}</div>`:''}
    ${back?'':'<button class="li press" id="tripAll" style="margin-top:14px;width:100%"><span class="exi">📖</span><div class="t"><b>これまでの旅のしおり</b><span>1日ずつ振り返れます</span></div><span class="val">›</span></button>'}
    <div class="row" style="margin-top:16px"><button class="btn sub press" data-close>閉じる</button><button class="btn press" id="tripImg">SNS用の画像にする</button></div>
    <button class="linkbtn" id="rtDel" style="padding:10px;display:none"><span class="danger">この日のルートを消す</span></button>`);
@@ -3056,7 +3056,7 @@ function openTripDay(d,back){const t=tripOf(d),isT=d===today();
   const flowDraw=pts=>{const e=$('#tdrv');if(!e)return false;e.innerHTML=tripFlow(pts,tripOf(d).spots,isT);$$('#tdrv [data-spot]').forEach(b=>b.onclick=()=>{closeSheet();setTimeout(()=>openSpot(b.dataset.spot,()=>openTripDay(d,back)),260)});return true};
   window.__tripLive=isT?()=>{if(!flowDraw(rtPts)){window.__tripLive=null;return}if(rtPts.length>=2){const k=rtKm(rtPts),e=$('#tkm');if(e)e.innerHTML=`<b>${k<10?k.toFixed(1):Math.round(k)}</b><small>km</small><span>移動</span>`}}:null;
   rtGet(d).then(async pts=>{t.route=pts;if(!$('#tmap'))return;flowDraw(pts);const sps=t.spots.map(v=>SP(v.id));if($('#rtn'))$('#rtn').textContent=pts.length;
-    if(pts.length>=2){const k=rtKm(pts);t.km=k;$('#tkm').innerHTML=`<b>${k<10?k.toFixed(1):Math.round(k)}</b><small>km</small><span>移動</span>`;$('#tkmn').textContent='移動はドライブの記録（2分か500mごとの点）から計算した、おおよその距離です';$('#rtDel').style.display='block'}
+    if(pts.length>=2){const k=rtKm(pts);t.km=k;$('#tkm').innerHTML=`<b>${k<10?k.toFixed(1):Math.round(k)}</b><small>km</small><span>移動</span>`;$('#tkmn').textContent='移動はドライブの記録（2分か100mごとの点）から計算した、おおよその距離です';$('#rtDel').style.display='block'}
     if(pts.length>=2||sps.filter(x=>x.la!=null).length>=2){const cv=await routeMap(pts,sps,680,420);if(cv&&$('#tmap')){$('#tmap').hidden=false;$('#tmap').appendChild(cv)}}});
   let rtArmed=false;$('#rtDel').onclick=async()=>{if(!rtArmed){rtArmed=true;$('#rtDel .danger').textContent='もう一度押すと、この日のルートを消します';return}
     try{await PDB.rdel(d)}catch(e){}if(d===rtDay){rtPts=[];rtLast=null}toast('この日のルートを消しました');closeSheet();setTimeout(()=>openTripDay(d,back),260)};
@@ -3214,7 +3214,7 @@ function setCount(){try{return setProg().filter(S=>S.n>=S.g).length}catch(e){ret
 function setsView(){const P=setProg(),done=P.filter(S=>S.n>=S.g).length,near=P.filter(S=>S.n<S.g&&S.n>0).sort((a,b)=>(a.g-a.n)-(b.g-b.n));
   const card=S=>{const ok=S.n>=S.g;return `<button class="setc press${ok?' done':''}" data-setk="${S.k}"><span class="si">${ok?'<b>✓</b>':`<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${ICONS[S.ic]||''}</svg>`}</span><div class="t"><b>${esc(S.t)}${ok?'<span class="tag setok">COMPLETE</span>':''}</b><span>${esc(S.s)}</span><div class="bar"><i style="width:${S.n/S.g*100}%"></i></div></div><span class="v">${S.n}/${S.g}</span></button>`};
   return `<div class="group zhead zbg" style="background-image:linear-gradient(90deg,rgba(12,16,22,.9) 0%,rgba(12,16,22,.72) 55%,rgba(12,16,22,.35) 100%),url(chara/bg_trip.jpg)"><div class="big">${done}<small>/${P.length}</small></div><b>達成したチャレンジ</b>
-    <div class="note">決まったスポットや車種を集めるチャレンジです。1つ達成するごとに EXP+${SETXP}。少しずつ増えていきます。</div></div>
+    <div class="note">決まったスポットや車種を集めるチャレンジです。1つ達成するごとに EXP+${SETXP}。チャレンジは今後少しずつ増えていきます。</div></div>
   ${near.length?`<div class="sec">もうすぐ達成</div><div class="list">${near.slice(0,3).map(card).join('')}</div>`:''}
   <div class="sec">スポットのチャレンジ</div><div class="list">${P.filter(S=>S.sp).map(card).join('')}</div>
   <div class="sec">交換のチャレンジ</div><div class="list">${P.filter(S=>!S.sp).map(card).join('')}</div>`}
@@ -3281,7 +3281,7 @@ async function openRouteLog(per,back){const on=supOn(me),days=await rtDays(),lim
    <div class="mapstat trips"><div><b>${L.length}</b><small>日</small><span>走った日</span></div><div><b>${km<10?km.toFixed(1):Math.round(km).toLocaleString()}</b><small>km</small><span>移動</span></div><div><b>${sps.length}</b><small>か所</small><span>スポット</span></div></div>
    ${!L.length?`<p class="note" style="text-align:center;padding:16px">${days.length?`${esc(lab)}のルートはありません。`:'まだルートがありません。旅のしおりの「ドライブを記録する」をオンにすると、走ったルートがこの端末に残ります。'}</p>`
      :lock?`<div class="rtlock"><div class="supbig" style="font-size:34px">${SUPB}</div><b>${RT_FREE}日より前のルートは、サポーター限定です</b><span>${esc(lab)}のルート${L.length}日分は、この端末に残っています。サポーターになると、月ごと・年ごとの地図で見たり、GPXファイルで保存したりできます。</span><button class="btn press" id="rtSup" style="margin-top:10px">サポーターについて見る</button></div>`
-     :`<div class="tripmap" id="rlmap"><p class="note" style="text-align:center;padding:40px 0">地図を作っています…</p></div><p class="note" style="text-align:center;margin:6px 0 0">移動は2分または500mごとの点から計算した、おおよその距離です</p>
+     :`<div class="tripmap" id="rlmap"><p class="note" style="text-align:center;padding:40px 0">地図を作っています…</p></div><p class="note" style="text-align:center;margin:6px 0 0">移動は2分または100mごとの点から計算した、おおよその距離です</p>
        <button class="btn sub press" id="rtGpx" style="margin-top:12px">${on?'':SUPB}GPXファイルで保存</button>${on?'':`<p class="note" style="text-align:center;margin:4px 0 0">GPXでの保存はサポーター限定です</p>`}`}
    <button class="btn sub press" style="margin-top:14px" data-close>閉じる</button>`);
   bindClose(back);
@@ -3294,7 +3294,7 @@ async function openRouteLog(per,back){const on=supOn(me),days=await rtDays(),lim
 }
 function openExport(){const ph=pholog.length;
   openSheet(`<b style="font-size:20px;display:block;text-align:center">データの持ち出し</b>
-   <p class="note" style="text-align:center;margin:4px 0 12px">集めたスタンプと記録を、この端末に保存できます。<br>もしペタカー! を終了するときは、90日前までにお知らせして、その間はここから書き出せるようにします。</p>
+   <p class="note" style="text-align:center;margin:4px 0 12px">集めたスタンプと記録を、この端末に保存できます。<br>サービスを終了する場合は90日前までにお知らせし、その間はここから書き出せるようにします。</p>
    <div class="list"><button class="li press" id="exXfer"><span class="exi">📲</span><div class="t"><b>機種変更の引き継ぎ</b><span>写真をコードで新しいスマホへ移します（無料）</span></div><span class="val">›</span></button>
     <button class="li press" id="exBook"><span class="exi">📖</span><div class="t"><b>スタンプ帳を画像で保存</b><span>交換したスタンプとフォトスタンプを、20個ずつの画像にします（${Math.max(1,Math.ceil((met().length+ph)/20))}枚）</span></div><span class="val">›</span></button>
     <button class="li press" id="exData"><span class="exi">🗂</span><div class="t"><b>記録をファイルで保存</b><span>交換・スポット・すれ違い・ドライブの記録、スタンプとフォトスタンプの画像をまとめた1つのファイル（JSON）</span></div><span class="val">›</span></button>
@@ -3416,7 +3416,7 @@ function openCourses(back){const F=Object.assign({g:'',r:'',by:'lv',nd:0},store.
     $('#crsL').innerHTML=h;$('#crsN').textContent=`${V.length}本`;
     $$('#sh .crsfc').forEach(b=>b.classList.toggle('on',String(F[b.dataset.f])===b.dataset.v));
     $$('#crsL [data-crs]').forEach(b=>b.onclick=()=>{closeSheet();setTimeout(()=>openCourse(b.dataset.crs,()=>openCourses(back)),260)})};
-  openSheet(`<div class="sheettitle">テーマ別ツアー</div><p class="note" style="margin:0 4px 8px">全部回るとツアー制覇。制覇した数でバッジがもらえます。★は難易度（スポットの数・スポット同士の距離・広さ・島へ渡るかから、全部回るのにかかる時間の目安）。</p>
+  openSheet(`<div class="sheettitle">テーマ別ツアー</div><p class="note" style="margin:0 4px 8px">全部回るとツアー制覇。制覇した数でバッジがもらえます。★は全部回るのにかかる時間の目安です（スポットの数・距離・範囲・島へ渡るかどうかから算出）。</p>
    <div class="crsf"><div class="crsfr">${chip('by','lv','難易度ごと')}${chip('by','g','種類ごと')}${chip('nd','1','未制覇だけ')}</div>
    <div class="crsfr">${chip('g','','すべて')}${CRS_G.map(([k,l])=>chip('g',k,l)).join('')}</div>
    <div class="crsfr">${chip('r','','全地方')}${regs.map(r=>chip('r',r,r)).join('')}</div></div>
@@ -3580,15 +3580,15 @@ const DESC_KSJ=new Set(["dam:0:しろがねダム","dam:0:エルムダム","dam:
 function openSpot(id,back){
   const x=SP(id),c=CAT[x.cat],vs=spotlog.filter(v=>v.id===id).map(v=>v.d).sort().reverse(),done=vs[0]===today();
   openSheet(`${spHead(x,id,vs)}${cardGot(id)}${SPOT_DESC[id]?`<p class="spdesc">${esc(SPOT_DESC[id])}<small>出典：${DESC_KSJ.has(id)?'国土数値情報（ダムデータ）（国土交通省）を加工して作成':'Wikipedia日本語版などの公開情報をもとに要約'}</small></p>`:''}${x.gone?`<div class="spwin">${x.why?esc(x.why):'このスポットは閉園したため、一覧から外しました。'}新しく記録することはできません。</div>`:''}${SPOT_WIN.includes(id)&&winNow()?`<div class="spwin">冬季は閉鎖・通行止めになる区間があります。出かける前に道路情報を確認してください</div>`:''}</div>
-   <div class="spact">${x.la!=null?`<a class="spa pri press" href="${gnav(x)}" target="_blank" rel="noopener">${NAVI}<span>ナビ</span></a>`:''}<a class="spa press" href="${gmap(x)}" target="_blank" rel="noopener">${MAPI}<span>${x.la!=null?'地図':'地図で探す'}</span></a><button class="spa press${wantSet().has(id)?' on':''}" id="spWant">${STARI}<span>${wantSet().has(id)?'行きたい済':'行きたい'}</span></button>${SPOT_URL[id]&&/^https?:\/\//.test(SPOT_URL[id])?`<a class="spa press" href="${esc(SPOT_URL[id])}" target="_blank" rel="noopener nofollow">${WEBI}<span>公式サイト</span></a>`:''}</div>
+   <div class="spact">${x.la!=null?`<a class="spa pri press" href="${gnav(x)}" target="_blank" rel="noopener">${NAVI}<span>ナビ</span></a>`:''}<a class="spa press" href="${gmap(x)}" target="_blank" rel="noopener">${MAPI}<span>${x.la!=null?'地図':'地図で探す'}</span></a><button class="spa press${wantSet().has(id)?' on':''}" id="spWant">${STARI}<span>${wantSet().has(id)?'行きたいに登録済み':'行きたい'}</span></button>${SPOT_URL[id]&&/^https?:\/\//.test(SPOT_URL[id])?`<a class="spa press" href="${esc(SPOT_URL[id])}" target="_blank" rel="noopener nofollow">${WEBI}<span>公式サイト</span></a>`:''}</div>
    ${x.la==null?'<p class="note" style="text-align:center;margin-top:8px">このスポットはまだ位置を登録していないため、地図は名前で検索します。</p>':''}
    <div class="spcard">${x.st?`<div class="spr"><span>停める場所</span><b>${esc(x.st)}</b></div>`:''}<div class="spr"><span>場所</span><b>${esc(x.ad||x.pref)}${here&&x.la!=null?`<small>${esc(here.label)}から約${fmtKm(dist(here,x))}</small>`:''}</b></div>
-    <div class="spr"><span>記録</span><b>${vs.length?`${vs.length}回行きました<small>最後は${fmtD(vs[0])}</small>`:'まだ行ったことがありません'}</b></div>${spExtra(id)}${hereN(id)?`<div class="spr"><span>いま</span><b class="nowc2">${hereN(id)}人がここで記録しています<small>2時間以内・名前は出ません</small></b></div>`:''}</div>
+    <div class="spr"><span>記録</span><b>${vs.length?`${vs.length}回行きました<small>最後は${fmtD(vs[0])}</small>`:'まだ行ったことがありません'}</b></div>${spExtra(id)}${hereN(id)?`<div class="spr"><span>最近</span><b class="nowc2">2時間以内に${hereN(id)}人がここで記録しました<small>名前は出ません</small></b></div>`:''}</div>
    ${x.la!=null?(()=>{const t=sunTimes(x.la,x.lo);return `<div class="spinfo"><div id="spWx" class="spwx"><small>天気を読み込んでいます…</small></div>${t?`<div class="spsun">日の出 <b>${t.rise}</b> · 日の入り <b>${t.set}</b><small>（今日・計算値）</small></div>`:''}</div>`})():''}
    ${phoSpotRow(id)?`<div class="sec" style="margin-top:14px">フォトスタ</div>${phoSpotRow(id)}`:''}${nearOf(x).length?`<div class="sec" style="margin-top:14px">ついでに寄れるスポット</div><div class="list">${nearOf(x).map(([y,d])=>`<button class="li press" data-near="${esc(y.id)}">${listMark(y,spotDone(y.id))}<div class="t"><b>${esc(y.n)}</b><span>${CAT[y.cat].n} · ${esc(y.ad||y.pref)}</span></div><span class="d">${fmtKm(d)}</span></button>`).join('')}</div>${PHCRED}`:''}<div class="row" style="margin-top:12px"><button class="btn sub press" data-close>閉じる</button><button class="btn press" id="spIn" ${done?'disabled':''}>${done?'今日は記録済み':'ここにいる（位置で確認）'}</button></div>
    <p class="note" style="text-align:center;margin-top:10px">${PASSCAT[x.cat]?(x.cat==='tg'?'峠は通過するだけで印が押されます。':'近くを通るだけで印が押されます。停まらなくて大丈夫です。'):`スポットに着いたら「ここにいる」を押してください。位置で確かめてから印を押します。${settings.autoIn?'（自動記録オン：アプリを開いている間は、着いたら自動で押されます）':''}`}</p>`);
   bindClose(back);bindPhoSpot(id);spImgCredit(id);spWeather(x);hydratePho();const csb=$('#cardShot');if(csb)csb.onclick=()=>{closeSheet();setTimeout(()=>openPhoto(id,()=>openSpot(id,back)),260)};$$('#sh [data-cardp]').forEach(b=>b.onclick=()=>{closeSheet();setTimeout(()=>openCard(b.dataset.cardp,()=>openSpot(id,back)),260)});
-  const wb=$('#spWant');if(wb)wb.onclick=()=>{const on=toggleWant(id);wb.classList.toggle('on',on);wb.querySelector('span').textContent=on?'行きたい済':'行きたい';toast(on?'行きたいリストに追加しました':'行きたいリストから外しました')};
+  const wb=$('#spWant');if(wb)wb.onclick=()=>{const on=toggleWant(id);wb.classList.toggle('on',on);wb.querySelector('span').textContent=on?'行きたいに登録済み':'行きたい';toast(on?'行きたいリストに追加しました':'行きたいリストから外しました')};
   $$('#sh [data-near]').forEach(b=>b.onclick=()=>{closeSheet();setTimeout(()=>openSpot(b.dataset.near,()=>openSpot(id,back)),260)});
   const cp=$('#spCopy');if(cp)cp.onclick=()=>{const t=x.n+' '+(x.ad||x.pref);try{navigator.clipboard.writeText(t).then(()=>toast('コピーしました'),()=>toast(t))}catch(e){toast(t)}};
   if(x.gone){const g=$('#spIn');if(g){g.disabled=true;g.textContent='閉園しました'}}
@@ -3652,7 +3652,7 @@ const WXT={
  dawn:['早起きですね。夜明け前の道は動物の飛び出しに注意','朝焼けが見られる時間です。東の空が開けた場所へ','早朝の道は空いていますが、眠気には気をつけて','夜明けの時間です。山の上なら雲海が見られるかもしれません','まだ薄暗い時間です。ライトを点けて走りましょう','早朝は霧が出やすい時間です。視界に気をつけて','朝一番の名所は人が少なく、写真もゆっくり撮れます','早起きの日は、昼すぎに眠くなりやすいので休憩を多めに','夜明け前の峠道は、動物が道に出てくることがあります','早朝の澄んだ空気の中を走るのは格別です'],
  morning:['おはようございます。今日も安全運転でいきましょう','朝のドライブは空いていて気持ちいいですね','出発前にタイヤの空気とガソリンをチェックしておくと安心','朝のうちに遠くの名所へ。午後は近場でのんびりが楽な回り方です','通勤の時間帯です。学校の近くでは子どもの飛び出しに注意','朝のうちに給油をすませておくと、一日安心です','今日の行き先は決まりましたか。行きたいリストを見てみては','朝は道の駅の朝市が開いていることもあります','朝の光は写真がきれいに撮れる時間です','出発前にミラーとシートの位置を確かめておきましょう'],
  noon:['お昼どきです。道の駅のご当地グルメはいかがですか','お昼は名所が混みやすい時間。少しずらして回ると快適です','ランチの後は眠くなりがち。無理せず休憩をはさみましょう','お昼ごはんは、ご当地の名物を探してみては','昼どきの道の駅は混みやすいので、少し早めのランチもおすすめ','食後すぐの運転は眠くなりがち。少し休んでから出発を','お昼休みに近くのスポットを1つ回ってみては','お昼は日差しが真上から当たり、車内が暑くなりやすい時間です','ランチのついでに、近くの名水や神社に寄ってみては','お昼どきは渋滞が少なめなことも。移動にいい時間です'],
- afternoon:['午後のひとときです。眠くなったら15分の仮眠が効きます','おやつの時間です。道の駅のソフトクリームで一休みは','午後は帰り道の渋滞を考えて、少し早めに折り返すのがおすすめ','午後の日差しで眠くなりやすい時間です。窓を少し開けて換気を','午後は帰り道のことも考えて、ガソリンの残りを確かめて','午後からでも行ける、近くのスポットを探してみては','夕方の渋滞が始まる前に、遠くの予定は済ませておくと楽です','午後は西日がまぶしくなってきます。サングラスがあると便利','午後のティータイムに、道の駅の名物スイーツはいかがですか','ひと休みのあいだに、今日行ったスポットを振り返ってみては'],
+ afternoon:['午後のひとときです。眠くなったら15分の仮眠が効きます','おやつの時間です。道の駅のソフトクリームで一休みはいかが','午後は帰り道の渋滞を考えて、少し早めに折り返すのがおすすめ','午後の日差しで眠くなりやすい時間です。窓を少し開けて換気を','午後は帰り道のことも考えて、ガソリンの残りを確かめて','午後からでも行ける、近くのスポットを探してみては','夕方の渋滞が始まる前に、遠くの予定は済ませておくと楽です','午後は西日がまぶしくなってきます。サングラスがあると便利','午後のティータイムに、道の駅の名物スイーツはいかがですか','ひと休みのあいだに、今日行ったスポットを振り返ってみては'],
  evening:['夕方は歩行者や自転車が見えにくい時間です。早めのライトを','夕方は帰宅ラッシュと重なります。時間に余裕をもって','今日のドライブはどうでしたか。旅のしおりで振り返ってみては','日が暮れてきました。歩行者の服が見えにくくなる時間です','夕方は眠気が出やすい時間です。少しでも眠いと感じたら休憩を','夕暮れの展望台から、街の明かりが灯る景色を眺めてみては','帰り道は、明るいうちに通った道を選ぶと安心です','夕方は動物が動き出す時間です。山道では特に注意','夕焼けのあとは一気に暗くなります。早めのライトを'],
  night:['夜道はスピード控えめに。動物の飛び出しにも気をつけて','今日もおつかれさまでした。帰り道も安全運転で','夜景スポットに寄って帰るのもいいですね','夜はハイビームを基本に、対向車が来たらこまめに切り替えて','夜のドライブは、メーターやナビの明るさを少し落とすと見やすくなります','夜は距離感がつかみにくくなります。車間を広めに','夜道で眠くなったら、無理せず仮眠をとりましょう','帰ったら、今日の旅のしおりを見返してみては','夜の峠道は、ライトの届く範囲で止まれる速度で','夜は対向車のライトを直接見ないよう、左の路肩を目安に'],
  late:['夜遅くのドライブです。眠気を感じたらすぐに休憩を','深夜は交通量が少なくても、スピードの出しすぎに注意','遅い時間までおつかれさまです。今日はゆっくり休んでくださいね','深夜は歩行者も少ないですが、急な横断に注意','夜更かしは翌日の運転に響きます。今日は早めに休みましょう','深夜の道の駅での休憩は、エンジンを切って静かに','深夜の運転は、窓を開けて空気を入れ替えると眠気が和らぎます','遅い時間は動物の飛び出しが増えます。山道は特に慎重に','深夜の道は、信号が点滅になっている交差点もあります','深夜は疲れが出やすい時間です。仮眠をとってからでも遅くありません'],
@@ -3662,7 +3662,7 @@ const WXT={
  monday:['週のはじまりです。今週も安全運転で','月曜日は少しのんびり。週末の旅のしおりを見返すのもいいですね','月曜日の朝は道が混みやすいです。時間に余裕をもって','新しい一週間のはじまり。週末の行き先を考えておくのも楽しみです','週末の疲れが残っていたら、無理をせずゆっくり運転を','月曜日は休館の美術館や博物館が多めです。行く前に確かめて','今週はどのスポットに行きましょうか'],
  friday:['金曜日です。週末のドライブの行き先を考えてみては','週末に向けて、ガソリンと空気圧を整えておくと安心です','金曜日の夕方は道が混みやすいので、時間に余裕を','週末の天気を見て、行き先を決めておくと出発がスムーズです','今週もおつかれさまでした。週末のドライブが楽しみですね','週末に向けて洗車をしておくと、気持ちよく出かけられます','金曜日の夜は、週末の計画を立てる楽しい時間です'],
  /* --- 月ごとの季節の話題 --- */
- m1:['新年は初詣のドライブはいかがですか。神社は午前中が比較的空いています','寒さのいちばん厳しい時期です。冬用タイヤの点検を','雪景色の名所が見ごろです。路面情報を確かめてから','寒さで朝の路面が凍りやすい時期です。橋やトンネルの出口に注意','冬の澄んだ空気で、遠くの山並みがよく見える季節です','雪の多い地方へ行くなら、チェーンを積んでおくと安心','初日の出や初詣の名所は混雑します。時間に余裕をもって','冬の峠は通行止めのところも。出かける前に確かめて'],
+ m1:['お正月は初詣を兼ねたドライブはいかがですか。神社は午前中が比較的空いています','寒さのいちばん厳しい時期です。冬用タイヤの点検を','雪景色の名所が見ごろです。路面情報を確かめてから','寒さで朝の路面が凍りやすい時期です。橋やトンネルの出口に注意','冬の澄んだ空気で、遠くの山並みがよく見える季節です','雪の多い地方へ行くなら、チェーンを積んでおくと安心','初日の出や初詣の名所は混雑します。時間に余裕をもって','冬の峠は通行止めのところも。出かける前に確かめて'],
  m2:['梅の便りが届きはじめる頃です。梅の名所を回ってみては','まだまだ雪の多い時期。峠越えは通行止めに注意','寒い日が続きます。温泉のある道の駅でひと休みを','一年でいちばん冷え込む頃です。路面の凍結に注意','雪まつりや冬のイベントの季節です','日が少しずつ長くなってきました','冬の湖や滝が凍る景色が見られる時期です','寒い時期はバッテリーが弱りがち。長く乗っていない車は注意'],
  m3:['春の気配です。そろそろ冬用タイヤから履き替えの準備を','梅から桜へ。南の地方では桜の便りも届きはじめます','花粉が多い季節です。エアコンのフィルター交換も考えてみては','冬季閉鎖の峠道が開くのは、地域によって4月以降のことも','春休みの時期は観光地が混みやすくなります','暖かくなって、オープンドライブが楽しい季節が近づいてきました','雪解けで山道に落石が増える時期です','春の嵐で風が強い日も。高い橋では横風に注意'],
  m4:['桜の季節です。花見の名所は朝早くが空いています','新緑がまぶしい季節。山あいの道が気持ちいい時期です','春の観光シーズン。人気の名所は駐車場の情報も確かめて','冬季閉鎖が明ける峠道が出てくる季節です','春の陽気で眠くなりやすい時期です。休憩をこまめに','新しい生活が始まる時期です。初心者マークの車には優しく','桜前線が北へ。北の地方の花見はこれからです','春の観光シーズン、名所めぐりの計画を立ててみては'],
@@ -4024,7 +4024,7 @@ function provText(){const p=(C.providers&&C.providers())||[];const n=p.map(x=>x=
      ${sw('sound','効果音','オフにすると、スポットの記録・交換・クラスアップのときの音が鳴らなくなります')}
    </div>
    <div class="sec">プロフィールの公開</div>
-   <div class="set">${sw('pubRewards','リワード（バッジ）を公開する','オフにすると、飾ったバッジも獲得したバッジも見えなくなります')}
+   <div class="set">${sw('pubRewards','リワード（バッジ・クラス）を公開する','オフにすると、飾ったバッジ・獲得したバッジ・クラスが見えなくなります')}
      ${sw('pubStats','交換回数・会った人数を公開する')}
      ${sw('pubEvents','参加したイベントを公開する','どのイベントに行ったかが相手に見えます')}
      ${sw('showSns','SNSリンクを表示する','オフにすると、ほかの人があなたのプロフィールを見たときに、SNSリンクが表示されなくなります')}
@@ -4034,7 +4034,7 @@ function provText(){const p=(C.providers&&C.providers())||[];const n=p.map(x=>x=
    <div class="set">${segRow('modeMin','交換の自動終了',[[3,'3分'],[5,'5分'],[10,'10分']])}
      ${segRow('reqFrom','交換の申し込みを受ける相手',[['all','誰からでも'],['known','会ったことがある人だけ']])}
      ${sw('pass','スポットのすれ違いを使う','同じスポットに前後30分以内に来た人を「すれ違った人」として表示します。オフにすると、あなたも相手の一覧に出ません')}
-     ${sw('showOpen','アプリを開いている間、近くの人に表示する','交換をはじめていなくても、近くの人の一覧に出て申し込みを受けられます。オフにすると、あなたからも見えなくなります')}
+     ${sw('showOpen','アプリを開いている間、近くの人に表示する','交換をはじめていなくても、近くの人の一覧に出て申し込みを受けられます。オフにすると、あなたの画面にもほかの人が表示されなくなります')}
 </div>
    <div class="sec">スポット</div>
    <div class="set">${routeRow()}${sw('autoIn','開いている間は、着いたら自動で記録する','タップしなくても印を押します。アプリを閉じている間の記録には、iPhone版アプリが対応しています')}</div>
@@ -4275,7 +4275,7 @@ function request(id,accepted,exArg){
     addEventListener('devicemotion',h);motionOff=()=>removeEventListener('devicemotion',h);getPos()};
   const self={peer:id,id:null,onEx:x=>{if(gone)return;
     if(x.state==='accepted'&&state==='asked'){state='accepted';setCheck('c1',true,'承認されました');ask()}
-    else if((x.state==='declined'||x.state==='cancel')&&!finished){stop();closeSheet();toast(x.state==='declined'?`${p.name}さんは今は交換できないようです`:`${p.name}さんがやめました`)}},
+    else if((x.state==='declined'||x.state==='cancel')&&!finished){stop();closeSheet();toast(x.state==='declined'?`${p.name}さんは今は交換できないようです`:`${p.name}さんが交換をやめました`)}},
     // 相手からの同時の申し込みに乗りかえる（自分の申し込みは取り消す）
     adopt:xid=>{if(gone||state!=='asked'||!exId||xid===exId)return;const old=exId;clearTimeout(askT);unSide();unSide=()=>{};
       exId=xid;self.id=xid;state='accepted';C.ex.update(old,{state:'cancel'}).catch(()=>{});setCheck('c1',true,'承認しました');accept()}};
@@ -4437,7 +4437,7 @@ function arrive(x){arrived.add(x.id);buzz([250,120,250]);sfx.chime(); // 運転�
 // Web版の自動記録：アプリを開いている間だけ、着いたらタップなしで印を押す（2026-10-06 鈴木さん）
 function webAutoRow(){return settings.autoIn
   ?`<div class="autorow"><span class="livedot"></span><div class="t"><b>自動記録オン（開いている間）</b><span>スポットに着いたら、タップしなくても印を押します</span></div><button class="seclink" id="wAutoOff">オフにする</button></div>`
-  :`<button class="autorow off press" id="wAutoOn"><span class="aico">${NAVI}</span><div class="t"><b>着いたら自動で記録する</b><span>アプリを開いている間だけ動きます（閉じている間の記録はiPhone版アプリで）</span></div><span class="val">›</span></button>`}
+  :`<button class="autorow off press" id="wAutoOn"><span class="aico">${NAVI}</span><div class="t"><b>着いたら自動で記録する</b><span>アプリを開いている間だけ動きます（閉じている間の記録はアプリ版で）</span></div><span class="val">›</span></button>`}
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#wAutoOn,#wAutoOff');if(!b)return;
   settings.autoIn=b.id==='wAutoOn';saveSet();render();if(settings.autoIn){getPos();toast('開いている間は、着いたら自動で記録します')}else toast('自動記録をオフにしました')});
 /* ストアスタンプ：協力店の範囲に5分いたら知らせる（アプリを開いている間だけ）。もらう直前にもう一度位置を確かめる */
@@ -4731,7 +4731,7 @@ function openMails(back){const L=mails.filter(m=>!blocked.has(m.from)).slice().r
 function openMail(id,back){const m=mails.find(v=>v.id===id);if(!m)return;const p=person(m.from),x=SP(m.spot);
   if(!m.read){m.read=true;saveMails();refreshMailBtn()}
   openSheet(`${cardFace(m.spot,m.d,mailStamp(m,120),{big:1})}<div class="result" style="padding-top:6px"><b style="font-size:18px">${esc(p?p.name:'退会したユーザー')} さんからのカード</b></div>
-   <button class="btn press" id="mlKeep" style="margin-top:14px"${m.kept?' disabled':''}>${m.kept?'コレクション済み':'コレクションする'}</button>
+   <button class="btn press" id="mlKeep" style="margin-top:14px"${m.kept?' disabled':''}>${m.kept?'コレクションに追加済み':'コレクションに入れる'}</button>
    <div class="row" style="margin-top:10px"><button class="btn sub press" id="mlBack">戻る</button><button class="btn sub press" id="mlDel"><span class="danger">削除</span></button></div>
    <div class="saferow"><button class="linkbtn press" id="mlRep">通報してブロック</button></div>`);
   hydratePho();
