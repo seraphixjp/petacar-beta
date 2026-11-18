@@ -580,13 +580,13 @@ textarea{width:100%;box-sizing:border-box;margin-top:6px;padding:10px 12px;borde
 .hwx{margin:10px 0 0;padding:10px 14px;border-radius:16px;background:var(--surface);display:grid;gap:3px}.hwx:empty{display:none}
 .hwx1{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}.hwxi{font-size:22px;line-height:1;align-self:center}.hwx1 b{font-size:13px;color:var(--muted)}.hwxt{font-weight:800;font-size:16px}
 .hwx .hi{color:#e8551c;font-weight:800;font-family:var(--mono)}.hwx .lo{color:#3b82f6;font-weight:800;font-family:var(--mono)}.hwxp{font-size:12.5px;color:var(--muted)}
-.hwx2{font-size:12px;color:var(--muted)}.hwx2 b{color:var(--ink);font-family:var(--mono)}.hwx2 small{display:block;font-size:10px;opacity:.6;margin-top:1px}.hwxice{color:#3b82f6;font-weight:700}
+.hwx2{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.hwx2 b{color:var(--ink);font-family:var(--mono)}.hwx2 small{display:block;font-size:10px;opacity:.6;margin-top:1px}.hwxice{color:#3b82f6;font-weight:700}
 .hwxb{border:0;background:none;color:var(--ink);font:700 14px var(--sans);display:flex;align-items:center;gap:8px;cursor:pointer;padding:2px 0;width:100%}.hwxb small{font-weight:500;font-size:11px;color:var(--muted);margin-left:auto}
 .hwxn{font-size:12px;color:var(--muted)}
 
 /* 天気の一言アドバイス（2026-11-17） */
-.hwxwarn{margin-top:4px;padding:7px 10px;border-radius:12px;background:rgba(245,158,11,.16);color:inherit;font-size:12.5px;font-weight:700;line-height:1.5;display:flex;gap:6px;align-items:flex-start}.hwxwarn.hi3{background:rgba(239,68,68,.16)}.hwxwarn small{display:block;font-size:10px;font-weight:500;color:var(--muted)}
-.hwxtip{margin-top:4px;padding:7px 10px;border-radius:12px;background:var(--fill);font-size:12.5px;font-weight:600;line-height:1.5;display:flex;gap:6px;align-items:flex-start}
+.hwxwarn{margin-top:4px;padding:5px 10px;border-radius:10px;background:rgba(245,158,11,.16);color:inherit;font-size:12.5px;font-weight:700;line-height:1.5;display:flex;gap:6px;align-items:center;white-space:nowrap}.hwxwarn span{overflow:hidden;text-overflow:ellipsis}.hwxwarn.hi3{background:rgba(239,68,68,.16)}.hwxwarn small{display:block;font-size:10px;font-weight:500;color:var(--muted)}
+.hwxtip{margin-top:4px;padding:6px 10px;border-radius:10px;background:var(--fill);font-size:12px;font-weight:600;line-height:1.45;display:flex;gap:6px;align-items:flex-start;height:calc(2.9em + 12px);box-sizing:border-box;overflow:hidden}.hwxtip span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .hwxtip span{flex:1}.hwxtip span.in{animation:tipin .45s ease}@keyframes tipin{from{opacity:0;transform:translateY(6px)}}
 .hwxsrc{font-size:10px;color:var(--muted);opacity:.6}
 
@@ -3699,7 +3699,7 @@ function flyBind(){const fb=$('#res [data-close][data-go=col]');if(!fb||!$('#res
 /* ===== マイスタンプの今日の天気（2026-11-17） ===== */
 const WXI=c=>c===0?'☀️':c<=2?'🌤️':c===3?'☁️':c<=48?'🌫️':c<=67?'🌧️':c<=77?'❄️':c<=82?'🌦️':c<=86?'🌨️':'⛈️';
 function hwxPlace(pos){const R=/^(.{2,3}?[都道府県])?(?:[^市区町村\s]+?郡)?([^\s]+?[市区町村])/,L=[];for(const x of SPOTS){if(x.la==null||x.cat==='st')continue;const d=dist1(pos,x);if(d<30)L.push([d,x])}L.sort((a,b)=>a[0]-b[0]);if(!L.length)return '';
-  for(const [d,x] of L.slice(0,12)){const m=String(x.ad||'').match(R);if(m)return (m[1]||String(x.pref||'').split('・')[0])+m[2]}return String(L[0][1].pref||'').split('・')[0]}
+  for(const [d,x] of L.slice(0,12)){const m=String(x.ad||'').match(R);if(m)return m[2]}return String(L[0][1].pref||'').split('・')[0]}
 const WXT={
  /* --- 危険・注意 --- */
  thunder:['雷雨の予報です。峠や山道では無理をせず、早めに切り上げましょう','雷が鳴りやすい空模様です。開けた場所での長居は避けましょう','急な雷雨に注意。怪しい雲が見えたら、屋根のあるところで一休みを','雷の日は車の中が比較的安全です。外の展望台より車内で様子を見て','ゲリラ雷雨はすぐ止むことも。道の駅で30分休むのも手です','雷の音が聞こえたら、山の上や河原からは早めに離れましょう','雷雨のあとは道路が冠水していることも。深い水たまりには入らないで','激しい雨で視界が悪いときは、無理に進まず安全な場所で雨が弱まるのを待ちましょう','落雷で信号が消えていたら、交差点は一時停止のつもりで','雷の日は、外で傘や自撮り棒を高く掲げないように'],
@@ -3824,8 +3824,8 @@ function homeWx(ask){const el=$('#hwx');if(!el)return;
   const put=w=>{const e=$('#hwx');if(!e||!w)return;const d=wxRest(w),c=d.weather_code[0],mn=d.temperature_2m_min[0]??d.temperature_2m_min[1]??null,pp=d.precipitation_probability_max&&d.precipitation_probability_max[0],tips=wxTips(c,Math.round(d.temperature_2m_max[0]??NaN),Math.round(mn??NaN),pp,st,{wind:d.wind_speed_10m_max&&d.wind_speed_10m_max[0],uv:d.uv_index_max&&d.uv_index_max[0],...wxSplit(w),tPP:d.precipitation_probability_max&&d.precipitation_probability_max[1],...wxWk(d),rainAgo:wxRainAgo(w)}),wv=wxWarnNow(pos);
     e.innerHTML=`<div class="hwx1"><span class="hwxi" aria-hidden="true">${WXI(c)}</span><b>今日の天気</b><span class="hwxt">${WXN(c)}</span><span class="hi">${wxR(d.temperature_2m_max[0])}</span><span class="lo">${wxR(mn)}</span>${pp!=null?`<span class="hwxp">雨${pp}%</span>`:''}</div>
       <div class="hwx2">${st?`日の入り <b>${st.set}</b>`:''}${pl?` · ${esc(pl)}付近`:''}${mn!=null&&mn<=3?' · <span class="hwxice">路面凍結に注意</span>':''}</div>
-      ${wv?`<div class="hwxwarn${wv.lv>=3?' hi3':''}" role="alert">⚠️ <span>${esc(wxPick(wv.lv>=3?'warn3':'warn',0,{name:wv.name}))}<small>現在地付近・気象庁</small></span></div>`:''}
-      ${tips.length?`<div class="hwxtip" id="hwxtip">💬 <span>${esc(tips[0])}</span></div>`:''}<small class="hwxsrc">天気：${w.src==='met'?'ノルウェー気象局（MET Norway）':w.src==='jma'?'気象庁':'Open-Meteo.com'}</small>`;
+      ${wv?`<div class="hwxwarn${wv.lv>=3?' hi3':''}" role="alert">⚠️ <span>${esc(wv.name)}</span></div>`:''}
+      ${tips.length?`<div class="hwxtip" id="hwxtip">💬 <span>${esc(tips[0])}</span></div>`:''}<small class="hwxsrc">天気：${w.src==='met'?'ノルウェー気象局（MET Norway）':w.src==='jma'?'気象庁':'Open-Meteo.com'}${wv?'／注意報・警報：気象庁':''}</small>`;
     clearInterval(hwxTimer);if(tips.length>1&&!calm()){let i=0;hwxTimer=setInterval(()=>{const t=$('#hwxtip span');if(!t){clearInterval(hwxTimer);return}i=(i+1)%tips.length;t.classList.remove('in');void t.offsetWidth;t.textContent=tips[i];t.classList.add('in')},15000)}};
   const kh='h'+k,wp=wxWarn(pos).catch(()=>null);if(WX[kh]&&Date.now()-WX[kh].at<18e5&&WX[kh].d===today()){put(WX[kh].w);wp.then(v=>{if(v&&v.length&&WX[kh])put(WX[kh].w)});return}
   if(!el.innerHTML)el.innerHTML='<small class="hwxn">天気を読み込んでいます…</small>';
