@@ -586,7 +586,7 @@ textarea{width:100%;box-sizing:border-box;margin-top:6px;padding:10px 12px;borde
 
 /* 天気の一言アドバイス（2026-11-17） */
 .hwxwarn{margin-top:4px;padding:5px 10px;border-radius:10px;background:rgba(245,158,11,.16);color:inherit;font-size:12.5px;font-weight:700;line-height:1.5;display:flex;gap:6px;align-items:center;white-space:nowrap}.hwxwarn span{overflow:hidden;text-overflow:ellipsis}.hwxwarn.hi3{background:rgba(239,68,68,.16)}.hwxwarn small{display:block;font-size:10px;font-weight:500;color:var(--muted)}
-.hwxtip{margin-top:4px;padding:6px 10px;border-radius:10px;background:var(--fill);font-size:12px;font-weight:600;line-height:1.45;display:flex;gap:6px;align-items:flex-start;height:calc(2.9em + 12px);box-sizing:border-box;overflow:hidden}.hwxtip span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.hwxtip{margin-top:4px;padding:6px 10px;border-radius:10px;background:var(--fill);font-size:12px;font-weight:600;line-height:1.45;display:flex;gap:6px;align-items:center;height:calc(1.45em + 12px);box-sizing:border-box;overflow:hidden}.hwxtip span{overflow:hidden;min-width:0;white-space:nowrap}.hwxtip .mq{display:inline-block;font-style:normal;will-change:transform}@media (prefers-reduced-motion: reduce){.hwxtip{height:auto;min-height:calc(1.45em + 12px)}.hwxtip span{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}}
 .hwxtip span{flex:1}.hwxtip span.in{animation:tipin .45s ease}@keyframes tipin{from{opacity:0;transform:translateY(6px)}}
 .hwxsrc{font-size:10px;color:var(--muted);opacity:.6}
 
@@ -3811,6 +3811,9 @@ function wxTips(c,hi,lo,pp,st,x={}){const T=[],now=new Date(),m=now.getMonth()+1
   if(!(now.getDate()%2))P('app'); // アプリの案内は偶数日だけ
   return T.slice(0,8)}
 let hwxTimer=0;
+function hwxMq(sp){const m=sp&&sp.querySelector('.mq');if(!m||calm()||!m.animate)return;setTimeout(()=>{if(!m.isConnected)return;const d=m.scrollWidth-sp.clientWidth;if(d<=2)return;
+  const run=d/30*1000,T=run+3000; // 1秒に30pxで流す。最初1.5秒・最後1.5秒止まる
+  m.animate([{transform:'translateX(0)'},{transform:'translateX(0)',offset:1500/T},{transform:`translateX(${-d}px)`,offset:(1500+run)/T},{transform:`translateX(${-d}px)`}],{duration:T,iterations:Infinity,easing:'linear'})},60)}
 function homeWx(ask){const el=$('#hwx');if(!el)return;
   const sv=store.get('wxpos1',null),pos=here&&!here.demo&&here.la!=null?{la:here.la,lo:here.lo}:sv&&Date.now()-sv.at<216e5?sv:null;
   const btn=()=>{const e=$('#hwx');if(!e)return;e.innerHTML=`<button class="hwxb press" id="hwxb">${WXI(1)} 今日の天気を見る<small>現在地を使います</small></button>`;$('#hwxb').onclick=()=>homeWx(true)}; // 位置の許可の確認は非同期なので、その間に描き直されていても動くように探し直す
@@ -3823,8 +3826,8 @@ function homeWx(ask){const el=$('#hwx');if(!el)return;
     e.innerHTML=`<div class="hwx1"><span class="hwxi" aria-hidden="true">${WXI(c)}</span><b>今日の天気</b><span class="hwxt">${WXN(c)}</span><span class="hi">${wxR(d.temperature_2m_max[0])}</span><span class="lo">${wxR(mn)}</span>${pp!=null?`<span class="hwxp">雨${pp}%</span>`:''}</div>
       <div class="hwx2">${st?`日の入り <b>${st.set}</b>`:''}${pl?` · ${esc(pl)}付近`:''}${mn!=null&&mn<=3?' · <span class="hwxice">路面凍結に注意</span>':''}</div>
       ${wv?`<div class="hwxwarn${wv.lv>=3?' hi3':''}" role="alert">⚠️ <span>${esc(wv.name)}</span></div>`:''}
-      ${tips.length?`<div class="hwxtip" id="hwxtip">💬 <span>${esc(tips[0])}</span></div>`:''}<small class="hwxsrc">天気：${w.src==='met'?'ノルウェー気象局（MET Norway）':w.src==='jma'?'気象庁':'Open-Meteo.com'}${wv?'／注意報・警報：気象庁':''}</small>`;
-    clearInterval(hwxTimer);if(tips.length>1&&!calm()){let i=0;hwxTimer=setInterval(()=>{const t=$('#hwxtip span');if(!t){clearInterval(hwxTimer);return}i=(i+1)%tips.length;t.classList.remove('in');void t.offsetWidth;t.textContent=tips[i];t.classList.add('in')},15000)}};
+      ${tips.length?`<div class="hwxtip" id="hwxtip">💬 <span><i class="mq">${esc(tips[0])}</i></span></div>`:''}<small class="hwxsrc">天気：${w.src==='met'?'ノルウェー気象局（MET Norway）':w.src==='jma'?'気象庁':'Open-Meteo.com'}${wv?'／注意報・警報：気象庁':''}</small>`;
+    clearInterval(hwxTimer);hwxMq($('#hwxtip span'));if(tips.length>1&&!calm()){let i=0;hwxTimer=setInterval(()=>{const t=$('#hwxtip span');if(!t){clearInterval(hwxTimer);return}i=(i+1)%tips.length;t.classList.remove('in');void t.offsetWidth;t.innerHTML='<i class="mq"></i>';t.firstChild.textContent=tips[i];t.classList.add('in');hwxMq(t)},15000)}};
   const kh='h'+k,wp=wxWarn(pos).catch(()=>null);if(WX[kh]&&Date.now()-WX[kh].at<18e5&&WX[kh].d===today()){put(WX[kh].w);wp.then(v=>{if(v&&v.length&&WX[kh])put(WX[kh].w)});return}
   if(!el.innerHTML)el.innerHTML='<small class="hwxn">天気を読み込んでいます…</small>';
   wxFetch(`https://api.open-meteo.com/v1/forecast?latitude=${pos.la}&longitude=${pos.lo}&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max,uv_index_max&timezone=Asia%2FTokyo&&hourly=weather_code,precipitation_probability,precipitation&forecast_days=3`).then(w=>{if(!w.daily)throw 0;WX[kh]={w,at:Date.now(),d:today()};return wp.then(()=>put(w))}).catch(()=>{if(WX[kh]&&WX[kh].d===today())return put(WX[kh].w);const e=$('#hwx');if(e)e.innerHTML='<small class="hwxn">天気を読み込めませんでした（時間をおいて開き直してください）</small>'})}
