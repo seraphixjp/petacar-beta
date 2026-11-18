@@ -3334,7 +3334,8 @@ function sunTimes(la,lo,d=new Date()){const r=Math.PI/180,j=Date.UTC(d.getFullYe
 // 天気（Open-Meteo・登録不要・開いたときだけ読む。30分は使い回す）
 const WX={},WXN=c=>c===0?'快晴':c<=2?'晴れ':c===3?'くもり':c<=48?'霧':c<=57?'霧雨':c<=67?'雨':c<=77?'雪':c<=82?'にわか雨':c<=86?'にわか雪':'雷雨';
 // 天気の取得：8秒で打ち切る（予報APIが落ちていると、いつまでも返ってこないことがある）
-const wxFetch=u=>{const ac=window.AbortController?new AbortController():null,t=setTimeout(()=>ac&&ac.abort(),8000);return fetch(u,ac?{signal:ac.signal}:{}).then(r=>{if(!r.ok)throw 0;return r.json()}).then(j=>{clearTimeout(t);return j},e=>{clearTimeout(t);throw e})};
+const wxFetch=u=>wxFetch1(u).catch(()=>new Promise(r=>setTimeout(r,3000)).then(()=>wxFetch1(u))); // 1回だけ取り直す
+const wxFetch1=u=>{const ac=window.AbortController?new AbortController():null,t=setTimeout(()=>ac&&ac.abort(),12000);return fetch(u,ac?{signal:ac.signal}:{}).then(r=>{if(!r.ok)throw 0;return r.json()}).then(j=>{clearTimeout(t);return j},e=>{clearTimeout(t);throw e})};
 // 今日の分だけ「今の時刻から後」の1時間ごとの予報で置き換える（もう止んだ雨を数えない）
 function wxRest(w){const d=w.daily;if(!w.hourly||!w.hourly.time||!d)return d;const h=w.hourly,t0=today(),hr=new Date().getHours(),o={...d};
   const ix=h.time.map((t,i)=>[t,i]).filter(([t])=>t.slice(0,10)===t0&&+t.slice(11,13)>=hr).map(x=>x[1]);if(!ix.length)return d;
