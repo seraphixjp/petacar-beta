@@ -2905,7 +2905,7 @@ function tripOf(d){const sp=spotlog.map((v,i)=>({...v,i})).filter(v=>v.d===d&&SP
   return {d,spots,ppl,ex,km,legs,pass:ps.length,passes:ps,niceS:ps.filter(x=>x.nice).length,niceG:ps.filter(x=>x.got).length,photos:phoOfDay(d),prefs:[...new Set(spots.map(v=>SP(v.id).pref.split('・')[0]))]}}
 const kmTxt=k=>k<1?'1km未満':'約'+(k<10?k.toFixed(1):Math.round(k))+'km';
 /* --- ドライブの記録：オンにした人だけ。アプリを開いている間の位置を、2分か500mごとに1点だけ、端末の中（IndexedDB rt）に保存。サーバーには送らない --- */
-const RT_KM=.5,RT_MS=120e3;
+const RT_KM=.1,RT_MS=120e3; // 2026-11-18 500m→100mごと（GPSの取り方は同じ・残す点が増えるだけ）
 let rtWatch=null,rtDay=null,rtPts=[],rtLast=null;
 async function rtGet(d){if(d===rtDay)return rtPts;let a=null;try{a=await PDB.rget(d)}catch(e){}return Array.isArray(a)?a:[]}
 async function rtAdd(la,lo,acc,t){if(!(acc<=200)||!isFinite(la)||!isFinite(lo))return;const d=ymd(new Date(t));
