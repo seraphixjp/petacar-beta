@@ -761,10 +761,10 @@ textarea{width:100%;box-sizing:border-box;margin-top:6px;padding:10px 12px;borde
 .smrt,.smdk{position:absolute;right:10px;z-index:500;width:44px;height:44px;border-radius:50%;border:0;background:var(--bg);color:var(--ink);box-shadow:0 2px 10px rgba(0,0,0,.25);display:grid;place-items:center;cursor:pointer}
 .smrt{bottom:calc(118px + env(safe-area-inset-bottom,0px))}.smdk{bottom:calc(170px + env(safe-area-inset-bottom,0px))}
 .smrt[aria-pressed="true"]{background:#e8453c;color:#fff}.smdk[aria-pressed="true"]{background:#2b2f36;color:#ffd54a}
-.smap.dk .smapc{background:#1c1f24}.smap.dk .smapc .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.92)}
+.smap.dk .smapc{background:#1e2227}.smap.dk .smapc .smtile{filter:invert(.88) hue-rotate(180deg) brightness(1.25) contrast(.9)}
 .smrtbar{position:absolute;left:10px;top:calc(max(10px,env(safe-area-inset-top)) + 46px);z-index:550;display:flex;align-items:center;gap:2px;background:var(--bg);border-radius:999px;box-shadow:0 2px 10px rgba(0,0,0,.25);padding:3px;max-width:calc(100% - 76px)}
 .smrtbar button{border:0;background:none;color:var(--ink);width:34px;height:34px;border-radius:50%;font-size:15px;cursor:pointer;flex:none}.smrtbar button:disabled{opacity:.3}
-.smrtbar span{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 4px}.smrtbar span b{color:#e8453c}
+.smrtbar span{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 4px}.smrtbar span b{color:#e8453c}.smrtbar .smrtlive{font-style:normal;font-size:11px;color:#e8453c;margin-left:4px;animation:smlive 1.6s ease-in-out infinite}@keyframes smlive{50%{opacity:.35}}
 .smlist{position:absolute;left:0;right:0;bottom:0;max-height:62%;z-index:700;background:var(--bg);border-radius:20px 20px 0 0;box-shadow:0 -6px 24px rgba(0,0,0,.3);overflow:auto;padding:6px 14px calc(14px + env(safe-area-inset-bottom,0px));animation:up .25s cubic-bezier(.2,.8,.2,1)}
 .smlh{position:sticky;top:0;background:var(--bg);display:flex;align-items:baseline;gap:8px;padding:10px 0 8px;z-index:1}.smlh b{font-size:15px}.smlh span{font-size:12px;color:var(--muted);flex:1}
 .smlx{border:0;background:var(--surface);color:var(--ink);width:30px;height:30px;border-radius:50%;font-size:18px;cursor:pointer}
@@ -1494,10 +1494,25 @@ function smBase(L){
   const pale=()=>{if(smMap)L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png',{maxZoom:18,maxNativeZoom:18,className:'smtile',attribution:'<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">地理院タイル</a>'}).addTo(smMap)};
   loadMapLibre().then(st=>{
     if(!smMap)return;if(!st){pale();return}
-    try{L.maplibreGL({style:JSON.parse(JSON.stringify(st)),attributionControl:false}).addTo(smMap);
+    try{smSty=st;smGL=L.maplibreGL({style:settings.mapDark?smDarkStyle(st):JSON.parse(JSON.stringify(st)),attributionControl:false}).addTo(smMap);
       smMap.attributionControl.addAttribution('<a href="https://openfreemap.org" target="_blank" rel="noopener">OpenFreeMap</a> © <a href="https://www.openmaptiles.org/" target="_blank" rel="noopener">OpenMapTiles</a> © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>')}
     catch(e){pale()}});
 }
+/* 地図のダーク（2026-11-18）：反転だと白い細道が背景に沈むので、配色を暗い版に作り替える */
+let smGL=null,smSty=null;
+function smDarkStyle(st){st=JSON.parse(JSON.stringify(st));
+  const road=id=>/motorway/.test(id)?'#f0a64a':/trunk_primary/.test(id)?'#e8d27c':/secondary_tertiary/.test(id)?'#cfd3d8':/minor|street|link|service_track/.test(id)?'#a3a9b1':/path|pedestrian/.test(id)?'#6f757e':null;
+  st.layers.forEach(l=>{const id=l.id,p=l.paint=l.paint||{};
+    if(l.type==='background')p['background-color']='#1e2227';
+    else if(l.type==='raster')l.layout=Object.assign({},l.layout,{visibility:'none'});
+    else if(l.type==='fill'){delete p['fill-pattern'];p['fill-color']=id==='water'?'#163047':/park|wood|grass|wetland|pitch|cemetery/.test(id)?'#203026':/building/.test(id)?'#2b3037':id==='road_area_pattern'?'#2a2e34':'#23272d';p['fill-outline-color']=p['fill-color']}
+    else if(l.type==='fill-extrusion')p['fill-extrusion-color']='#2b3037';
+    else if(l.type==='line'){delete p['line-pattern'];
+      p['line-color']=/casing/.test(id)?'#0f1215':/waterway/.test(id)?'#22506f':/hatching/.test(id)?'#1e2227':/rail/.test(id)?'#5d636b':/boundary/.test(id)?'#6a7078':/park_outline/.test(id)?'#2c3a30':/aeroway/.test(id)?'#3a3f46':road(id)||p['line-color']}
+    else if(l.type==='symbol'&&l.layout&&l.layout['text-field']&&!/shield/.test(id)){p['text-color']=/water/.test(id)?'#8fb4d6':'#e6e8eb';p['text-halo-color']='rgba(14,16,19,.9)';p['text-halo-width']=1.4}});
+  return st}
+function smApplyDark(){const m=$('.smap');if(m)m.classList.toggle('dk',!!settings.mapDark);
+  try{if(smGL&&smSty)smGL.getMaplibreMap().setStyle(settings.mapDark?smDarkStyle(smSty):JSON.parse(JSON.stringify(smSty)))}catch(e){}}
 /* 地図を開いている間は画面を消さない（2026-11-17） */
 let smWL=null;
 function smAwake(on){
@@ -1533,12 +1548,12 @@ function openSpotMap(focusId){
     <div class="smleg" id="smleg"></div>
     <button class="smloc press" id="smloc" aria-label="現在地を表示"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3.2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="7.5"/></svg></button>
     <button class="smlb press" id="smlb" aria-label="この辺りのスポットを一覧で見る"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1.2" fill="currentColor"/><circle cx="4" cy="12" r="1.2" fill="currentColor"/><circle cx="4" cy="18" r="1.2" fill="currentColor"/></svg></button>
-    <button class="smrt press" id="smrt" aria-pressed="false" aria-label="その日に走ったルートを重ねる"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="18" r="2"/><circle cx="19" cy="6" r="2"/><path d="M7 18h7a3.5 3.5 0 0 0 0-7h-4a3.5 3.5 0 0 1 0-7h7"/></svg></button>
+    <button class="smrt press" id="smrt" aria-pressed="false" aria-label="今日走ったルートを重ねる"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="18" r="2"/><circle cx="19" cy="6" r="2"/><path d="M7 18h7a3.5 3.5 0 0 0 0-7h-4a3.5 3.5 0 0 1 0-7h7"/></svg></button>
     <button class="smdk press" id="smdk" aria-pressed="${!!settings.mapDark}" aria-label="地図を暗くする"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg></button>
     <div id="smrtbar"></div><div id="smcard"></div><div id="smlist"></div></div>`;
   $('#smx').onclick=closeSpotMap;
   $('.smap').classList.toggle('dk',!!settings.mapDark);
-  $('#smdk').onclick=()=>{settings.mapDark=!settings.mapDark;saveSet();$('.smap').classList.toggle('dk',settings.mapDark);$('#smdk').setAttribute('aria-pressed',settings.mapDark)};
+  $('#smdk').onclick=()=>{settings.mapDark=!settings.mapDark;saveSet();smApplyDark();$('#smdk').setAttribute('aria-pressed',settings.mapDark)};
   $('#smrt').onclick=()=>smRtDay?smRtShow(null):smRtOpen();
   $$('[data-smc]').forEach(b=>b.onclick=()=>{spotCat=b.dataset.smc;spotLim=40;$$('[data-smc]').forEach(o=>o.setAttribute('aria-pressed',o===b));smCard(null);smDraw(true)});
   $('#smloc').onclick=smLocate;
@@ -1566,29 +1581,30 @@ function openSpotMap(focusId){
     if(f)smCard(f.id);
   }).catch(()=>{const c=$('#smapc');if(c)c.innerHTML='<div class="smmsg">地図を読み込めませんでした。<br>電波のよいところでもう一度開いてください。</div>'});
 }
-/* その日走ったルートを地図に重ねる（2026-11-18） */
-let smRtL=null,smRtDay=null,smRtDays=[];
+/* 今日走ったルートを地図に重ねる（2026-11-18）：今日だけ。表示中は動くたびに線を伸ばす */
+let smRtL=null,smRtDay=null,smRtLive=[],smRtT=0;
 async function smRtOpen(){
-  const all=await rtDays(),on=supOn(me),lim=rtLim();
-  smRtDays=[];for(const d of all){if(!on&&d<lim)continue;const p=await rtGet(d);if(p.length>=2)smRtDays.push(d)}
-  if(!smRtDays.length){toast(all.length&&!on?`${RT_FREE}日より前のルートはサポーター限定です`:'まだルートがありません。旅のしおりの「ドライブを記録する」をオンにすると、走った道が地図に出せます');return}
-  smRtShow(smRtDays.includes(today())?today():smRtDays[smRtDays.length-1])}
-async function smRtShow(d){
-  if(smRtL){smRtL.remove();smRtL=null}smRtDay=d;
-  const b=$('#smrt'),bar=$('#smrtbar');if(b)b.setAttribute('aria-pressed',!!d);
-  if(!d||!smMap){if(bar)bar.innerHTML='';return}
-  const L=window.L,pts=await rtGet(d);if(!smMap||smRtDay!==d)return;
+  smRtDay=today();smRtLive=[];const b=$('#smrt');if(b)b.setAttribute('aria-pressed',true);
+  await smRtDraw(true);smStartWatch();
+  if(!settings.route)toast('「ドライブを記録する」がオフなので、地図を開いている間の動きだけを線にします')}
+function smRtShow(d){if(d)return smRtOpen();smRtDay=null;smRtLive=[];if(smRtL){smRtL.remove();smRtL=null}
+  const b=$('#smrt'),bar=$('#smrtbar');if(b)b.setAttribute('aria-pressed',false);if(bar)bar.innerHTML=''}
+async function smRtPts(){const d=today();if(smRtDay!==d){smRtDay=d;smRtLive=[]} // 日付が変わったら今日の分に切り替え
+  const rec=await rtGet(d);return settings.route?rec:rec.concat(smRtLive)}
+function smRtTick(c){if(!smRtDay||!(c.accuracy<=100))return;const t=Date.now();
+  if(!settings.route){const q=smRtLive[smRtLive.length-1];if(!q||dist({la:q[0],lo:q[1]},{la:c.latitude,lo:c.longitude})>=.02)smRtLive.push([+c.latitude.toFixed(5),+c.longitude.toFixed(5),t])}
+  if(t-smRtT>3000){smRtT=t;smRtDraw(false)}} // 描き直しは3秒に1回まで
+async function smRtDraw(fit){
+  const L=window.L,bar=$('#smrtbar');if(!smMap||!smRtDay)return;const pts=await smRtPts();if(!smMap||!smRtDay)return;
+  if(smRtL){smRtL.remove();smRtL=null}smRtL=L.layerGroup().addTo(smMap);
   const segs=[[]];for(let i=0;i<pts.length;i++){if(i&&dist({la:pts[i-1][0],lo:pts[i-1][1]},{la:pts[i][0],lo:pts[i][1]})>3)segs.push([]);segs[segs.length-1].push([pts[i][0],pts[i][1]])}
-  smRtL=L.layerGroup().addTo(smMap);
   segs.filter(g=>g.length>1).forEach(g=>{L.polyline(g,{color:'#fff',weight:7,opacity:.9,interactive:false}).addTo(smRtL);L.polyline(g,{color:'#e8453c',weight:4,opacity:.95,interactive:false}).addTo(smRtL)});
-  const a=pts[0],z=pts[pts.length-1];
-  L.circleMarker([a[0],a[1]],{radius:5,weight:2,color:'#e8453c',fillColor:'#fff',fillOpacity:1,interactive:false}).addTo(smRtL);
-  L.circleMarker([z[0],z[1]],{radius:5,weight:2,color:'#fff',fillColor:'#e8453c',fillOpacity:1,interactive:false}).addTo(smRtL);
-  smSetFollow(false);smMap.fitBounds(pts.map(p=>[p[0],p[1]]),{padding:[50,50],maxZoom:15});
-  const i=smRtDays.indexOf(d),dt=new Date(d+'T12:00:00'),km=rtKm(pts),wd='日月火水木金土'[dt.getDay()];
   const tm=t=>{const x=new Date(t);return x.getHours()+':'+String(x.getMinutes()).padStart(2,'0')};
-  if(bar)bar.innerHTML=`<div class="smrtbar"><button class="press" id="smrtp" aria-label="前の日" ${i<=0?'disabled':''}>◀</button><span><b>${d===today()?'今日':`${dt.getMonth()+1}/${dt.getDate()}（${wd}）`}</b> ${km<10?km.toFixed(1):Math.round(km)}km · ${tm(a[2])}〜${tm(z[2])}</span><button class="press" id="smrtn" aria-label="次の日" ${i>=smRtDays.length-1?'disabled':''}>▶</button><button class="press" id="smrtx" aria-label="ルートを消す">×</button></div>`;
-  $('#smrtp').onclick=()=>smRtShow(smRtDays[i-1]);$('#smrtn').onclick=()=>smRtShow(smRtDays[i+1]);$('#smrtx').onclick=()=>smRtShow(null)}
+  if(pts.length){const a=pts[0];L.circleMarker([a[0],a[1]],{radius:5,weight:2,color:'#e8453c',fillColor:'#fff',fillOpacity:1,interactive:false}).addTo(smRtL)}
+  if(fit&&pts.length>=2){smSetFollow(false);smMap.fitBounds(pts.map(p=>[p[0],p[1]]),{padding:[50,50],maxZoom:15})}
+  const km=rtKm(pts);
+  if(bar)bar.innerHTML=`<div class="smrtbar"><span><b>今日</b> ${pts.length>=2?`${km<10?km.toFixed(1):Math.round(km)}km · ${tm(pts[0][2])}〜`:'まだ走っていません'} <i class="smrtlive">● ライブ</i></span><button class="press" id="smrtx" aria-label="ルートを消す">×</button></div>`;
+  const x=$('#smrtx');if(x)x.onclick=()=>smRtShow(null)}
 /* 地図の駅（2026-11-17）：すべて表示のとき、寄って見たら駅を小さな点で */
 function smStDraw(){
   if(!smMap)return;if(smSt){smSt.remove();smSt=null}
@@ -1665,7 +1681,7 @@ function smSetHead(c){
 /* 地図を開いている間だけ現在地を見て、青い点を動かす。位置の許可がまだの人には、地図を開いただけでは聞かない（現在地ボタンを押したときから） */
 function smStartWatch(){
   if(smWatch!=null||!navigator.geolocation)return;
-  smWatch=navigator.geolocation.watchPosition(p=>{if(!smMap)return;smSetHead(p.coords);here={la:p.coords.latitude,lo:p.coords.longitude,label:'現在地'};smShowMe()},()=>{},{enableHighAccuracy:true,maximumAge:5000,timeout:30000});
+  smWatch=navigator.geolocation.watchPosition(p=>{if(!smMap)return;smSetHead(p.coords);here={la:p.coords.latitude,lo:p.coords.longitude,label:'現在地'};smShowMe();if(smRtDay)smRtTick(p.coords)},()=>{},{enableHighAccuracy:true,maximumAge:5000,timeout:30000});
 }
 function smSetFollow(on){smFollow=on;const b=$('#smloc');if(b){b.classList.toggle('on',on);b.setAttribute('aria-pressed',on)}}
 function smLocate(quiet){
@@ -1675,7 +1691,7 @@ function smLocate(quiet){
   navigator.geolocation.getCurrentPosition(p=>{here={la:p.coords.latitude,lo:p.coords.longitude,label:'現在地'};spotSort='near';if(smMap&&smFollow)smMap.setView([here.la,here.lo],Math.max(smMap.getZoom(),13));smShowMe();smStartWatch()},
     ()=>{if(quiet!==true)toast('現在地を取得できませんでした')},{timeout:8000,maximumAge:60000});
 }
-function closeSpotMap(){smSt=null;smAwake(false);smCompassStop();if(smWatch!=null){navigator.geolocation.clearWatch(smWatch);smWatch=null}if(smMap){smMap.remove();smMap=null}smLayer=smMe=smSel=smRd=null;smHead=smPrev=null;smRtL=null;smRtDay=null;$('#smap').innerHTML='';render()}
+function closeSpotMap(){smSt=null;smAwake(false);smCompassStop();if(smWatch!=null){navigator.geolocation.clearWatch(smWatch);smWatch=null}if(smMap){smMap.remove();smMap=null}smLayer=smMe=smSel=smRd=null;smHead=smPrev=null;smRtL=null;smRtDay=null;smRtLive=[];smGL=null;$('#smap').innerHTML='';render()}
 
 /* ===== 今月のお題（月ごとに決まったお題なので、運営の作業も保存もいらない。全員同じお題）
    2026年9月までは毎月1つ。2026年10月から毎月3つ（1つ目は今までと同じ選び方なので、10月の1つ目はそのまま） ===== */
