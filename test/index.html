@@ -2380,6 +2380,7 @@ function wrapImage(w){
   return cv.toDataURL('image/png');
 }
 /* SNSシェア用のプロフィール画像（2026-10-08 鈴木さん）：プロフィール・リワードの合計・交換回数・レア度の高いリワード6個 */
+const SHARE_STORE='https://apps.apple.com/jp/app/id6820120031'; // Android版を公開したら、ストア共通のページに替える
 const SHARE_URL='https://seraphixjp.github.io/petacar-beta/';
 async function svgToImg(svg){const defs=(document.getElementById('gBr')||{}).parentNode;
   if(!/\bxmlns=/.test(svg.slice(0,svg.indexOf('>')+1)))svg=svg.replace('<svg ','<svg xmlns="http://www.w3.org/2000/svg" ');
@@ -2416,7 +2417,7 @@ function shareFriends(n){const c={},last={};log.forEach(l=>{if(!l.pid)return;c[l
   const ids=Object.keys(c).filter(id=>person(id)).sort((x,y)=>(favs.has(y)-favs.has(x))||(c[y]-c[x])||String(last[y]).localeCompare(String(last[x])));
   return {list:ids.slice(0,n).map(id=>({p:person(id),fav:favs.has(id)})),total:ids.length}}
 async function shareImage(){
-  const s=myStats(),got=gotList(s),top=topBadges(s,6),r=rpgOf(s),fr=shareFriends(10);
+  const s=myStats(),got=gotList(s),top=myPins().map(k=>got.find(b=>b.k===k)).filter(Boolean).slice(0,8),r=rpgOf(s),fr=shareFriends(10);
   const W=1080,H=1350,cv=document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d');
   try{await document.fonts.ready}catch(e){}
   const dim=await drawBg(g,W,H,me);
@@ -2442,12 +2443,12 @@ async function shareImage(){
     for(let i=n-1;i>=0;i--){const p=fr.list[i].p,b=best(p.id)||{},c=await stampCanvas(stamp(p,{size:2*R,ev:b.ev,sz:b.sz,fr:b.fr||p.frame,v:b.v,im:b.im,rg:b.rg}),4*R);if(c){g.save();g.shadowColor='rgba(0,0,0,.45)';g.shadowBlur=12;g.shadowOffsetY=3;g.drawImage(c,x0+i*step-R*1.08,800-R*1.08,R*2.16,R*2.16);g.restore()}else await disc(p,x0+i*step,800,R)}
     fr.list.forEach((f,i)=>{if(!f.fav)return;const x=x0+i*step+R*.62,y=800-R*.7;g.beginPath();g.arc(x,y,15,0,Math.PI*2);g.fillStyle='#ffd23f';g.fill();g.lineWidth=3;g.strokeStyle='#121820';g.stroke();T('★',x,y+8,20,'700','center','#121820')});
     if(more>0){const x=x0+(n-1)*step+R+52;box(x-40,800-30,80,60,30,'rgba(255,255,255,.2)');T(`+${more}`,x,811,30,'700','center','#fff','"JetBrains Mono",monospace')}}
-  // レアなリワード
-  T(top.length?'レアなリワード':'まだリワードはありません',W/2,906,30,'700','center','rgba(255,255,255,.92)');
+  // プロフィールに飾っているリワード（最大8個・4列×2段。1段だけなら真ん中寄せ）
+  T(top.length?'飾っているリワード':'まだリワードはありません',W/2,906,30,'700','center','rgba(255,255,255,.92)');
   const imgs=await Promise.all(top.map(b=>svgToImg(medal(b,200,true))));
-  top.forEach((b,i)=>{const col=i%3,row=Math.floor(i/3),x=90+col*310,y=926+row*132;box(x,y,280,120,24,'rgba(255,255,255,.1)','rgba(255,255,255,.22)');
-    const m=imgs[i];if(m)g.drawImage(m,x+12,y+12,96,96);
-    const tsz=fit(b.t,148,25,'700','"Zen Kaku Gothic New",sans-serif');T(b.t,x+118,y+58,tsz,'700','left');T(TIERS[b.tier].n,x+118,y+92,21,'500','left','rgba(255,255,255,.75)')});
+  top.forEach((b,i)=>{const col=i%4,row=Math.floor(i/4),inRow=Math.min(4,top.length-row*4),x=(W-(inRow*216+(inRow-1)*16))/2+col*232,y=926+row*136;box(x,y,216,128,24,'rgba(255,255,255,.1)','rgba(255,255,255,.22)');
+    const m=imgs[i];if(m)g.drawImage(m,x+108-36,y+8,72,72);
+    const tsz=fit(b.t,196,24,'700','"Zen Kaku Gothic New",sans-serif');T(b.t,x+108,y+104,tsz,'700','center');T(TIERS[b.tier].n,x+108,y+124,17,'500','center','rgba(255,255,255,.7)')});
   // 下の帯：ロゴ・アプリ名・（本番は）QRコード
   box(60,1200,960,124,30,'rgba(255,255,255,.95)');
   drawLogo(g,82,1214,96);
@@ -2458,7 +2459,7 @@ async function shareImage(){
   else{box(690,1226,306,72,36,'#e8551c');T('クルマの出会いを記録',843,1273,26,'700','center','#fff')}
   return cv}
 function openShare(){
-  openSheet(`<b style="font-size:18px;display:block;text-align:center">SNSでシェア</b><p class="note" style="text-align:center;margin:4px 0 10px">プロフィールと集めたリワードを1枚の画像にします</p>
+  openSheet(`<b style="font-size:18px;display:block;text-align:center">SNSでシェア</b><p class="note" style="text-align:center;margin:4px 0 10px">プロフィールと飾っているリワードを1枚の画像にします</p>
    <div id="shimg" style="text-align:center"><p class="note">共有画像を作成しています…</p></div>
    <label class="f" style="margin-top:12px">投稿文<textarea id="shText" rows="5" style="width:100%;font:inherit;font-size:13px;line-height:1.6;padding:10px;border-radius:12px;border:1px solid var(--line);background:var(--fill);color:var(--ink);resize:vertical">${esc(profileShareText())}</textarea></label>
    <div class="row" style="margin-top:12px"><button class="btn sub press" id="shsave" disabled>${DLI}画像を保存</button><button class="btn press" id="shgo" disabled>${SHI}シェアする</button></div>
@@ -3157,11 +3158,11 @@ function tripShareText(t){const d=t.d,km=t.km>=1?(t.km<10?t.km.toFixed(1):Math.r
   const head=`${+d.slice(5,7)}/${+d.slice(8)}（${wdOf(d)}）の旅しおり🚗`;
   const body=[t.prefs.length?`${t.prefs.slice(0,3).join('・')}を${km?km+'走って':'めぐって'}、${t.spots.length}か所に立ち寄りました。`:'',names.length?`📍${names.join(' → ')}${t.spots.length>3?' ほか':''}`:'',
     t.ppl.length?`🤝 ${t.ppl.length}人とスタンプ交換${t.pass?`・すれ違い${t.pass}人`:''}`:t.pass?`👋 すれ違い${t.pass}人`:'',t.niceS+t.niceG?`♥ ナイス！${t.niceS+t.niceG}`:''].filter(Boolean);
-  return [head,...body,'#ペタカー #旅のしおり #ドライブ #クルマ好きと繋がりたい'].join('\n')}
+  return [head,...body,'#ペタカー!',SHARE_STORE].join('\n')}
 function profileShareText(){const s=myStats(),r=rpgOf(s),car=carLabel(me);
   return [`ペタカー!で「Lv.${r.L} ${r.cls}」になりました🚗✨`,car&&car!=='未設定'&&car!=='その他 未設定'?`相棒は ${car}。`:'',
     `🤝 ${met().length}人のクルマ好きと${log.length}回スタンプ交換`,`📍 ${spotSet().size}か所をめぐって、リワードは${gotList(s).length}個`,kmSum()>=1?`🚗 これまでの移動 ${kmFmt(kmSum())}km`:'',
-    '会ったときだけ交換できる、クルマのスタンプアプリです','#ペタカー #クルマ好きと繋がりたい #愛車'].filter(Boolean).join('\n')}
+    '会ったときだけ交換できる、クルマのスタンプアプリです','#ペタカー!',SHARE_STORE].filter(Boolean).join('\n')}
 // コレクション・プロフィールに出す相手のクラス（リワードを公開している人だけ）
 function clsMini(id,big){const ps=PST[id];if(!ps||ps.showRewards===false||ps.hidden)return '';const r=rpgOf(ps);if(r.L<=1&&r.cls==='ビギナー')return '';
   return big?`<div style="margin-top:-2px">${clsChip({...r,title:''})}</div>`:`<span class="clsm">Lv.${r.L} ${esc(r.cls)}</span>`}
@@ -3328,12 +3329,14 @@ function sunTimes(la,lo,d=new Date()){const r=Math.PI/180,j=Date.UTC(d.getFullYe
   if(cw<-1||cw>1)return null;const w=Math.acos(cw)/r/360,f=x=>new Date((x-2440587.5)*864e5).toLocaleTimeString('ja-JP',{timeZone:'Asia/Tokyo',hour:'2-digit',minute:'2-digit'});return {rise:f(Jt-w),set:f(Jt+w)}}
 // 天気（Open-Meteo・登録不要・開いたときだけ読む。30分は使い回す）
 const WX={},WXN=c=>c===0?'快晴':c<=2?'晴れ':c===3?'くもり':c<=48?'霧':c<=57?'霧雨':c<=67?'雨':c<=77?'雪':c<=82?'にわか雨':c<=86?'にわか雪':'雷雨';
+// 天気の取得：8秒で打ち切る（予報APIが落ちていると、いつまでも返ってこないことがある）
+const wxFetch=u=>{const ac=window.AbortController?new AbortController():null,t=setTimeout(()=>ac&&ac.abort(),8000);return fetch(u,ac?{signal:ac.signal}:{}).then(r=>{clearTimeout(t);if(!r.ok)throw 0;return r.json()},e=>{clearTimeout(t);throw e})};
 function spWeather(x){const el=$('#spWx');if(!el||x.la==null)return;const k=x.la.toFixed(2)+','+x.lo.toFixed(2);
   const day=(d,i,lb)=>`<div><b>${lb}</b> ${WXN(d.weather_code[i])} <span class="hi">${Math.round(d.temperature_2m_max[i])}℃</span>/<span class="lo">${Math.round(d.temperature_2m_min[i])}℃</span>${d.precipitation_probability_max&&d.precipitation_probability_max[i]!=null?` · 雨${d.precipitation_probability_max[i]}%`:''}</div>`;
   const put=w=>{const e=$('#spWx');if(!e||!w)return;const d=w.daily,mn=Math.min(d.temperature_2m_min[0],d.temperature_2m_min[1]);
     e.innerHTML=`<div class="wxr">${day(d,0,'今日')}${day(d,1,'明日')}</div>${mn<=3?`<div class="wxice"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 2v20M3.3 7l17.4 10M3.3 17L20.7 7M9 4l3 2 3-2M9 20l3-2 3 2"/></svg><span><b>路面凍結に注意</b>最低${Math.round(mn)}℃の予報です</span></div>`:''}<small class="srcsm">天気：Open-Meteo.com</small>`};
   if(WX[k]&&Date.now()-WX[k].at<18e5)return put(WX[k].w);
-  fetch(`https://api.open-meteo.com/v1/forecast?latitude=${x.la}&longitude=${x.lo}&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Asia%2FTokyo&forecast_days=2`).then(r=>r.json()).then(w=>{if(!w.daily)throw 0;WX[k]={w,at:Date.now()};put(w)}).catch(()=>{const e=$('#spWx');if(e)e.innerHTML='<small>天気を読み込めませんでした（電波の届くところで開き直してください）</small>'})}
+  wxFetch(`https://api.open-meteo.com/v1/forecast?latitude=${x.la}&longitude=${x.lo}&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Asia%2FTokyo&forecast_days=2`).then(w=>{if(!w.daily)throw 0;WX[k]={w,at:Date.now()};put(w)}).catch(()=>{if(WX[k])return put(WX[k].w);const e=$('#spWx');if(e)e.innerHTML='<small>天気を読み込めませんでした（時間をおいて開き直してください）</small>'})}
 // 冬季閉鎖（12〜4月だけ表示）
 const winNow=()=>{const m=new Date().getMonth()+1;return m>=12||m<=4};
 // 行きたいリスト（設定と一緒に保存＝クラウドにも残る）
@@ -3724,7 +3727,7 @@ function homeWx(ask){const el=$('#hwx');if(!el)return;
     clearInterval(hwxTimer);if(tips.length>1&&!calm()){let i=0;hwxTimer=setInterval(()=>{const t=$('#hwxtip span');if(!t){clearInterval(hwxTimer);return}i=(i+1)%tips.length;t.classList.remove('in');void t.offsetWidth;t.textContent=tips[i];t.classList.add('in')},15000)}};
   const kh='h'+k;if(WX[kh]&&Date.now()-WX[kh].at<18e5)return put(WX[kh].w);
   if(!el.innerHTML)el.innerHTML='<small class="hwxn">天気を読み込んでいます…</small>';
-  fetch(`https://api.open-meteo.com/v1/forecast?latitude=${pos.la}&longitude=${pos.lo}&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max,uv_index_max&timezone=Asia%2FTokyo&forecast_days=2`).then(r=>r.json()).then(w=>{if(!w.daily)throw 0;WX[kh]={w,at:Date.now()};put(w)}).catch(()=>{const e=$('#hwx');if(e)e.innerHTML='<small class="hwxn">天気を読み込めませんでした</small>'})}
+  wxFetch(`https://api.open-meteo.com/v1/forecast?latitude=${pos.la}&longitude=${pos.lo}&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max,uv_index_max&timezone=Asia%2FTokyo&forecast_days=2`).then(w=>{if(!w.daily)throw 0;WX[kh]={w,at:Date.now()};put(w)}).catch(()=>{if(WX[kh])return put(WX[kh].w);const e=$('#hwx');if(e)e.innerHTML='<small class="hwxn">天気を読み込めませんでした（時間をおいて開き直してください）</small>'})}
 function render(){
   clearInterval(modeTimer);
   if(tab==='rw'&&lastTab!=='rw'){newShown=unseen();seenB=gotKeys();store.set('seen2',seenB)}else if(tab!=='rw')newShown=[];
