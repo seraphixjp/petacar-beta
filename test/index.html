@@ -3334,8 +3334,25 @@ function sunTimes(la,lo,d=new Date()){const r=Math.PI/180,j=Date.UTC(d.getFullYe
 // 天気（Open-Meteo・登録不要・開いたときだけ読む。30分は使い回す）
 const WX={},WXN=c=>c===0?'快晴':c<=2?'晴れ':c===3?'くもり':c<=48?'霧':c<=57?'霧雨':c<=67?'雨':c<=77?'雪':c<=82?'にわか雨':c<=86?'にわか雪':'雷雨';
 // 天気の取得：8秒で打ち切る（予報APIが落ちていると、いつまでも返ってこないことがある）
-const wxFetch=u=>wxFetch1(u).catch(()=>new Promise(r=>setTimeout(r,3000)).then(()=>wxFetch1(u))); // 1回だけ取り直す
-const wxFetch1=u=>{const ac=window.AbortController?new AbortController():null,t=setTimeout(()=>ac&&ac.abort(),12000);return fetch(u,ac?{signal:ac.signal}:{}).then(r=>{if(!r.ok)throw 0;return r.json()}).then(j=>{clearTimeout(t);return j},e=>{clearTimeout(t);throw e})};
+let wxOmDown=0; // Open-Meteo が返らなかった時刻（10分は予備を先に使う）
+const wxFetch=u=>{const om=()=>wxFetch1(u).catch(e=>{wxOmDown=Date.now();throw e});
+  return Date.now()-wxOmDown<6e5?wxMet(u).catch(()=>wxFetch1(u)):om().catch(()=>wxMet(u)).catch(()=>new Promise(r=>setTimeout(r,2000)).then(()=>wxFetch1(u)))};
+// 予備：ノルウェー気象局の予報を Open-Meteo と同じ形にする（日本時間の今日・明日）
+const MET_WC=s=>{s=String(s||'').replace(/_(day|night|polartwilight)$/,'');if(/thunder/.test(s))return 95;const sh=/showers/.test(s),hv=/^heavy/.test(s),lt=/^light/.test(s);
+  if(/snow/.test(s))return sh?(hv?86:85):(hv?75:lt?71:73);if(/rain|sleet/.test(s))return sh?(hv?82:lt?80:81):(hv?65:lt?61:63);
+  return {clearsky:0,fair:1,partlycloudy:2,cloudy:3,fog:45}[s]??3};
+function wxMet(u){const q=new URL(u).searchParams,la=(+q.get('latitude')).toFixed(3),lo=(+q.get('longitude')).toFixed(3);
+  const ac=window.AbortController?new AbortController():null,t=setTimeout(()=>ac&&ac.abort(),10000);
+  return fetch(`https://api.met.no/weatherapi/locationforecast/2.0/complete?lat=${la}&lon=${lo}`,ac?{signal:ac.signal}:{}).then(r=>{if(!r.ok)throw 0;return r.json()}).then(j=>{clearTimeout(t);
+    const J=iso=>{const d=new Date(new Date(iso).getTime()+9*36e5);return d.toISOString().slice(0,13)+':00'};
+    const ts=(j.properties&&j.properties.timeseries||[]).filter(x=>x.data&&x.data.next_1_hours),t0=today(),t1=new Date(new Date(t0+'T12:00:00+09:00').getTime()+864e5+9*36e5).toISOString().slice(0,10);
+    const H={time:[],weather_code:[],precipitation_probability:[]},D={time:[t0,t1],weather_code:[],temperature_2m_max:[],temperature_2m_min:[],precipitation_probability_max:[null,null],wind_speed_10m_max:[],uv_index_max:[]};
+    ts.forEach(x=>{H.time.push(J(x.time));H.weather_code.push(MET_WC(x.data.next_1_hours.summary.symbol_code));H.precipitation_probability.push(null)});
+    [t0,t1].forEach(d=>{const L=ts.filter(x=>J(x.time).slice(0,10)===d);if(!L.length)throw 0;const tp=L.map(x=>x.data.instant.details.air_temperature);
+      D.weather_code.push(Math.max(...L.map(x=>MET_WC(x.data.next_1_hours.summary.symbol_code))));D.temperature_2m_max.push(Math.max(...tp));D.temperature_2m_min.push(Math.min(...tp));
+      D.wind_speed_10m_max.push(Math.max(...L.map(x=>x.data.instant.details.wind_speed||0))*3.6);D.uv_index_max.push(Math.max(...L.map(x=>x.data.instant.details.ultraviolet_index_clear_sky||0)))});
+    return {daily:D,hourly:H,src:'met'}},e=>{clearTimeout(t);throw e})}
+const wxFetch1=u=>{const ac=window.AbortController?new AbortController():null,t=setTimeout(()=>ac&&ac.abort(),8000);return fetch(u,ac?{signal:ac.signal}:{}).then(r=>{if(!r.ok)throw 0;return r.json()}).then(j=>{clearTimeout(t);return j},e=>{clearTimeout(t);throw e})};
 // 今日の分だけ「今の時刻から後」の1時間ごとの予報で置き換える（もう止んだ雨を数えない）
 function wxRest(w){const d=w.daily;if(!w.hourly||!w.hourly.time||!d)return d;const h=w.hourly,t0=today(),hr=new Date().getHours(),o={...d};
   const ix=h.time.map((t,i)=>[t,i]).filter(([t])=>t.slice(0,10)===t0&&+t.slice(11,13)>=hr).map(x=>x[1]);if(!ix.length)return d;
@@ -3349,7 +3366,7 @@ function wxSplit(w){const h=w&&w.hourly;if(!h||!h.time||!h.precipitation_probabi
 function spWeather(x){const el=$('#spWx');if(!el||x.la==null)return;const k=x.la.toFixed(2)+','+x.lo.toFixed(2);el.dataset.k=k;
   const day=(d,i,lb)=>`<div><b>${lb}</b> ${WXN(d.weather_code[i])} <span class="hi">${Math.round(d.temperature_2m_max[i])}℃</span>/<span class="lo">${Math.round(d.temperature_2m_min[i])}℃</span>${d.precipitation_probability_max&&d.precipitation_probability_max[i]!=null?` · 雨${d.precipitation_probability_max[i]}%`:''}</div>`;
   const put=w=>{const e=$('#spWx');if(!e||!w||e.dataset.k!==k)return;const d=wxRest(w),mn=Math.min(d.temperature_2m_min[0],d.temperature_2m_min[1]);
-    e.innerHTML=`<div class="wxr">${day(d,0,'今日')}${day(d,1,'明日')}</div>${mn<=3?`<div class="wxice"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 2v20M3.3 7l17.4 10M3.3 17L20.7 7M9 4l3 2 3-2M9 20l3-2 3 2"/></svg><span><b>路面凍結に注意</b>最低${Math.round(mn)}℃の予報です</span></div>`:''}<small class="srcsm">天気：Open-Meteo.com</small>`};
+    e.innerHTML=`<div class="wxr">${day(d,0,'今日')}${day(d,1,'明日')}</div>${mn<=3?`<div class="wxice"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 2v20M3.3 7l17.4 10M3.3 17L20.7 7M9 4l3 2 3-2M9 20l3-2 3 2"/></svg><span><b>路面凍結に注意</b>最低${Math.round(mn)}℃の予報です</span></div>`:''}<small class="srcsm">天気：${w.src==='met'?'ノルウェー気象局（MET Norway）':'Open-Meteo.com'}</small>`};
   if(WX[k]&&Date.now()-WX[k].at<18e5&&WX[k].d===today())return put(WX[k].w);
   wxFetch(`https://api.open-meteo.com/v1/forecast?latitude=${x.la}&longitude=${x.lo}&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Asia%2FTokyo&&hourly=weather_code,precipitation_probability&forecast_days=2`).then(w=>{if(!w.daily)throw 0;WX[k]={w,at:Date.now(),d:today()};put(w)}).catch(()=>{if(WX[k]&&WX[k].d===today())return put(WX[k].w);const e=$('#spWx');if(e&&e.dataset.k===k)e.innerHTML='<small>天気を読み込めませんでした（時間をおいて開き直してください）</small>'})}
 // 冬季閉鎖（12〜4月だけ表示）
@@ -3743,7 +3760,7 @@ function homeWx(ask){const el=$('#hwx');if(!el)return;
   const put=w=>{const e=$('#hwx');if(!e||!w)return;const d=wxRest(w),c=d.weather_code[0],mn=d.temperature_2m_min[0],pp=d.precipitation_probability_max&&d.precipitation_probability_max[0],tips=wxTips(c,Math.round(d.temperature_2m_max[0]),Math.round(mn),pp,st,{wind:d.wind_speed_10m_max&&d.wind_speed_10m_max[0],uv:d.uv_index_max&&d.uv_index_max[0],...wxSplit(w),tPP:d.precipitation_probability_max&&d.precipitation_probability_max[1]});
     e.innerHTML=`<div class="hwx1"><span class="hwxi" aria-hidden="true">${WXI(c)}</span><b>今日の天気</b><span class="hwxt">${WXN(c)}</span><span class="hi">${Math.round(d.temperature_2m_max[0])}℃</span><span class="lo">${Math.round(mn)}℃</span>${pp!=null?`<span class="hwxp">雨${pp}%</span>`:''}</div>
       <div class="hwx2">${st?`日の入り <b>${st.set}</b>`:''}${pl?` · ${esc(pl)}付近`:''}${mn<=3?' · <span class="hwxice">路面凍結に注意</span>':''}</div>
-      ${tips.length?`<div class="hwxtip" id="hwxtip">💬 <span>${esc(tips[0])}</span></div>`:''}<small class="hwxsrc">天気：Open-Meteo.com</small>`;
+      ${tips.length?`<div class="hwxtip" id="hwxtip">💬 <span>${esc(tips[0])}</span></div>`:''}<small class="hwxsrc">天気：${w.src==='met'?'ノルウェー気象局（MET Norway）':'Open-Meteo.com'}</small>`;
     clearInterval(hwxTimer);if(tips.length>1&&!calm()){let i=0;hwxTimer=setInterval(()=>{const t=$('#hwxtip span');if(!t){clearInterval(hwxTimer);return}i=(i+1)%tips.length;t.classList.remove('in');void t.offsetWidth;t.textContent=tips[i];t.classList.add('in')},15000)}};
   const kh='h'+k;if(WX[kh]&&Date.now()-WX[kh].at<18e5&&WX[kh].d===today())return put(WX[kh].w);
   if(!el.innerHTML)el.innerHTML='<small class="hwxn">天気を読み込んでいます…</small>';
