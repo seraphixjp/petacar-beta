@@ -13,7 +13,7 @@ async function nativeCred(A, kind) {
   const r = await FA.signInWithGoogle({ skipNativeAuth: true }); return A.GoogleAuthProvider.credential(r.credential.idToken);
 }
 const gate = document.getElementById('gate');
-const LOCAL_KEYS = ['colv2', 'sort2', 'rtPend', 'sfKeep']; // sfKeep＝閉じている間に押した印の控え（2026-11-17・クラウドに保存できないまま読み込み直すと消えていた）                 // per-device view preferences
+const LOCAL_KEYS = ['colv2', 'sort2', 'rtPend', 'sfKeep', 'wxpos1']; // wxpos1＝天気に使う現在地（2026-11-18・別の端末にスマホの現在地の天気が出ていた）。sfKeep＝閉じている間に押した印の控え（2026-11-17・クラウドに保存できないまま読み込み直すと消えていた）                 // per-device view preferences
 const PROFILE_SYNC = ['me2', 'log2', 'spot2', 'pins2', 'set2']; // keys that change what others see
 const people = (window.__people = window.__people || []);
 const peopleCbs = [];
