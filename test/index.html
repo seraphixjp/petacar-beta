@@ -3336,7 +3336,11 @@ const WX={},WXN=c=>c===0?'快晴':c<=2?'晴れ':c===3?'くもり':c<=48?'霧':c<
 // 天気の取得：8秒で打ち切る（予報APIが落ちていると、いつまでも返ってこないことがある）
 let wxOmDown=0; // Open-Meteo が返らなかった時刻（10分は予備を先に使う）
 const wxFetch=u=>{const om=()=>wxFetch1(u).catch(e=>{wxOmDown=Date.now();throw e});
-  return Date.now()-wxOmDown<6e5?wxMet(u).catch(()=>wxFetch1(u)):om().catch(()=>wxMet(u)).catch(()=>new Promise(r=>setTimeout(r,2000)).then(()=>wxFetch1(u)))};
+  const bk=()=>wxHf(u).catch(()=>wxMet(u));
+  return Date.now()-wxOmDown<6e5?bk().catch(()=>wxFetch1(u)):om().catch(bk).catch(()=>new Promise(r=>setTimeout(r,2000)).then(()=>wxFetch1(u)))};
+// 予備①：Open-Meteo の別サーバー（過去予報API）。今日・明日を日付で指定する
+const wxHf=u=>{const t1=new Date(new Date(today()+'T12:00:00+09:00').getTime()+864e5+9*36e5).toISOString().slice(0,10);
+  return wxFetch1(u.replace('https://api.open-meteo.com/','https://historical-forecast-api.open-meteo.com/').replace('&forecast_days=2','')+`&start_date=${today()}&end_date=${t1}`).then(w=>{if(!w.daily||!w.daily.temperature_2m_max||w.daily.temperature_2m_max[1]==null)throw 0;return w})};
 // 予備：ノルウェー気象局の予報を Open-Meteo と同じ形にする（日本時間の今日・明日）
 const MET_WC=s=>{s=String(s||'').replace(/_(day|night|polartwilight)$/,'');if(/thunder/.test(s))return 95;const sh=/showers/.test(s),hv=/^heavy/.test(s),lt=/^light/.test(s);
   if(/snow/.test(s))return sh?(hv?86:85):(hv?75:lt?71:73);if(/rain|sleet/.test(s))return sh?(hv?82:lt?80:81):(hv?65:lt?61:63);
