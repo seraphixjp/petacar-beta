@@ -1306,7 +1306,7 @@ for(const x of SPOTS){const a=SPOT_ALT[x.id];if(a&&a.length){x.la=a[0][0];x.lo=a
 const SPOT_OLD={...SPOT_ALIAS,kanra:'eki:9:道の駅 甘楽',daikoku:'pa:13:大黒PA'}; // 改名・統合したスポットの旧id→新id（記録は読み込み時に付け替える）
 
 const SPMAP=new Map(SPOTS.map(x=>[x.id,x]));const SP=id=>SPMAP.get(id);
-// 閉園・閉鎖でスポット一覧から外したもの。一覧・地図・自動記録には出さず、過去の記録・フォトスタ・すれ違いの表示のためだけに名前を残す（2026-11-17 鈴木さん）
+// 閉園・閉鎖でスポット一覧から外したもの。一覧・地図・自動記録には出さず、過去の記録・フォトカード・すれ違いの表示のためだけに名前を残す（2026-11-17 鈴木さん）
 const SPOT_RETIRED=[{"id": "tp:27:淡路ワールドパークONOKORO", "n": "淡路ワールドパークONOKORO", "cat": "tp", "pref": "兵庫", "la": 34.41575, "lo": 134.89841, "ad": "淡路市塩田新島8-5", "nt": "世界の建築物ミニチュアと遊園地", "gone": 1}, {"id": "tg:3:笹ノ峠", "n": "笹ノ峠", "cat": "tg", "pref": "宮城", "la": 37.81028, "lo": 140.69177, "ad": "宮城県丸森町筆甫", "nt": "県道45号の峠", "gone": 1}, {"id": "tg:28:平石峠", "n": "平石峠", "cat": "tg", "pref": "奈良", "la": 34.50234, "lo": 135.67331, "ad": "奈良県葛城市竹内", "nt": "県道704号の峠", "gone": 1}, {"id": "tg:27:駒返峠", "n": "駒返峠", "cat": "tg", "pref": "兵庫", "la": 35.52411, "lo": 134.91944, "ad": "兵庫県豊岡市出石町奥小野", "nt": "県道706号の峠", "gone": 1}, {"id": "tg:27:鴨内峠", "n": "鴨内峠", "cat": "tg", "pref": "兵庫", "la": 35.23169, "lo": 135.0671, "ad": "兵庫県丹波市氷上町鴨内", "nt": "県道282号の峠", "gone": 1}, {"id": "tg:27:瓶割峠", "n": "瓶割峠", "cat": "tg", "pref": "兵庫", "la": 35.12496, "lo": 135.12571, "ad": "兵庫県丹波市春日町国領", "nt": "県道138号の峠", "gone": 1}, {"id": "tg:27:原峠", "n": "原峠", "cat": "tg", "pref": "兵庫", "la": 35.0461, "lo": 135.3382, "ad": "兵庫県丹波篠山市福住", "nt": "県道309号の峠", "gone": 1}, {"id": "cir:16:大日スポーツランド", "n": "大日スポーツランド", "cat": "cir", "pref": "石川", "la": 36.2938, "lo": 136.5603, "ad": "石川県白山市阿手町", "nt": "", "gone": 1, "why": "営業しているか確認中のため、一時的に一覧から外しています。"}];SPOT_RETIRED.forEach(x=>SPMAP.set(x.id,x));
 /* 全国の鉄道駅（国土数値情報 N02-2024・約9,000駅）。別ファイルを後から読み込む */
 let ST_READY=false;const ST_R=200;
@@ -2119,7 +2119,7 @@ const views={
   ${openSec()}`;
  },
  col(){
-  if(colView==='peta')colView='shop';if(colView==='pho')colView='card'; // フォトスタはカードにまとめた（2026-11-17）
+  if(colView==='peta')colView='shop';if(colView==='pho')colView='card'; // フォトカードはカードにまとめた（2026-11-17）
   const seg=`<div class="spnav colnav" role="group" aria-label="表示">${[['stamp','スタンプ',COLI.stamp],['card','フォトカード',COLI.cam],['shop','公式協力店',COLI.shop]].map(([k,t,ic])=>`<button class="press" data-cv="${k}" aria-pressed="${colView===k}">${ic}<span>${t}</span></button>`).join('')}</div>${zkBanner()}`;
   if(colView==='zukan')return seg+zukan();
   if(colView==='shop')return seg+(SHOPS.length?shopsView():petaStore());
@@ -2661,15 +2661,15 @@ const NTAG={info:['お知らせ','var(--accent)'],event:['イベント','#2f6fd6
 const NEWS=[
  {id:'r9',d:'2026-11-17',tag:'update',pin:true,act:'upd11',t:'【大型アップデート】Ver 1.1「旅する相棒」',b:'相棒と一緒に、スポットめぐりの旅がもっと楽しくなりました。\n\n・クラスに相棒：格が上がると姿も変わります。\n・ジョブを自由に転職：そのジョブのスポットに1か所でも行くと転職できます。格はジョブごとの経験値で上がります。\n・写真と紹介文：約3,000か所のスポットに写真と紹介文がつきました。\n・絶景とダムカード：夕日・夜景の名所を新しい種類「絶景」として追加。ダムではダムカードの配布情報も見られます。\n・天気と凍結注意：スポットの今日・明日の天気、日の出・日の入り、路面凍結の注意を表示します。\n・コースと行きたいリスト：本州四端・伝説の峠などのテーマ別コースと、気になるスポットの登録ができます。\n・総移動距離：クラス画面とSNSシェアに、これまでの移動距離が出ます。'},
  {id:'r1',d:'2026-11-01',tag:'info',pin:true,t:'ペタカー! 正式版を公開しました',b:'ペタカー!をご利用いただき、ありがとうございます。iPhone版をApp Storeで公開しました。Android版は公開の準備を進めています。\n\nベータ版から使っていただいている方の記録は、そのまま引き継がれています。\n\nはじめての方は、マイスタンプで愛車の写真からスタンプを作成してください。会った人とは「交換をはじめる」→相手を選ぶ→2人で同時にスマホを振る、の手順でスタンプを交換できます。\n\nご意見や不具合のご報告は、設定の「お問い合わせ・不具合の報告」からお寄せください。'},
- {id:'r8',d:'2026-11-11',tag:'update',t:'フォトスタンプの写真を入れ直せるようになりました',b:'・写真：フォトスタンプの写真がこの端末から消えて縞模様になったときは、その写真を開いて「写真を入れ直す」からアルバムの写真で直せます。日付とスポットはそのままです。\n・アプリ版は写真を端末のファイルにも保存するようにして、消えにくくしました。\n・スポットの紹介：道の駅・PA・神社・寺などに紹介を約800か所追加しました（全国「道の駅」連絡会の公式サイトやWikidataの公開情報をもとにしています）。\n・一部のスポットの住所を直しました。'},
+ {id:'r8',d:'2026-11-11',tag:'update',t:'フォトカードの写真を入れ直せるようになりました',b:'・写真：フォトカードの写真がこの端末から消えて縞模様になったときは、その写真を開いて「写真を入れ直す」からアルバムの写真で直せます。日付とスポットはそのままです。\n・アプリ版は写真を端末のファイルにも保存するようにして、消えにくくしました。\n・スポットの紹介：道の駅・PA・神社・寺などに紹介を約800か所追加しました（全国「道の駅」連絡会の公式サイトやWikidataの公開情報をもとにしています）。\n・一部のスポットの住所を直しました。'},
  {id:'r7',d:'2026-11-10',tag:'update',t:'スポットに紹介文と公式サイトを追加しました',b:'・スポットの紹介：神社・城・寺・ダム・道の駅・PAなど約2,000か所に、ひとことの紹介や豆知識を付けました。Wikipedia日本語版などの公開情報をもとにしています。\n・公式サイト：公式サイトがあるスポットは、スポットの画面から開けるようになりました。\n・地図：「行っていないところだけ」に絞り込めるようになり、地図はいつでも白い地図で表示します。\n・手紙は1日3通までになりました。\n・そのほか、お気に入りの★が縁に隠れる不具合などを直しました。'},
- {id:'r6',d:'2026-11-06',tag:'update',t:'サポーターの特典が増えました（iPhone版）',b:'iPhone版のスタンプとフォトスタンプの保存枚数に上限ができました。サポーターでない方はスタンプ300枚・フォトスタンプ100枚まで、サポーターはスタンプ1,500枚・フォトスタンプ2,000枚までです。\n\nすでに上限を超えている方の分は消えません。新しく増やせなくなるだけで、持っている人とはこれまでどおり交換できます。'},
- {id:'r5',d:'2026-11-05',tag:'update',t:'手紙と機種変更の引き継ぎができるようになりました',b:'・手紙：フォトスタンプを、交換したことがある人に送れるようになりました。受け取りたくないときは、設定でオフにできます。\n・機種変更の引き継ぎ：設定の「データの持ち出し」から、写真をコードで新しいスマホへ移せます。\n・クラウドバックアップ：サポーターの方は、フォトスタンプを預けて、スマホをなくしても戻せるようになりました（希望する方だけ）。'},
+ {id:'r6',d:'2026-11-06',tag:'update',t:'サポーターの特典が増えました（iPhone版）',b:'iPhone版のスタンプとフォトカードの保存枚数に上限ができました。サポーターでない方はスタンプ300枚・フォトカード100枚まで、サポーターはスタンプ1,500枚・フォトカード2,000枚までです。\n\nすでに上限を超えている方の分は消えません。新しく増やせなくなるだけで、持っている人とはこれまでどおり交換できます。'},
+ {id:'r5',d:'2026-11-05',tag:'update',t:'手紙と機種変更の引き継ぎができるようになりました',b:'・手紙：フォトカードを、交換したことがある人に送れるようになりました。受け取りたくないときは、設定でオフにできます。\n・機種変更の引き継ぎ：設定の「データの持ち出し」から、写真をコードで新しいスマホへ移せます。\n・クラウドバックアップ：サポーターの方は、フォトカードを預けて、スマホをなくしても戻せるようになりました（希望する方だけ）。'},
  {id:'r2',d:'2026-11-01',tag:'update',t:'地図が見やすくなりました',b:'スポットの地図を新しくしました。道や地名が読みやすくなっています。\n\n・まだ行っていないスポットは種類の色、行ったスポットは灰色で出ます。\n・地図を開くと、自分の位置が真ん中に来て、移動に合わせて地図もついてきます。地図を指で動かすと止まり、右下のボタンでまた自分の位置に戻ります。\n・丸をタップするとスポットの名前が出て、「詳しく」からナビも開けます。'},
  {id:'r3',d:'2026-10-26',tag:'update',t:'サポーターを始めました（iPhone版）',b:'ペタカー!の運営を応援していただけるサポーター（月額）を始めました。設定の「サポーター」から申し込めます。\n\nサポーターになると、名前の横に星が付き、サポーター限定の縁でスタンプを交換できます。ガレージにも5台まで車を登録できます（サポーターでない方は2台まで）。いただいたお金は、サーバー代と新しい機能の開発に使います。'},
  {id:'r4',d:'2026-11-01',tag:'update',t:'iPhone版の使い勝手を良くしました',b:'・スタンプやスタンプ帳の画像を、写真アプリに直接保存できるようになりました。\n・設定の自動記録の欄に、いま動いているか・止まっている理由が出るようになりました。\n・金のバッジのデザインを新しくしました。'},
  {id:'b9',d:'2026-10-09',tag:'update',t:'旅のしおりにドライブの記録・移動距離・ナイスが入りました',b:'旅のしおりが新しくなりました。\n\n・ドライブの記録（オンにした人だけ）：アプリを開いている間の位置を2分または500mごとに記録し、その日のルートを地図に表示します。記録はスマホの中だけに保存され、運営にもほかの人にも送られません。旅のしおりか設定の「ドライブを記録する」でオンにできます。\n・移動距離：ルートがあればルートから、なければスポットどうしの直線距離の目安を出します。\n・すれ違った人とナイス！：その日すれ違った人と、送った・届いたナイス！が並びます。\n・SNS用の画像にも地図が入ります。出発と到着のまわり（約1km）は自動で消すので、自宅の場所は出ません。'},
- {id:'b8',d:'2026-10-09',tag:'update',t:'一人でも楽しめる機能を追加しました',b:'会えない日も楽しめるように、4つの機能を追加しました。\n\n・フォトスタンプ：スポットを記録した日に、その場で撮った写真をスタンプにできます。スポットの画面の「フォトスタンプを作る」から。写真はスマホの中だけに保存されます。\n・旅のしおり：マイスタンプの「旅のしおり」に、行ったスポットと交換した人が1日ずつ残ります。SNS用の画像にもできます。\n・チャレンジ：リワードの「チャレンジ」に、決まったスポットや車種を集めるチャレンジが16個あります。達成するとEXP+100とバッジ。\n・データの持ち出し：設定の「データの持ち出し」から、スタンプ帳の画像と記録のファイルを保存できます。'},
+ {id:'b8',d:'2026-10-09',tag:'update',t:'一人でも楽しめる機能を追加しました',b:'会えない日も楽しめるように、4つの機能を追加しました。\n\n・フォトカード：スポットを記録した日に、その場で撮った写真をスタンプにできます。スポットの画面の「フォトカードを作る」から。写真はスマホの中だけに保存されます。\n・旅のしおり：マイスタンプの「旅のしおり」に、行ったスポットと交換した人が1日ずつ残ります。SNS用の画像にもできます。\n・チャレンジ：リワードの「チャレンジ」に、決まったスポットや車種を集めるチャレンジが16個あります。達成するとEXP+100とバッジ。\n・データの持ち出し：設定の「データの持ち出し」から、スタンプ帳の画像と記録のファイルを保存できます。'},
  {id:'b7',d:'2026-10-06',tag:'update',t:'近くでペタカーを開いている人が見えるようになりました',b:'交換をはじめていなくても、アプリを開いている近くの人が、マイスタンプと交換タブに出ます。車の写真を見て、駐車場で相手を探してみてください。\n\nタップすると交換を申し込めます。相手がアプリを開いていれば、音と表示でお知らせします。\n\n出るのはだいたいの場所（約5km四方）だけで、アプリを閉じると消えます。出たくないときは、設定→交換でオフにできます（オフにすると、自分からも見えなくなります）。'},
  {id:'b6',d:'2026-10-06',tag:'update',t:'「みんなで交換」ができるようになりました',b:'3人以上で、同時にスマホを振って一度に交換できます。\n\n交換をはじめたら「みんなで交換」を押して部屋を作ります。近くで交換をはじめている人には「参加する」が出ます。3人以上そろったら、ホストが合図を出して全員で「せーの」で振ってください。\n\nタイミングが2秒以内で、近くにいる人どうしで交換されます。合わなかった人とは、ホストの「もう一度振る」でやり直せます。'},
  {id:'b5',d:'2026-10-05',tag:'update',t:'スポットに「いま◯人」が出るようになりました',b:'2時間以内にそのスポットで記録した人の数が、スポット一覧と詳細に出ます。スポットタブの上には「いま人がいるスポット」も出ます。\n\n出るのは人数だけで、名前や車は出ません。誰が記録したかも保存していません。仲間が集まっている場所を見つけて、会いに行くきっかけにしてください。'},
@@ -2785,13 +2785,13 @@ function openDoc(k,back){const PUB={terms:'terms',privacy:'privacy',contact:'sup
    <button class="btn sub press" style="margin-top:16px" id="docb">設定に戻る</button>`);
   bindClose();$('#docb').onclick=()=>{if(Date.now()-sheetAt<500)return;back()};
 }
-/* ===== 一人でも楽しめる：フォトスタンプ・旅のしおり・セット・データの持ち出し（2026-10-09 鈴木さん） ===== */
-/* --- ご当地フォトスタンプ：写真は端末の中（IndexedDB）だけに保存。記録 pho1=[{id,spot,d,t}] だけ同期する --- */
+/* ===== 一人でも楽しめる：フォトカード・旅のしおり・セット・データの持ち出し（2026-10-09 鈴木さん） ===== */
+/* --- ご当地フォトカード：写真は端末の中（IndexedDB）だけに保存。記録 pho1=[{id,spot,d,t}] だけ同期する --- */
 const PDB=(()=>{let p=null;
-  // ph＝フォトスタンプの写真、rt＝ドライブの記録（日付ごと）。どちらも端末の中だけ
+  // ph＝フォトカードの写真、rt＝ドライブの記録（日付ごと）。どちらも端末の中だけ
   const open=()=>p||(p=new Promise((ok,ng)=>{try{const r=indexedDB.open('petacar-photo',2);r.onupgradeneeded=()=>{const db=r.result;['ph','rt'].forEach(n=>{if(!db.objectStoreNames.contains(n))db.createObjectStore(n)})};r.onsuccess=()=>ok(r.result);r.onerror=()=>ng(r.error)}catch(e){ng(e)}}));
   const tx=(st,m,f,again)=>open().then(db=>new Promise((ok,ng)=>{const t=db.transaction(st,m),r=f(t.objectStore(st));t.oncomplete=()=>ok(r&&r.result);t.onerror=()=>ng(t.error);t.onabort=()=>ng(t.error)})).catch(e=>{if(again)throw e;p=null;return tx(st,m,f,true)}); // 接続が切れた・開けなかったときは1度だけ開き直す
-  // アプリ版はフォトスタンプの写真をファイルにも保存する（2026-11-11 れなさんの写真がIndexedDBから消えた件）。
+  // アプリ版はフォトカードの写真をファイルにも保存する（2026-11-11 れなさんの写真がIndexedDBから消えた件）。
   // IndexedDBはiPhoneの空き容量が減ると消されることがある。ファイル（iPhoneは書類フォルダ＝iCloudバックアップの対象）は消されない。
   // 読むときはIndexedDB→無ければファイル（見つかったらIndexedDBへ戻す）
   const FS=(()=>{try{return window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform()?Capacitor.registerPlugin('Filesystem'):null}catch(e){return null}})();
@@ -2828,12 +2828,12 @@ function phoFrame(x,d){const id='rp'+(++uid),c=x?CAT[x.cat]:{c:'#e8551c'},nm=(x?
     <circle cx="50" cy="50" r="49.6" fill="none" stroke="#fff" stroke-width=".9" opacity=".8"/><circle cx="50" cy="50" r="39.4" fill="none" stroke="#fff" stroke-width=".9" opacity=".8"/>
     ${ringText(txt,44.5,{fs:fs.toFixed(2),ff:"'Zen Kaku Gothic New',sans-serif",fw:800,fill:'#fff',dy:fs*.36})}
     <g transform="translate(80 15)"><circle r="9" fill="#fff" stroke="${c.c}" stroke-width="1.8"/><g transform="translate(-6 -6) scale(.5)" fill="none" stroke="${c.c}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">${ICONS[x?c.ic:'pin']||''}</g></g></svg>`}
-const phoStamp=(p,size=84)=>{const x=SP(p.spot);return `<div class="stamp ev pho nopho" style="width:${size}px;font-size:${size/7}px"><img data-pho="${esc(p.id)}" alt="${esc(x?x.n:'')}のフォトスタンプ">${phoFrame(x,p.d)}</div>`};
+const phoStamp=(p,size=84)=>{const x=SP(p.spot);return `<div class="stamp ev pho nopho" style="width:${size}px;font-size:${size/7}px"><img data-pho="${esc(p.id)}" alt="${esc(x?x.n:'')}のフォトカード">${phoFrame(x,p.d)}</div>`};
 // 写真を撮って（選んで）丸く切り抜く。記録した日だけ作れる
 function openPhoto(spotId,back,redo){const x=SP(spotId);if(!x)return;
-  if(!redo&&!spotlog.some(v=>v.id===spotId&&v.d===today())){toast('フォトスタンプは、そのスポットを記録した日に作れます');return}
+  if(!redo&&!spotlog.some(v=>v.id===spotId&&v.d===today())){toast('フォトカードは、そのスポットを記録した日に作れます');return}
   let st={src:null,w:0,h:0,z:1,x:0,y:0};
-  openSheet(`<b style="font-size:18px;display:block;text-align:center">${redo?'写真を入れ直す':'フォトスタンプを作る'}</b><p class="note" style="text-align:center;margin:2px 0 6px">${esc(x.n)} · ${dotD(redo?redo.d:today())}</p>
+  openSheet(`<b style="font-size:18px;display:block;text-align:center">${redo?'写真を入れ直す':'フォトカードを作る'}</b><p class="note" style="text-align:center;margin:2px 0 6px">${esc(x.n)} · ${dotD(redo?redo.d:today())}</p>
    <div class="crop" id="crop"><img id="cimg" alt=""><label class="pick" id="pickHint" for="pcam"><svg viewBox="0 0 24 24"><path d="M4 8h3l2-2.5h6L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>写真を撮る</label></div>
    <div class="row" style="margin-top:4px"><label class="btn sub press filebtn" style="flex:1;margin-top:0" for="pcam">カメラで撮る<input type="file" id="pcam" accept="image/*" capture="environment"></label><label class="btn sub press filebtn" style="flex:1;margin-top:0" for="pfile">アルバムから選ぶ<input type="file" id="pfile" accept="image/*"></label></div>
    <p class="note err" id="ferr" hidden></p>
@@ -2858,7 +2858,7 @@ function openPhoto(spotId,back,redo){const x=SP(spotId);if(!x)return;
     const url=cv.toDataURL('image/jpeg',.82),id=redo?redo.id:'ph'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);$('#pdone').disabled=true;
     try{await PDB.put(id,url)}catch(e){toast('保存できませんでした（スマホの空き容量を確認してください）');$('#pdone').disabled=false;return}
     phoCache[id]=url;if(redo){sfx.chime();closeSheet();render();toast('写真を入れ直しました');return}const first=!pholog.length;pholog.push({id,spot:spotId,d:today(),t:Date.now()});savePho();sfx.chime();closeSheet();render();
-    setTimeout(()=>{openSheet(`<div class="result">${phoStamp(pholog[pholog.length-1],170)}<b style="font-size:22px">${first?'はじめてのフォトスタンプ！':'フォトスタンプを作りました'}</b><div class="note">${esc(x.n)} · ${dotD(today())}</div></div>
+    setTimeout(()=>{openSheet(`<div class="result">${phoStamp(pholog[pholog.length-1],170)}<b style="font-size:22px">${first?'はじめてのフォトカード！':'フォトカードを作りました'}</b><div class="note">${esc(x.n)} · ${dotD(today())}</div></div>
       <div class="row" style="margin-top:14px"><button class="btn sub press" data-close>閉じる</button><button class="btn press" id="phTrip">今日の旅のしおり</button></div>`);
       bindClose(back);hydratePho();$('#phTrip').onclick=()=>{closeSheet();setTimeout(()=>openTripDay(today()),260)}},280)};
 }
@@ -2876,20 +2876,20 @@ function openPho(pid,back){const p=pholog.find(v=>v.id===pid);if(!p)return;const
   let armed=false;$('#phDel').onclick=()=>{if(!armed){armed=true;$('#phDel .danger').textContent='もう一度押すと削除';return}
     pholog=pholog.filter(v=>v.id!==pid);savePho();PDB.del(pid).catch(()=>{});delete phoCache[pid];closeSheet();render();toast('削除しました')};
 }
-// フォトスタンプ1枚を画像にする（フチ込み）
+// フォトカード1枚を画像にする（フチ込み）
 async function phoCanvas(p,S){const src=await phoSrc(p.id);if(!src)return null;const cv=document.createElement('canvas');cv.width=cv.height=S;const g=cv.getContext('2d');
   try{await document.fonts.ready}catch(e){}
   const im=await loadImg(src),fr=await svgToImg(phoFrame(SP(p.spot),p.d).replace('<svg ',`<svg width="${S}" height="${S}" `));
   g.save();g.beginPath();g.arc(S/2,S/2,S*.385,0,Math.PI*2);g.clip();if(im)g.drawImage(im,S*.115,S*.115,S*.77,S*.77);g.restore();if(fr)g.drawImage(fr,0,0,S,S);return cv}
 const phoView=()=>{const L=pholog.slice().sort((a,b)=>(b.t||0)-(a.t||0));
-  return `<div class="group zhead"><div class="big">${L.length}<small>枚</small></div><b>フォトスタンプ</b>
+  return `<div class="group zhead"><div class="big">${L.length}<small>枚</small></div><b>フォトカード</b>
     <div class="note">スポットを記録した日に、その場で撮った写真をスタンプにできます。写真はこの端末の中だけに保存されます。</div></div>
   ${L.length?`<div class="grid">${L.map(p=>{const x=SP(p.spot);return `<button class="cell press" data-pho="${esc(p.id)}">${phoStamp(p)}<span class="n">${esc(x?x.n.replace(/^道の駅\s*/,''):'スポット')}</span><span class="s">${fmtD(p.d)}</span></button>`}).join('')}</div>`
-   :'<p class="note" style="text-align:center;margin-top:18px">まだフォトスタンプがありません。スポットを記録したら、スポットの画面の「フォトスタンプを作る」から撮れます。</p>'}`};
-// スポットの画面に出す行：今日記録済みなら撮れる・これまでのフォトスタンプ
-function phoSpotRow(id){const L=phoOfSpot(id),rec=spotlog.some(v=>v.id===id&&v.d===today());if(!L.length&&!rec)return '<p class="note" style="margin:10px 4px 0">このスポットを記録すると、その日だけフォトスタを撮れます</p>';
-  return `<div class="phorow">${L.slice(-4).map(p=>`<button class="press" data-phoo="${esc(p.id)}" aria-label="${fmtD(p.d)}のフォトスタンプ">${phoStamp(p,56)}</button>`).join('')}
-   ${rec?`<button class="btn press" id="phMake" style="flex:1;min-width:150px">${CAMI}フォトスタンプを撮る</button>`:''}</div>`}
+   :'<p class="note" style="text-align:center;margin-top:18px">まだフォトカードがありません。スポットを記録したら、スポットの画面の「フォトカードを作る」から撮れます。</p>'}`};
+// スポットの画面に出す行：今日記録済みなら撮れる・これまでのフォトカード
+function phoSpotRow(id){const L=phoOfSpot(id),rec=spotlog.some(v=>v.id===id&&v.d===today());if(!L.length&&!rec)return '<p class="note" style="margin:10px 4px 0">このスポットを記録すると、その日だけフォトカードを撮れます</p>';
+  return `<div class="phorow">${L.slice(-4).map(p=>`<button class="press" data-phoo="${esc(p.id)}" aria-label="${fmtD(p.d)}のフォトカード">${phoStamp(p,56)}</button>`).join('')}
+   ${rec?`<button class="btn press" id="phMake" style="flex:1;min-width:150px">${CAMI}フォトカードを作る</button>`:''}</div>`}
 const STARI='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.2l2.7 5.5 6 .9-4.35 4.25 1.03 6L12 17l-5.38 2.85 1.03-6L3.3 9.6l6-.9z"/></svg>';
 const WEBI='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 2.6 3.8 5.6 3.8 9s-1.2 6.4-3.8 9c-2.6-2.6-3.8-5.6-3.8-9S9.4 5.6 12 3z"/></svg>';
 const SRCHI='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>';
@@ -3089,7 +3089,7 @@ async function tripImage(t){if(t.route&&t.route.length>=2)t={...t,km:rtKm(t.rout
   T(`${+d.slice(5,7)}.${d.slice(8)}`,56,HH-118,160,'400','left','#fff','"Dela Gothic One",sans-serif');
   T(`${d.slice(0,4)}  ${['SUN','MON','TUE','WED','THU','FRI','SAT'][new Date(d+'T12:00:00').getDay()]}`,62,HH-62,34,'800','left','#ff9a66','"JetBrains Mono",monospace');
   if(me.name&&me.name!=='ゲスト')T(`${me.name}さんの旅${me.car&&me.car!=='未設定'?' ／ '+carLabel(me):''}`,62,HH-18,28,'700','left','rgba(255,255,255,.88)');
-  // フォトスタンプ：右下にステッカー風に重ねる
+  // フォトカード：右下にステッカー風に重ねる
   const ph=t.photos.slice(0,3);for(let i=ph.length-1;i>=0;i--){const S=i?180:250,c=await phoCanvas(ph[i],S*2);if(!c)continue;
     const cx=W-70-S/2-(i?120+i*95:0),cy=HH-170+(i?60:0);g.save();g.translate(cx,cy);g.rotate((i%2?-1:1)*.1);g.shadowColor='rgba(0,0,0,.55)';g.shadowBlur=26;g.shadowOffsetY=10;g.drawImage(c,-S/2,-S/2,S,S);g.restore()}
   // 数字（移動距離はオレンジで目立たせる）
@@ -3242,7 +3242,7 @@ async function bookPages(){try{await document.fonts.ready}catch(e){}
     g.fillStyle='#f6f3ec';g.fillRect(0,0,W,H);g.fillStyle='#e8551c';g.fillRect(0,0,W,12);
     const T=(s,x,y,sz,wt='700',al='center',col='#18212b',ff='"Zen Kaku Gothic New",sans-serif')=>{g.font=`${wt} ${sz}px ${ff}`;g.textAlign=al;g.fillStyle=col;g.fillText(s,x,y)};
     T(`${me.name||'ゲスト'}さんのスタンプ帳`,70,96,46,'400','left','#18212b','"Dela Gothic One",sans-serif');T(`${pg+1} / ${nP}`,W-70,96,28,'700','right','#7a8592','"JetBrains Mono",monospace');
-    T(`交換した人 ${ids.length}人 · フォトスタンプ ${ph.length}枚 · ${today().replace(/-/g,'.')} 時点`,70,140,24,'500','left','#5a6572');
+    T(`交換した人 ${ids.length}人 · フォトカード ${ph.length}枚 · ${today().replace(/-/g,'.')} 時点`,70,140,24,'500','left','#5a6572');
     const part=items.slice(pg*PER,pg*PER+PER),R=74,cw=W/4;
     for(let i=0;i<part.length;i++){const it=part[i],cx=cw*(i%4)+cw/2,cy=252+Math.floor(i/4)*226;
       if(it.p){const p=person(it.p),l=best(it.p);const im=await loadImg(IMG(l&&l.im?l.im:(p.vers&&l&&l.v&&p.vers[l.v-1]?p.vers[l.v-1].img:p.img))||avatar(okColor(p.ring)));
@@ -3296,11 +3296,11 @@ function openExport(){const ph=pholog.length;
   openSheet(`<b style="font-size:20px;display:block;text-align:center">データの持ち出し</b>
    <p class="note" style="text-align:center;margin:4px 0 12px">集めたスタンプと記録を、この端末に保存できます。<br>サービスを終了する場合は90日前までにお知らせし、その間はここから書き出せるようにします。</p>
    <div class="list"><button class="li press" id="exXfer"><span class="exi">📲</span><div class="t"><b>機種変更の引き継ぎ</b><span>写真をコードで新しいスマホへ移します（無料）</span></div><span class="val">›</span></button>
-    <button class="li press" id="exBook"><span class="exi">📖</span><div class="t"><b>スタンプ帳を画像で保存</b><span>交換したスタンプとフォトスタンプを、20個ずつの画像にします（${Math.max(1,Math.ceil((met().length+ph)/20))}枚）</span></div><span class="val">›</span></button>
-    <button class="li press" id="exData"><span class="exi">🗂</span><div class="t"><b>記録をファイルで保存</b><span>交換・スポット・すれ違い・ドライブの記録、スタンプとフォトスタンプの画像をまとめた1つのファイル（JSON）</span></div><span class="val">›</span></button>
-    <label class="li press" for="imFile" style="cursor:pointer"><span class="exi">📥</span><div class="t"><b>フォトスタンプ・ドライブの記録を読み込む</b><span>機種変更のときに。保存したファイルから、スマホの中だけにあった写真とルートを戻します</span></div><span class="val">›</span><input type="file" id="imFile" accept="application/json,.json" hidden></label></div>
+    <button class="li press" id="exBook"><span class="exi">📖</span><div class="t"><b>スタンプ帳を画像で保存</b><span>交換したスタンプとフォトカードを、20個ずつの画像にします（${Math.max(1,Math.ceil((met().length+ph)/20))}枚）</span></div><span class="val">›</span></button>
+    <button class="li press" id="exData"><span class="exi">🗂</span><div class="t"><b>記録をファイルで保存</b><span>交換・スポット・すれ違い・ドライブの記録、スタンプとフォトカードの画像をまとめた1つのファイル（JSON）</span></div><span class="val">›</span></button>
+    <label class="li press" for="imFile" style="cursor:pointer"><span class="exi">📥</span><div class="t"><b>フォトカード・ドライブの記録を読み込む</b><span>機種変更のときに。保存したファイルから、スマホの中だけにあった写真とルートを戻します</span></div><span class="val">›</span><input type="file" id="imFile" accept="application/json,.json" hidden></label></div>
    <div id="exOut"></div>
-   <p class="note" style="margin:10px 4px 0">交換・スポットの記録とスタンプは、ログインすればどのスマホでも同じものが見られます。フォトスタンプの写真とドライブの記録はこの端末の中だけにあるので、機種変更のときは「機種変更の引き継ぎ」かファイルの保存で移してください。</p>
+   <p class="note" style="margin:10px 4px 0">交換・スポットの記録とスタンプは、ログインすればどのスマホでも同じものが見られます。フォトカードの写真とドライブの記録はこの端末の中だけにあるので、機種変更のときは「機種変更の引き継ぎ」かファイルの保存で移してください。</p>
    <button class="btn sub press" style="margin-top:12px" data-close>閉じる</button>`);
   bindClose(openSettings);$('#exXfer').onclick=openTransfer;
   $('#exBook').onclick=async()=>{const o=$('#exOut');o.innerHTML='<p class="note" style="text-align:center;margin-top:10px">共有画像を作成しています…</p>';
@@ -3314,7 +3314,7 @@ function openExport(){const ph=pholog.length;
         if(typeof p.spot!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(String(p.d)))continue;await PDB.put(p.id,p.img);phoCache[p.id]=p.img;if(!pholog.some(v=>v.id===p.id)){pholog.push({id:p.id,spot:p.spot,d:p.d,t:+p.t||0});n++}}
       let nr=0;if(d.routes&&typeof d.routes==='object')for(const [k,a] of Object.entries(d.routes)){if(!/^\d{4}-\d{2}-\d{2}$/.test(k)||!Array.isArray(a)||a.length>20000)continue;
         const ok=a.filter(p=>Array.isArray(p)&&p.length===3&&p.every(v=>typeof v==='number'&&isFinite(v)));if(!ok.length)continue;const cur=await rtGet(k);if(cur.length>=ok.length)continue;await PDB.rput(k,ok);if(k===rtDay){rtPts=ok}nr++}
-      pholog.sort((a,b)=>(a.t||0)-(b.t||0));savePho();toast(n||nr?`フォトスタンプ${n}枚・ドライブの記録${nr}日分を読み込みました`:'新しいフォトスタンプ・記録はありませんでした');render()}
+      pholog.sort((a,b)=>(a.t||0)-(b.t||0));savePho();toast(n||nr?`フォトカード${n}枚・ドライブの記録${nr}日分を読み込みました`:'新しいフォトカード・記録はありませんでした');render()}
     catch(err){toast('ペタカー! のファイルではないようです')}};
 }
 if(!window.__cloud)window.__solo={stampCanvas,tripShareText,profileShareText,rtAdd,rtGet,routeMap,tripImage,tripOf,bookPages,backupData,setProg,phoCanvas}; // 試作だけ：画像の確認用
@@ -3544,7 +3544,7 @@ function spExtra(id){let h='';const d=SPOT_DC[id],vw=SPOT_VIEW[id];
   return h}
 /* ===== スポットカード（2026-11-17） ===== */
 const cardImg=(id,w=360)=>SPOT_IMG[id]?`https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(SPOT_IMG[id])}?width=${w}`:'';
-// カード＝自分で撮った（登録した）フォトスタンプ。背景はそのスポットの写真
+// カード＝自分で撮った（登録した）フォトカード。背景はそのスポットの写真
 let cardSort='new';
 // 横長のカード（一覧・大きく見る画面・届いた手紙で共通）。st＝右の丸いスタンプ、sub＝日付の横に出す一言
 function cardFace(spot,d,st,o={}){const x=SP(spot),c=x?CAT[x.cat]:{c:'#e8551c',n:'スポット'},bg=x?cardImg(spot,o.big?960:640):'';
@@ -3557,16 +3557,16 @@ function cardView(){const L=pholog.slice();
   const S={new:(a,b)=>(b.t||0)-(a.t||0),old:(a,b)=>(a.t||0)-(b.t||0),pref:(a,b)=>String((SP(a.spot)||{}).pref).localeCompare(String((SP(b.spot)||{}).pref),'ja')||(b.t||0)-(a.t||0),cat:(a,b)=>String((SP(a.spot)||{}).cat).localeCompare(String((SP(b.spot)||{}).cat))||(b.t||0)-(a.t||0)};
   L.sort(S[cardSort]||S.new);
   return `<div class="group zhead zbg" style="background-image:linear-gradient(90deg,rgba(12,16,22,.9) 0%,rgba(12,16,22,.72) 55%,rgba(12,16,22,.35) 100%),url(chara/bg_trip.jpg)"><div class="big">${L.length}<small>枚</small></div><b>フォトカード</b>
-    <div class="note">スポットを記録した日に、その場で撮った写真をフォトスタンプにすると、そのスポットの写真を背景にしたカードになります。手紙で友だちにも送れます。写真はこの端末の中だけに保存されます。</div></div>
+    <div class="note">スポットを記録した日に、その場で撮った写真で、そのスポットの写真を背景にしたフォトカードが作れます。手紙で友だちにも送れます。写真はこの端末の中だけに保存されます。</div></div>
   ${L.length>1?`<div class="sortbar" role="group" aria-label="並び替え">${[['new','新しい順'],['old','古い順'],['pref','都道府県順'],['cat','種類順']].map(([k,t])=>`<button class="sortchip press" data-csort="${k}" aria-pressed="${cardSort===k}">${t}</button>`).join('')}</div>`:''}
   ${L.length?`<div class="spr2l">${L.map(cardTile).join('')}</div>`
-    :'<p class="note" style="text-align:center;margin:20px 0">まだカードがありません。スポットを記録したら、スポットの画面の「フォトスタンプを作る」から撮るとカードになります。</p>'}`}
-// カードを大きく見る：手紙で送る・フォトスタンプ（入れ直し・保存）・スポットの詳細
+    :'<p class="note" style="text-align:center;margin:20px 0">まだカードがありません。スポットを記録したら、スポットの画面の「フォトカードを作る」から作れます。</p>'}`}
+// カードを大きく見る：手紙で送る・フォトカード（入れ直し・保存）・スポットの詳細
 function openCard(pid,back){const p=pholog.find(v=>v.id===pid);if(!p)return;const x=SP(p.spot),sendOk=typeof openSendLetter==='function';
   openSheet(`${cardFace(p.spot,p.d,phoStamp(p,120),{big:1})}
    <p class="note" style="text-align:center;margin:8px 0 0">${SPOT_IMG[p.spot]?'背景の写真の撮影者とライセンスは、スポットの詳細に出ています':''}</p>
    ${sendOk?`<button class="btn press" id="cdSend" style="margin-top:12px">✉️ カードを手紙で送る</button>`:''}
-   <div class="row" style="margin-top:10px"><button class="btn sub press" id="cdPho">フォトスタンプ</button>${x?'<button class="btn sub press" id="cdSpot">スポットの詳細</button>':''}</div>
+   <div class="row" style="margin-top:10px"><button class="btn sub press" id="cdPho">フォトカード</button>${x?'<button class="btn sub press" id="cdSpot">スポットの詳細</button>':''}</div>
    <button class="btn sub press" style="margin-top:10px" data-close>閉じる</button>`);
   bindClose(back);hydratePho();const re=()=>openCard(pid,back);
   if($('#cdSend'))$('#cdSend').onclick=()=>openSendLetter(pid,re);
@@ -3575,7 +3575,7 @@ function openCard(pid,back){const p=pholog.find(v=>v.id===pid);if(!p)return;cons
 // 記録した直後のスポット画面に出す「カードを手に入れた」
 function cardGot(id){const x=SP(id);if(!x||!spotlog.some(v=>v.id===id&&v.d===today()))return '';const own=phoOfSpot(id).filter(p=>p.d===today()).pop();
   if(own)return `<div class="spcgot"><div class="spcgh">${COLI.card}<b>今日のフォトカード</b></div>${cardFace(id,own.d,phoStamp(own,84),{attr:` role="button" tabindex="0" data-cardp="${esc(own.id)}"`,cls:'press'})}</div>`;
-  return ''} // 撮る案内はスポット画面の「フォトスタンプを作る」と重なるので出さない
+  return ''} // 撮る案内はスポット画面の「フォトカードを作る」と重なるので出さない
 const DESC_KSJ=new Set(["dam:0:しろがねダム","dam:0:エルムダム","dam:0:サンルダム","dam:0:ペーパンダム","dam:0:三石ダム","dam:0:三笠ぽんべつダム","dam:0:上ノ国ダム","dam:0:上小川ダム","dam:0:上磯ダム","dam:0:下新冠ダム","dam:0:京極ダム","dam:0:佐幌ダム","dam:0:余市ダム","dam:0:元小屋ダム","dam:0:共和ダム","dam:0:北辰ダム","dam:0:卯原内ダム","dam:0:厚幌ダム","dam:0:双川ダム","dam:0:双葉ダム","dam:0:古梅ダム","dam:0:大椴ダム","dam:0:大野ダム","dam:0:奥新冠ダム","dam:0:奥沙流ダム","dam:0:富村ダム","dam:0:富里ダム","dam:0:小平ダム","dam:0:尾白利加ダム","dam:0:屈足ダム","dam:0:岩尾内ダム","dam:0:岩松ダム","dam:0:岩清水ダム","dam:0:岩知志ダム","dam:0:幌別ダム","dam:0:幌加ダム","dam:0:幌向ダム","dam:0:幌満川第3ダム","dam:0:平取ダム","dam:0:庶路ダム","dam:0:当別ダム","dam:0:徳富ダム","dam:0:忠別ダム","dam:0:恵岱別ダム","dam:0:愛別ダム","dam:0:新中野ダム","dam:0:新冠ダム","dam:0:新区画ダム","dam:0:新桂沢ダム","dam:0:有明ダム","dam:0:朝里ダム","dam:0:札内川ダム","dam:0:東の沢ダム","dam:0:東郷ダム","dam:0:栗山ダム","dam:0:様似ダム","dam:0:沼田ダム","dam:0:活込ダム","dam:0:浦河ダム","dam:0:温根別ダム","dam:0:漁川ダム","dam:0:濁川ダム","dam:0:留萌ダム","dam:0:真駒内ダム","dam:0:矢別ダム","dam:0:知内ダム","dam:0:砥山ダム","dam:0:神居ダム","dam:0:穂別ダム","dam:0:糠南ダム","dam:0:緑ダム","dam:0:美唄ダム","dam:0:美生ダム","dam:0:羽幌二股ダム","dam:0:苫前ダム","dam:0:落合ダム","dam:0:西岡ダム","dam:0:野花南ダム","dam:0:雄武ダム","dam:0:雨竜第一ダム","dam:0:雨竜第二ダム","dam:0:青山ダム","dam:0:静内ダム","dam:0:風連ダム","dam:0:駒ヶ岳ダム","dam:0:高見ダム","dam:0:鶉ダム","dam:0:鷹泊ダム","dam:0:鹿ノ子ダム","dam:10:山口（元）ダム","dam:10:玉淀ダム","dam:10:間瀬ダム","dam:11:保台ダム","dam:11:増間ダム","dam:11:安房中央ダム","dam:11:小向ダム","dam:11:戸面原ダム","dam:11:東金ダム","dam:11:矢那川ダム","dam:11:荒木根ダム","dam:13:宮ヶ瀬副ダム","dam:13:本沢ダム","dam:13:道志ダム","dam:14:カッサダム","dam:14:三面ダム","dam:14:下条川ダム","dam:14:久知川ダム","dam:14:二居ダム","dam:14:佐和田ダム","dam:14:儀明川ダム","dam:14:内の倉ダム","dam:14:刈谷田川ダム","dam:14:加治川ダム","dam:14:城川ダム","dam:14:外山ダム","dam:14:大谷ダム","dam:14:大野川ダム","dam:14:奥胎内ダム","dam:14:宮中取水ダム","dam:14:小倉ダム","dam:14:小倉川ダム","dam:14:山本第二調整池ダム","dam:14:山本調整池ダム","dam:14:岩船ダム","dam:14:川西ダム","dam:14:広神ダム","dam:14:揚川ダム","dam:14:新保川（再）ダム","dam:14:新穂ダム","dam:14:新穂第2ダム","dam:14:早出川ダム","dam:14:柿崎川ダム","dam:14:栃ヶ原ダム","dam:14:正善寺ダム","dam:14:浅河原調整池ダム","dam:14:猿田ダム","dam:14:破間川ダム","dam:14:穴藤ダム","dam:14:竹田川ダム","dam:14:笹ヶ峰ダム","dam:14:胎内川ダム","dam:14:胎内第1ダム","dam:14:胎内第2ダム","dam:14:藤津川ダム","dam:14:谷根ダム","dam:14:豊実ダム","dam:14:赤岩ダム","dam:14:飛山ダム","dam:14:飯豊川第1（元）ダム","dam:14:高野山ダム","dam:14:鯖石川ダム","dam:14:鵜川ダム","dam:14:鹿瀬ダム","dam:14:黒又川第一ダム","dam:14:黒又川第二ダム","dam:15:上市川ダム","dam:15:上市川第二ダム","dam:15:久婦須川ダム","dam:15:五位ダム","dam:15:仙人谷ダム","dam:15:出し平ダム","dam:15:刀利ダム","dam:15:利賀ダム","dam:15:利賀川ダム","dam:15:北又ダム","dam:15:千石池ダム","dam:15:古洞ダム","dam:15:和田川ダム","dam:15:城端ダム","dam:15:大谷ダム","dam:15:太美ダム","dam:15:子撫川ダム","dam:15:小俣ダム","dam:15:小原ダム","dam:15:小口川ダム","dam:15:小屋平ダム","dam:15:小牧ダム","dam:15:布施川ダム","dam:15:新中地山ダム","dam:15:朝日小川ダム","dam:15:湯谷川ダム","dam:15:熊野川ダム","dam:15:白岩川ダム","dam:15:祐延ダム","dam:15:祖山ダム","dam:15:神一ダム","dam:15:神二ダム","dam:15:臼中ダム","dam:15:舟川ダム","dam:15:角川ダム","dam:15:赤祖父溜池ダム","dam:16:八ヶ川ダム","dam:16:内川ダム","dam:16:北河内ダム","dam:16:医王ダム","dam:16:多根ダム","dam:16:寺家ダム","dam:16:小屋ダム","dam:16:岩坂ダム","dam:16:我谷ダム","dam:16:手取川第2ダム","dam:16:手取川第3ダム","dam:16:新内川ダム","dam:16:福光ダム","dam:16:諸橋ダム","dam:16:赤瀬ダム","dam:16:辰巳ダム","dam:17:仏原ダム","dam:17:吉野瀬川ダム","dam:17:大津呂ダム","dam:17:小原（元）ダム","dam:17:山原ダム","dam:17:桝谷ダム","dam:17:永平寺ダム","dam:17:河内川ダム","dam:17:浄土寺川ダム","dam:17:滝波ダム","dam:17:石徹白ダム","dam:17:総ヶ谷ダム","dam:17:雲川ダム","dam:17:鷲ダム","dam:18:塩川ダム","dam:18:大野ダム","dam:18:柿元ダム","dam:18:深城ダム","dam:18:琴川ダム","dam:18:葛野川ダム","dam:18:西山ダム","dam:18:雨畑ダム","dam:19:七倉ダム","dam:19:伊奈川ダム","dam:19:余地ダム","dam:19:内村ダム","dam:19:北山ダム","dam:19:南相木ダム","dam:19:古谷ダム","dam:19:奥裾花ダム","dam:19:小仁熊ダム","dam:19:小田切ダム","dam:19:山口ダム","dam:19:木曾ダム","dam:19:松川ダム","dam:19:横川ダム","dam:19:水上ダム","dam:19:水内ダム","dam:19:水殿ダム","dam:19:浅川ダム","dam:19:湯の瀬ダム","dam:19:湯川ダム","dam:19:片桐ダム","dam:19:稲核ダム","dam:19:箕輪ダム","dam:19:菅平ダム","dam:19:裾花ダム","dam:19:角間ダム","dam:19:読書ダム","dam:19:豊丘ダム","dam:19:金原ダム","dam:19:香坂ダム","dam:19:高瀬ダム","dam:19:高遠ダム","dam:1:下湯ダム","dam:1:久吉ダム","dam:1:二の倉ダム","dam:1:二庄内ダム","dam:1:作田ダム","dam:1:又木戸ダム","dam:1:和田ダム","dam:1:天間ダム","dam:1:小泊ダム","dam:1:小田川ダム","dam:1:川内ダム","dam:1:指久保ダム","dam:1:早瀬野ダム","dam:1:津刈ダム","dam:1:浅虫ダム","dam:1:浪岡ダム","dam:1:清水目ダム","dam:1:相馬ダム","dam:1:遠部ダム","dam:1:飯詰ダム","dam:1:駒込ダム","dam:20:上大須ダム","dam:20:下小鳥ダム","dam:20:不破北部防災ダム","dam:20:中野方ダム","dam:20:丹生川ダム","dam:20:久瀬ダム","dam:20:兼平防災ダム","dam:20:内ヶ谷ダム","dam:20:前沢ダム","dam:20:加子母防災ダム","dam:20:大ヶ洞ダム","dam:20:大井ダム","dam:20:大島ダム","dam:20:大白川ダム","dam:20:大黒谷ダム","dam:20:小沢溜池ダム","dam:20:小里川ダム","dam:20:山田防災ダム","dam:20:岩村ダム","dam:20:川浦ダム","dam:20:川浦鞍部ダム","dam:20:成出ダム","dam:20:新猪谷ダム","dam:20:朝日ダム","dam:20:椿原ダム","dam:20:水無瀬ダム","dam:20:秋神ダム","dam:20:笠置ダム","dam:20:落合ダム","dam:20:蜂屋ダム","dam:20:西平ダム","dam:20:阿多岐ダム","dam:20:馬瀬川第二ダム","dam:20:高根第一ダム","dam:20:高根第二ダム","dam:20:鳩谷ダム","dam:21:千頭ダム","dam:21:原野谷川ダム","dam:21:境川ダム","dam:21:大井川ダム","dam:21:大代川農地防災ダム","dam:21:大倉川ダム","dam:21:大間ダム","dam:21:太田川ダム","dam:21:奥野ダム","dam:21:寸又川ダム","dam:21:水窪ダム","dam:21:田代ダム","dam:21:畑薙第二ダム","dam:21:秋葉ダム","dam:21:笹間川ダム","dam:21:船明ダム","dam:21:赤石ダム","dam:21:都田川ダム","dam:21:青野大師ダム","dam:22:大原調整池ダム","dam:22:大野頭首工ダム","dam:22:富永ダム","dam:22:木瀬ダム","dam:22:東郷調整池ダム","dam:22:矢作第二ダム","dam:22:蒲郡調整池（再）ダム","dam:22:越戸ダム","dam:22:雨山ダム","dam:22:黒田ダム","dam:23:クチスボダム","dam:23:七色ダム","dam:23:三瀬谷ダム","dam:23:中里ダム","dam:23:伊坂ダム","dam:23:安濃ダム","dam:23:小森ダム","dam:23:山村ダム","dam:23:川上ダム","dam:23:鳥羽河内ダム","dam:24:丹生ダム","dam:24:大戸川ダム","dam:24:宇曽川ダム","dam:24:犬上川ダム","dam:24:石田川ダム","dam:24:蔵王ダム","dam:24:野洲川（再）ダム","dam:25:世木ダム","dam:25:喜撰山ダム","dam:25:岸谷ダム","dam:25:廻り池ダム","dam:25:高山ダム","dam:26:堀河ダム","dam:26:永楽ダム","dam:26:稲倉池ダム","dam:26:逢帰ダム","dam:27:みくまりダム","dam:27:三宝ダム","dam:27:上田池ダム","dam:27:与布土ダム","dam:27:丸山ダム","dam:27:但東ダム","dam:27:佐仲ダム","dam:27:初尾川ダム","dam:27:北富士ダム","dam:27:千苅ダム","dam:27:呑吐ダム","dam:27:多々良木ダム","dam:27:大城池ダム","dam:27:大川瀬ダム","dam:27:大日ダム","dam:27:大日川ダム","dam:27:大杉ダム","dam:27:大路ダム","dam:27:天王ダム","dam:27:太田第一ダム","dam:27:安室ダム","dam:27:安富ダム","dam:27:室谷ダム","dam:27:川下川ダム","dam:27:常盤ダム","dam:27:引原ダム","dam:27:成相ダム","dam:27:本庄川ダム","dam:27:権現第1ダム","dam:27:深谷ダム","dam:27:牛内ダム","dam:27:猪鼻第2ダム","dam:27:石井ダム","dam:27:神谷ダム","dam:27:立ヶ畑ダム","dam:27:竹原ダム","dam:27:船木池ダム","dam:27:菅生（元）ダム","dam:27:藤岡ダム","dam:27:諭鶴羽ダム","dam:27:金出地ダム","dam:27:鍔市ダム","dam:27:長谷ダム","dam:27:鮎屋川ダム","dam:27:鴨川ダム","dam:28:一の木ダム","dam:28:上津ダム","dam:28:二津野ダム","dam:28:倉橋溜池（元）ダム","dam:28:初瀬ダム","dam:28:坂本ダム","dam:28:大迫ダム","dam:28:大門ダム","dam:28:天理ダム","dam:28:奥里ダム","dam:28:宮奥ダム","dam:28:岩井川ダム","dam:28:川迫ダム","dam:28:旭ダム","dam:28:津風呂ダム","dam:28:瀬戸ダム","dam:28:白川ダム","dam:28:須川ダム","dam:28:風屋ダム","dam:29:切目川ダム","dam:29:小匠ダム","dam:29:山田ダム","dam:29:島ノ瀬ダム","dam:29:殿山ダム","dam:2:レン滝ダム","dam:2:一方井ダム","dam:2:入畑ダム","dam:2:千貫石（再）ダム","dam:2:外山ダム","dam:2:大志田ダム","dam:2:大沢ダム","dam:2:日向ダム","dam:2:早池峰ダム","dam:2:普代ダム","dam:2:根石ダム","dam:2:津付ダム","dam:2:滝ダム","dam:2:瀬月内ダム","dam:2:矢櫃ダム","dam:2:簗川ダム","dam:2:綾里川ダム","dam:2:荒沢1号ダム","dam:2:荒沢2号ダム","dam:2:葛丸ダム","dam:2:衣川1号ダム","dam:2:衣川2号ダム","dam:2:衣川3号ダム","dam:2:衣川4号ダム","dam:2:遠野ダム","dam:2:金越沢ダム","dam:2:鷹生ダム","dam:30:下蚊屋ダム","dam:30:中津ダム","dam:30:俣野川ダム","dam:30:小田股ダム","dam:30:朝鍋ダム","dam:30:東郷ダム","dam:30:桜溜池ダム","dam:30:百谷ダム","dam:30:船上山ダム","dam:30:茗荷谷ダム","dam:30:西高尾ダム","dam:31:三成ダム","dam:31:周布川ダム","dam:31:坂根ダム","dam:31:塩田ダム","dam:31:大谷ダム","dam:31:大長見ダム","dam:31:山佐ダム","dam:31:嵯峨谷ダム","dam:31:布部ダム","dam:31:御部ダム","dam:31:木都賀ダム","dam:31:来島ダム","dam:31:波積ダム","dam:31:清瀧ダム","dam:31:益田川ダム","dam:31:矢原川ダム","dam:31:稗原ダム","dam:31:第二浜田ダム","dam:31:笹倉（再）ダム","dam:31:美田ダム","dam:31:銚子ダム","dam:32:三室川ダム","dam:32:久賀ダム","dam:32:八塔寺川ダム","dam:32:北房ダム","dam:32:土用ダム","dam:32:大佐ダム","dam:32:小阪部川ダム","dam:32:恩木ダム","dam:32:新成羽川ダム","dam:32:日笠ダム","dam:32:明治ダム","dam:32:明治池ダム","dam:32:昭和池ダム","dam:32:杉谷池ダム","dam:32:楢井ダム","dam:32:槇谷ダム","dam:32:河平ダム","dam:32:津川ダム","dam:32:滝山ダム","dam:32:田原ダム","dam:32:竹谷ダム","dam:32:第2星田ダム","dam:32:苫田鞍部ダム","dam:32:落合ダム","dam:32:西原ダム","dam:32:鎮守池ダム","dam:32:香々美ダム","dam:32:高瀬川ダム","dam:32:鬼ヶ岳ダム","dam:32:鳴滝ダム","dam:32:黒木ダム","dam:32:黒谷池（元）ダム","dam:33:三川（再）ダム","dam:33:三高（再）ダム","dam:33:中野ダム","dam:33:二級ダム","dam:33:仁賀ダム","dam:33:仙養ダム","dam:33:南原ダム","dam:33:四川ダム","dam:33:奥山ダム","dam:33:宇賀ダム","dam:33:山田川ダム","dam:33:帝釈川（再）ダム","dam:33:庄原ダム","dam:33:御調ダム","dam:33:明神ダム","dam:33:板木溜池ダム","dam:33:梶毛ダム","dam:33:椋梨ダム","dam:33:樽床ダム","dam:33:渡之瀬ダム","dam:33:王泊ダム","dam:33:目谷ダム","dam:33:福富ダム","dam:33:立岩ダム","dam:33:竜泉寺ダム","dam:33:薬師池ダム","dam:33:藤尾ダム","dam:33:野呂川ダム","dam:33:野間川ダム","dam:33:高暮ダム","dam:33:魚切ダム","dam:33:黒瀬ダム","dam:34:一の坂ダム","dam:34:中山川ダム","dam:34:今富ダム","dam:34:佐々並川ダム","dam:34:佐波川ダム","dam:34:内日ダム","dam:34:厚東川ダム","dam:34:向道ダム","dam:34:大坊ダム","dam:34:大河内川ダム","dam:34:宇部丸山ダム","dam:34:屋代ダム","dam:34:山の口ダム","dam:34:川上ダム","dam:34:平瀬ダム","dam:34:木屋川ダム","dam:34:末武川ダム","dam:34:歌野川ダム","dam:34:水越ダム","dam:34:温見ダム","dam:34:湯の原ダム","dam:34:湯免ダム","dam:34:狩音ダム","dam:34:生見川ダム","dam:34:石井ダム","dam:34:美祢ダム","dam:34:荒谷ダム","dam:34:見島ダム","dam:34:阿惣ダム","dam:34:黒杭川ダム","dam:34:黒杭川上流ダム","dam:35:三縄ダム","dam:35:名頃ダム","dam:35:夏子ダム","dam:35:大美谷ダム","dam:35:宮川内ダム","dam:35:松尾川ダム","dam:35:若宮谷ダム","dam:36:五郷ダム","dam:36:内海（再）ダム","dam:36:前山ダム","dam:36:千足ダム","dam:36:吉田ダム","dam:36:大内ダム","dam:36:大川ダム","dam:36:椛川ダム","dam:36:殿川ダム","dam:36:満濃池（再）ダム","dam:36:田万ダム","dam:36:粟井ダム","dam:36:粟地ダム","dam:36:豊稔池（元）ダム","dam:36:野口ダム","dam:36:長柄（再）ダム","dam:37:上浦ダム","dam:37:佐古ダム","dam:37:別子ダム","dam:37:台ダム","dam:37:大久保山ダム","dam:37:大谷池ダム","dam:37:山財ダム","dam:37:山鳥坂ダム","dam:37:布喜川調整池ダム","dam:37:志河川ダム","dam:37:新宮ダム","dam:37:朝倉ダム","dam:37:東蓮寺池ダム","dam:37:柳谷ダム","dam:37:横谷調整池ダム","dam:37:歌仙ダム","dam:37:玉川ダム","dam:37:立岩ダム","dam:37:銚子ダム","dam:37:面河ダム","dam:37:面河第3ダム","dam:37:須賀川ダム","dam:37:鹿森ダム","dam:37:黒瀬ダム","dam:38:三山谷池ダム","dam:38:中筋川ダム","dam:38:久木ダム","dam:38:以布利川ダム","dam:38:伊尾木川ダム","dam:38:休場ダム","dam:38:初瀬ダム","dam:38:吉野ダム","dam:38:和食ダム","dam:38:坂本ダム","dam:38:大森川ダム","dam:38:大橋ダム","dam:38:平鍋ダム","dam:38:春遠ダム","dam:38:杉田ダム","dam:38:桐見ダム","dam:38:津賀ダム","dam:38:稲村ダム","dam:38:穴内川ダム","dam:38:筏津ダム","dam:38:鎌井谷ダム","dam:38:長沢ダム","dam:39:ます渕ダム","dam:39:久原ダム","dam:39:切畑ダム","dam:39:北谷ダム","dam:39:南畑（元）ダム","dam:39:古賀ダム","dam:39:合所ダム","dam:39:夜明ダム","dam:39:小川ダム","dam:39:山口調整池ダム","dam:39:山神ダム","dam:39:広川防災ダム","dam:39:曲渕（元）ダム","dam:39:松ヶ江ダム","dam:39:殿川ダム","dam:39:河内ダム","dam:39:猪野ダム","dam:39:瑞梅寺ダム","dam:39:畑ダム","dam:39:福智山ダム","dam:39:脊振ダム","dam:39:藤波ダム","dam:39:長谷ダム","dam:39:陣屋ダム","dam:39:鳴淵ダム","dam:3:七北田ダム","dam:3:二ツ石ダム","dam:3:保野川ダム","dam:3:大倉ダム","dam:3:小田ダム","dam:3:岩堂沢ダム","dam:3:川内沢ダム","dam:3:払川ダム","dam:3:村田ダム","dam:3:樽水ダム","dam:3:漆沢ダム","dam:3:相川ダム","dam:3:筒砂子ダム","dam:3:花山（再）ダム","dam:40:井手口川ダム","dam:40:伊岐佐ダム","dam:40:北山ダム","dam:40:城原川ダム","dam:40:大浦ダム","dam:40:天ヶ瀬ダム","dam:40:岩屋川内ダム","dam:40:平木場ダム","dam:40:後川内ダム","dam:40:打上ダム","dam:40:日ノ峯ダム","dam:40:有田ダム","dam:40:本部ダム","dam:40:横竹ダム","dam:40:永池（再）ダム","dam:40:河内防災ダム","dam:40:深浦ダム","dam:40:狩立ダム","dam:40:矢筈ダム","dam:40:竜門ダム","dam:40:藤ノ平ダム","dam:40:赤坂ダム","dam:40:都川内ダム","dam:41:つづらダム","dam:41:下の原（元）ダム","dam:41:中尾ダム","dam:41:中山ダム","dam:41:久吹ダム","dam:41:仁田ダム","dam:41:伊木力ダム","dam:41:勝本ダム","dam:41:土師野尾ダム","dam:41:宮ノ川ダム","dam:41:宮崎ダム","dam:41:小浦ダム","dam:41:川谷ダム","dam:41:式見ダム","dam:41:当田ダム","dam:41:本明川ダム","dam:41:桜川ダム","dam:41:梅ノ木ダム","dam:41:樋口ダム","dam:41:永田ダム","dam:41:江永ダム","dam:41:浦の川ダム","dam:41:猫山ダム","dam:41:男女岳ダム","dam:41:目保呂ダム","dam:41:相当ダム","dam:41:石木ダム","dam:41:神浦ダム","dam:41:福江ダム","dam:41:笛吹ダム","dam:41:箕坪ダム","dam:41:船津ダム","dam:41:菰田ダム","dam:41:西山（再）ダム","dam:41:重井田ダム","dam:41:長与ダム","dam:41:阿奈田ダム","dam:41:青方ダム","dam:41:高浜ダム","dam:41:鳴見ダム","dam:41:鹿尾ダム","dam:41:黒浜ダム","dam:42:上津浦ダム","dam:42:亀川ダム","dam:42:五和ダム","dam:42:五和東部ダム","dam:42:内谷ダム","dam:42:大蘇ダム","dam:42:天君ダム","dam:42:幸野ダム","dam:42:志岐ダム","dam:42:楠浦ダム","dam:42:氷川ダム","dam:42:油谷ダム","dam:42:清願寺ダム","dam:42:瀬戸石ダム","dam:42:石打ダム","dam:42:第2ヤイラギダム","dam:42:船津ダム","dam:42:路木ダム","dam:42:都呂々ダム","dam:43:ななせダム","dam:43:並石ダム","dam:43:中の川ダム","dam:43:久木野尾ダム","dam:43:乙見ダム","dam:43:佐賀関ダム","dam:43:女子畑第二調整池ダム","dam:43:安岐ダム","dam:43:師田原ダム","dam:43:床木ダム","dam:43:日出生ダム","dam:43:日指ダム","dam:43:末広ダム","dam:43:松木ダム","dam:43:深見ダム","dam:43:玉来ダム","dam:43:石場ダム","dam:43:石山ダム","dam:43:稲葉ダム","dam:43:篠原ダム","dam:43:若杉防災ダム","dam:43:行入ダム","dam:43:野津ダム","dam:43:野田ダム","dam:43:鍋倉ダム","dam:43:青江ダム","dam:43:香下ダム","dam:43:高瀬川ダム","dam:43:黒沢ダム","dam:44:切原ダム","dam:44:大内原ダム","dam:44:大淀川第一ダム","dam:44:大瀬内ダム","dam:44:天神ダム","dam:44:宮の元ダム","dam:44:寒川ダム","dam:44:岩屋戸ダム","dam:44:岩瀬ダム","dam:44:広沢ダム","dam:44:広渡ダム","dam:44:星山ダム","dam:44:木之川内ダム","dam:44:杉安ダム","dam:44:松尾ダム","dam:44:沖田ダム","dam:44:浜ノ瀬ダム","dam:44:浜砂ダム","dam:44:瓜田ダム","dam:44:田代八重ダム","dam:44:石河内ダム","dam:44:祝子ダム","dam:44:立花ダム","dam:44:綾北ダム","dam:44:諸塚ダム","dam:44:長谷ダム","dam:44:門川防災ダム","dam:44:青鹿溜池ダム","dam:44:高岡ダム","dam:45:中岳ダム","dam:45:串木野ダム","dam:45:喜界地下ダム","dam:45:大和ダム","dam:45:大川（再）ダム","dam:45:尾立ダム","dam:45:市来ダム","dam:45:御手洗ダム","dam:45:徳之島ダム","dam:45:松元ダム","dam:45:永吉ダム","dam:45:清浦ダム","dam:45:神嶺ダム","dam:45:竹山ダム","dam:45:荒瀬ダム","dam:45:谷川内ダム","dam:45:輝北ダム","dam:45:金峰ダム","dam:45:高尾野ダム","dam:45:高川ダム","dam:45:高松ダム","dam:46:カンジンダム","dam:46:与勝地下ダム","dam:46:倉敷ダム","dam:46:儀間ダム","dam:46:名蔵ダム","dam:46:大保脇ダム","dam:46:大浦ダム","dam:46:安富祖ダム","dam:46:底原ダム","dam:46:座間味ダム","dam:46:当袋川ダム","dam:46:我喜屋ダム","dam:46:新川ダム","dam:46:普久川ダム","dam:46:潟原ダム","dam:46:真喜屋ダム","dam:46:真栄里ダム","dam:46:石垣ダム","dam:46:辺野喜ダム","dam:46:金城ダム","dam:46:金武ダム","dam:46:長浜ダム","dam:4:協和ダム","dam:4:夏瀬ダム","dam:4:大内ダム","dam:4:大松川ダム","dam:4:山瀬ダム","dam:4:岩見ダム","dam:4:成瀬ダム","dam:4:早口ダム","dam:4:旭川ダム","dam:4:板戸ダム","dam:4:森吉ダム","dam:4:水沢ダム","dam:4:潟尻第1ダム","dam:4:相野々ダム","dam:4:砂子沢ダム","dam:4:素波里ダム","dam:4:萩形ダム","dam:4:鳥海ダム","dam:5:上郷ダム","dam:5:八久和ダム","dam:5:前川ダム","dam:5:新落合ダム","dam:5:新鶴子ダム","dam:5:最上小国川ダム","dam:5:月光川ダム","dam:5:木地山ダム","dam:5:木川ダム","dam:5:桝沢ダム","dam:5:梵字川ダム","dam:5:横川ダム","dam:5:水ヶ瀞ダム","dam:5:温海川ダム","dam:5:生居川ダム","dam:5:田沢川ダム","dam:5:留山川ダム","dam:5:白水川ダム","dam:5:神室ダム","dam:5:綱木川ダム","dam:5:荒沢ダム","dam:5:菖蒲川ダム","dam:5:蔵王ダム","dam:5:赤芝ダム","dam:5:高坂ダム","dam:6:こまちダム","dam:6:上田ダム","dam:6:上野尻ダム","dam:6:二岐ダム","dam:6:千五沢ダム","dam:6:只見ダム","dam:6:四時ダム","dam:6:坂下ダム","dam:6:堀川ダム","dam:6:大内ダム","dam:6:大平沼ダム","dam:6:大柿ダム","dam:6:大津岐ダム","dam:6:大深沢ダム","dam:6:大鳥ダム","dam:6:宮下ダム","dam:6:宮川ダム","dam:6:小玉ダム","dam:6:山郷ダム","dam:6:岳ダム","dam:6:新宮川ダム","dam:6:新郷ダム","dam:6:日中ダム","dam:6:木戸ダム","dam:6:本名ダム","dam:6:東山ダム","dam:6:松ヶ房ダム","dam:6:柳津ダム","dam:6:横川ダム","dam:6:深田調整池ダム","dam:6:滝ダム","dam:6:滝川ダム","dam:6:片門ダム","dam:6:犬神ダム","dam:6:田島ダム","dam:6:真野ダム","dam:6:羽鳥ダム","dam:6:藤倉ダム","dam:6:藤沼（再）ダム","dam:6:西郷ダム","dam:6:金沢調整池ダム","dam:6:高の倉ダム","dam:6:高柴ダム","dam:6:龍生ダム","dam:7:十王ダム","dam:7:御前山ダム","dam:7:楮川ダム","dam:7:水沼ダム","dam:7:花貫ダム","dam:7:飯田ダム","dam:8:三河沢ダム","dam:8:今市ダム","dam:8:八汐ダム","dam:8:南摩ダム","dam:8:塩原ダム","dam:8:寺山ダム","dam:8:小網ダム","dam:8:庚申ダム","dam:8:東荒川ダム","dam:8:松田川ダム","dam:8:栗山ダム","dam:8:沼原ダム","dam:8:深山ダム","dam:8:蛇尾川ダム","dam:8:西荒川ダム","dam:9:上野ダム","dam:9:中之条ダム","dam:9:中木ダム","dam:9:丸沼ダム","dam:9:倉渕ダム","dam:9:坂本ダム","dam:9:塩沢ダム","dam:9:増田川ダム","dam:9:大仁田ダム","dam:9:大塩ダム","dam:9:小森ダム","dam:9:屋敷川取水ダム","dam:9:市野萱川取水ダム","dam:9:平出ダム","dam:9:桐生川ダム","dam:9:玉原ダム","dam:9:相俣ダム","dam:9:相沢川取水ダム","dam:9:神水ダム","dam:9:薗原ダム","dam:9:道平川ダム","dam:9:野反ダム","dam:9:鍛冶屋沢ダム","dam:9:霧積ダム","dam:9:須田貝ダム","dam:9:高津戸ダム","dam:9:黒坂石ダム"]);
 function openSpot(id,back){
   const x=SP(id),c=CAT[x.cat],vs=spotlog.filter(v=>v.id===id).map(v=>v.d).sort().reverse(),done=vs[0]===today();
@@ -3585,7 +3585,7 @@ function openSpot(id,back){
    <div class="spcard">${x.st?`<div class="spr"><span>停める場所</span><b>${esc(x.st)}</b></div>`:''}<div class="spr"><span>場所</span><b>${esc(x.ad||x.pref)}${here&&x.la!=null?`<small>${esc(here.label)}から約${fmtKm(dist(here,x))}</small>`:''}</b></div>
     <div class="spr"><span>記録</span><b>${vs.length?`${vs.length}回行きました<small>最後は${fmtD(vs[0])}</small>`:'まだ行ったことがありません'}</b></div>${spExtra(id)}${hereN(id)?`<div class="spr"><span>最近</span><b class="nowc2">2時間以内に${hereN(id)}人がここで記録しました<small>名前は出ません</small></b></div>`:''}</div>
    ${x.la!=null?(()=>{const t=sunTimes(x.la,x.lo);return `<div class="spinfo"><div id="spWx" class="spwx"><small>天気を読み込んでいます…</small></div>${t?`<div class="spsun">日の出 <b>${t.rise}</b> · 日の入り <b>${t.set}</b><small>（今日・計算値）</small></div>`:''}</div>`})():''}
-   ${phoSpotRow(id)?`<div class="sec" style="margin-top:14px">フォトスタ</div>${phoSpotRow(id)}`:''}${nearOf(x).length?`<div class="sec" style="margin-top:14px">ついでに寄れるスポット</div><div class="list">${nearOf(x).map(([y,d])=>`<button class="li press" data-near="${esc(y.id)}">${listMark(y,spotDone(y.id))}<div class="t"><b>${esc(y.n)}</b><span>${CAT[y.cat].n} · ${esc(y.ad||y.pref)}</span></div><span class="d">${fmtKm(d)}</span></button>`).join('')}</div>${PHCRED}`:''}<div class="row" style="margin-top:12px"><button class="btn sub press" data-close>閉じる</button><button class="btn press" id="spIn" ${done?'disabled':''}>${done?'今日は記録済み':'ここにいる（位置で確認）'}</button></div>
+   ${phoSpotRow(id)?`<div class="sec" style="margin-top:14px">フォトカード</div>${phoSpotRow(id)}`:''}${nearOf(x).length?`<div class="sec" style="margin-top:14px">ついでに寄れるスポット</div><div class="list">${nearOf(x).map(([y,d])=>`<button class="li press" data-near="${esc(y.id)}">${listMark(y,spotDone(y.id))}<div class="t"><b>${esc(y.n)}</b><span>${CAT[y.cat].n} · ${esc(y.ad||y.pref)}</span></div><span class="d">${fmtKm(d)}</span></button>`).join('')}</div>${PHCRED}`:''}<div class="row" style="margin-top:12px"><button class="btn sub press" data-close>閉じる</button><button class="btn press" id="spIn" ${done?'disabled':''}>${done?'今日は記録済み':'ここにいる（位置で確認）'}</button></div>
    <p class="note" style="text-align:center;margin-top:10px">${PASSCAT[x.cat]?(x.cat==='tg'?'峠は通過するだけで印が押されます。':'近くを通るだけで印が押されます。停まらなくて大丈夫です。'):`スポットに着いたら「ここにいる」を押してください。位置で確かめてから印を押します。${settings.autoIn?'（自動記録オン：アプリを開いている間は、着いたら自動で押されます）':''}`}</p>`);
   bindClose(back);bindPhoSpot(id);spImgCredit(id);spWeather(x);hydratePho();const csb=$('#cardShot');if(csb)csb.onclick=()=>{closeSheet();setTimeout(()=>openPhoto(id,()=>openSpot(id,back)),260)};$$('#sh [data-cardp]').forEach(b=>b.onclick=()=>{closeSheet();setTimeout(()=>openCard(b.dataset.cardp,()=>openSpot(id,back)),260)});
   const wb=$('#spWant');if(wb)wb.onclick=()=>{const on=toggleWant(id);wb.classList.toggle('on',on);wb.querySelector('span').textContent=on?'行きたいに登録済み':'行きたい';toast(on?'行きたいリストに追加しました':'行きたいリストから外しました')};
@@ -3982,8 +3982,8 @@ function openSup(back){const on=supPaid(me),X=SUPX;let busy=false;
      <div class="srow"><div class="t"><b>交換の特別な演出</b><span>サポーターが関わる交換では、「ペタッ」が青く光って星が飛びます。交換した相手の画面にも出ます</span></div></div>
      <div class="srow"><div class="t"><b>サポーター限定の縁</b><span>交換するスタンプに、サポーターだけの縁を付けられます</span></div></div>
      <div class="srow"><div class="t"><b>ガレージに5台まで</b><span>サポーターでない方は2台までです。解約しても、登録済みの車はそのまま残ります</span></div></div>
-     <div class="srow"><div class="t"><b>クラウドバックアップ</b><span>自分のフォトスタンプを預けて、スマホをなくしても戻せます（希望する方だけ）</span></div></div>
-     <div class="srow"><div class="t"><b>たくさん保存できます</b><span>スタンプ1,500枚・フォトスタンプ2,000枚まで保存できます。サポーターでない方はスタンプ300枚・フォトスタンプ100枚までです（iPhone版）。解約しても、保存済みの分はそのまま残ります</span></div></div>
+     <div class="srow"><div class="t"><b>クラウドバックアップ</b><span>自分のフォトカードを預けて、スマホをなくしても戻せます（希望する方だけ）</span></div></div>
+     <div class="srow"><div class="t"><b>たくさん保存できます</b><span>スタンプ1,500枚・フォトカード2,000枚まで保存できます。サポーターでない方はスタンプ300枚・フォトカード100枚までです（iPhone版）。解約しても、保存済みの分はそのまま残ります</span></div></div>
      <div class="srow"><div class="t"><b>サポーター限定のリワード</b><span>リボン形のバッジ（1か月・半年・1年）。解約しても獲得したバッジは残ります</span></div></div></div>
    ${!on&&me.official?'<div class="note" style="margin:10px 4px"><b>公式アカウントのため、上の機能（青い星を除く）はすべて使えます。</b></div>':''}
    <div class="sec">料金</div>
@@ -4039,10 +4039,10 @@ function provText(){const p=(C.providers&&C.providers())||[];const n=p.map(x=>x=
    <div class="sec">スポット</div>
    <div class="set">${routeRow()}${sw('autoIn','開いている間は、着いたら自動で記録する','タップしなくても印を押します。アプリを閉じている間の記録には、iPhone版アプリが対応しています')}</div>
    <div class="sec">データ</div>
-   <div class="set"><button class="srow press" id="mailsb" style="width:100%;border:0;background:none;cursor:pointer;text-align:left"><div class="t"><b>届いた手紙</b><span>交換した人から届いたフォトスタンプ</span></div><span class="val">›</span></button>
+   <div class="set"><button class="srow press" id="mailsb" style="width:100%;border:0;background:none;cursor:pointer;text-align:left"><div class="t"><b>届いた手紙</b><span>交換した人から届いたフォトカード</span></div><span class="val">›</span></button>
      ${sw('mailOff','手紙を受け取らない','オンにすると、ほかの人から手紙が届かなくなります')}
      <button class="srow press" id="cbackb" style="width:100%;border:0;background:none;cursor:pointer;text-align:left"><div class="t"><b>クラウドバックアップ</b><span>スマホをなくしても写真を戻せます（サポーター特典）</span></div><span class="val">›</span></button>
-     <button class="srow press" id="exportb" style="width:100%;border:0;background:none;cursor:pointer;text-align:left"><div class="t"><b>データの持ち出し</b><span>スタンプ帳の画像・記録のファイルを保存。機種変更のときのフォトスタンプの引き継ぎも</span></div><span class="val">›</span></button></div>
+     <button class="srow press" id="exportb" style="width:100%;border:0;background:none;cursor:pointer;text-align:left"><div class="t"><b>データの持ち出し</b><span>スタンプ帳の画像・記録のファイルを保存。機種変更のときのフォトカードの引き継ぎも</span></div><span class="val">›</span></button></div>
    <div class="sec">その他</div>
    <div class="set"><button class="srow press" style="width:100%;border:0;background:none;cursor:pointer;text-align:left" id="blkList"><div class="t"><b>ブロックした人</b></div><span class="val">${blocked.size}人 ›</span></button>
      <button class="srow press" id="onbagain" style="width:100%;border:0;background:none;cursor:pointer;text-align:left"><div class="t"><b>使い方をもう一度見る</b></div><span class="val">›</span></button></div>
@@ -4433,7 +4433,7 @@ function arrive(x){arrived.add(x.id);buzz([250,120,250]);sfx.chime(); // 運転�
     if(spotlog.some(v=>v.id===x.id&&v.d===today()))return;
     if(!myPos||Date.now()-myPos.at>120000||!inRange(x,myPos)){tab='sp';render();openSpot(x.id);return}
     const before=gotList(myStats()).map(q=>q.k);spotlog.push({id:x.id,d:today(),t:Date.now()});saveSpots();onSpotRecorded(x.id);sfx.chime();buzz(30);
-    const nb=gotList(myStats()).filter(q=>!before.includes(q.k));render();toast(nb.length?`バッジ獲得：${nb.map(q=>q.t).join('・')}`:`${x.n} の印を押しました（${spotDays(x.id)}回目）`);setTimeout(()=>{if(!$('#sh'))openSpot(x.id)},700)}} // 停まってタップした人には、フォトスタンプを撮れるようスポット画面を出す
+    const nb=gotList(myStats()).filter(q=>!before.includes(q.k));render();toast(nb.length?`バッジ獲得：${nb.map(q=>q.t).join('・')}`:`${x.n} の印を押しました（${spotDays(x.id)}回目）`);setTimeout(()=>{if(!$('#sh'))openSpot(x.id)},700)}} // 停まってタップした人には、フォトカードを撮れるようスポット画面を出す
 // Web版の自動記録：アプリを開いている間だけ、着いたらタップなしで印を押す（2026-10-06 鈴木さん）
 function webAutoRow(){return settings.autoIn
   ?`<div class="autorow"><span class="livedot"></span><div class="t"><b>自動記録オン（開いている間）</b><span>スポットに着いたら、タップしなくても印を押します</span></div><button class="seclink" id="wAutoOff">オフにする</button></div>`
@@ -4516,7 +4516,7 @@ setInterval(()=>presence(),30000);setTimeout(()=>presence(true),1500);
 /* ===== 機種変更の引き継ぎ・手紙・クラウドバックアップ（2026-11-05 鈴木さん）=====
    写真の保存先はスマホの中が基本。サーバーは受け渡しの間だけ使う（クラウドバックアップだけは本人が選んだときに保管する）。
    ・引き継ぎ：12文字のコードから鍵を作って暗号化してから預ける。コードはサーバーに送らないので、運営にも中身は読めない
-   ・手紙：交換したことがある相手にフォトスタンプを送る。すぐ届く（2026-11-05 鈴木さん）。受け取ったらサーバーから消す
+   ・手紙：交換したことがある相手にフォトカードを送る。すぐ届く（2026-11-05 鈴木さん）。受け取ったらサーバーから消す
    ・クラウド：サポーターが自分の写真だけを預ける。解約から90日で消える */
 const RL=C.relay;
 const MAIL_IMG_MAX=280000,XF_CHUNK=900000,CB_MAX=2000;
@@ -4572,7 +4572,7 @@ function openTransfer(){
    <p class="note" style="text-align:center;margin:4px 0 12px">スマホの中だけにある写真を、新しいスマホへ移します</p>
    <div class="list"><button class="li press" id="xfSend"><span class="exi">📤</span><div class="t"><b>このスマホから送る</b><span>前のスマホで押します。コードが出ます</span></div><span class="val">›</span></button>
     <button class="li press" id="xfRecv"><span class="exi">📥</span><div class="t"><b>このスマホで受け取る</b><span>新しいスマホで押します。コードを入力します</span></div><span class="val">›</span></button></div>
-   <p class="note" style="margin:10px 4px 0">移すもの：フォトスタンプの写真・届いた手紙・ドライブの記録。交換やスポットの記録は、同じアカウントでログインすれば自動で戻ります。<br>写真はスマホで暗号化してから、受け渡しの間だけサーバーに預けます。受け取ると消え、受け取られなくても24時間で消えます。運営が中身を見ることはできません。</p>
+   <p class="note" style="margin:10px 4px 0">移すもの：フォトカードの写真・届いた手紙・ドライブの記録。交換やスポットの記録は、同じアカウントでログインすれば自動で戻ります。<br>写真はスマホで暗号化してから、受け渡しの間だけサーバーに預けます。受け取ると消え、受け取られなくても24時間で消えます。運営が中身を見ることはできません。</p>
    <p class="note" style="margin:8px 4px 0">スマホが壊れたときに備えるには、「データの持ち出し」のファイル保存もお使いください。</p>
    <button class="btn sub press" style="margin-top:12px" data-close>戻る</button>`);
   bindClose(openExport);$('#xfSend').onclick=xferSendUi;$('#xfRecv').onclick=xferRecvUi}
@@ -4611,27 +4611,27 @@ function xferRecvUi(){
       if($('#xfMsg')){$('#xfMsg').innerHTML=`<b>写真${r.np}枚・手紙${r.nm}通・ドライブ${r.nr}日分を移しました</b>`;$('#xfGo').hidden=true;$('#xfBack').textContent='閉じる';$('#xfBack').onclick=()=>closeSheet()}}
     catch(e){console.warn('xfer',e);if($('#xfMsg')){$('#xfMsg').textContent=e&&e.code==='unavailable'?'通信できませんでした。もう一度お試しください':'受け取れませんでした。コードの間違い、期限切れ、または前のスマホと別のアカウントの可能性があります';$('#xfGo').disabled=false}}}}
 
-/* --- フォトスタンプを撮る入口（2026-11-05 鈴木さん「動線が分かりづらい」） --- */
+/* --- フォトカードを撮る入口（2026-11-05 鈴木さん「動線が分かりづらい」） --- */
 const todaySpots=()=>{const t=today(),seen=new Set(),o=[];spotlog.filter(v=>v.d===t).slice().reverse().forEach(v=>{const x=SP(v.id);if(x&&x.cat!=='st'&&!seen.has(v.id)){seen.add(v.id);o.push(x)}});return o};
 const shotYet=id=>pholog.some(p=>p.spot===id&&p.d===today());
 function photoEntry(){const L=todaySpots().slice(0,6);
-  if(!L.length)return `<div class="group" style="margin-bottom:12px"><b>フォトスタの撮り方</b>
+  if(!L.length)return `<div class="group" style="margin-bottom:12px"><b>フォトカードの作り方</b>
     <div class="note" style="margin-top:6px">1. スポットに行って記録する<br>2. その日のうちに、ここかスポットの画面から撮る<br>3. 丸く切り抜いたら完成！ 手紙で友だちにも送れます</div>
     <button class="btn sub press" id="phGoSpot" style="margin-top:10px">スポットを探す</button></div>`;
   return `<div class="sec">今日行ったスポットで撮る</div><div class="list" style="margin-bottom:12px">${L.map(x=>`<button class="li press" data-pshot="${esc(x.id)}"><span class="exi">📷</span><div class="t"><b>${esc(x.n)}</b><span>${shotYet(x.id)?'今日は撮影済み・もう1枚撮れます':'今日のうちに撮れます'}</span></div><span class="val">›</span></button>`).join('')}</div>`}
 /* マイスタンプの「近くのスポット」の下：スポットに寄った日だけ出す（2026-11-06 鈴木さん案） */
 function openShotList(){const L=todaySpots();if(!L.length)return;
   openSheet(`<b style="font-size:20px;display:block;text-align:center">どのスポットで撮りますか？</b>
-   <p class="note" style="text-align:center;margin:4px 0 12px">今日記録したスポットのフォトスタを作れます</p>
+   <p class="note" style="text-align:center;margin:4px 0 12px">今日記録したスポットのフォトカードを作れます</p>
    <div class="list">${L.map(x=>`<button class="li press" data-shotl="${esc(x.id)}"><span class="exi">📷</span><div class="t"><b>${esc(x.n)}</b><span>${shotYet(x.id)?'今日は撮影済み・もう1枚撮れます':'今日のうちに撮れます'}</span></div><span class="val">›</span></button>`).join('')}</div>
    <button class="btn sub press" style="margin-top:12px" data-close>閉じる</button>`);
   bindClose();
   $$('#sh [data-shotl]').forEach(b=>b.onclick=()=>{const n=pholog.length;openPhoto(b.dataset.shotl,()=>{if(pholog.length===n)openShotList()})})} // キャンセルならリストへ戻る。作り終えたら戻さない
-const nearMeCard0=nearMeCard;nearMeCard=()=>nearMeCard0()+(todaySpots().length?`<button class="btn sub press" id="homeShot" style="margin-top:10px">${CAMI}フォトスタンプを撮る</button>`:'');
-/* --- コレクションの「フォトスタ」：もらった手紙のうち、コレクションしたもの（交換数やバッジには数えない） --- */
+const nearMeCard0=nearMeCard;nearMeCard=()=>nearMeCard0()+(todaySpots().length?`<button class="btn sub press" id="homeShot" style="margin-top:10px">${CAMI}フォトカードを作る</button>`:'');
+/* --- コレクションの「フォトカード」：もらった手紙のうち、コレクションしたもの（交換数やバッジには数えない） --- */
 function keptView(){const L=mails.filter(m=>m.kept&&!blocked.has(m.from)).slice().reverse();if(!L.length)return '';
   return `<div class="sec">もらったカード<span class="chip">${L.length}枚</span></div><div class="spr2l">${L.map(m=>{const p=person(m.from);return cardFace(m.spot,m.d,mailStamp(m,92),{attr:` role="button" tabindex="0" data-keptml="${esc(m.id)}"`,cls:'press',sub:esc(p?p.name+'さんから':'退会したユーザー')})}).join('')}</div>`}
-/* --- 保存の上限（2026-11-06 鈴木さん）：スタンプ300・フォトスタンプ100、サポーターはスタンプ1,500・フォトスタンプ2,000。
+/* --- 保存の上限（2026-11-06 鈴木さん）：スタンプ300・フォトカード100、サポーターはスタンプ1,500・フォトカード2,000。
    持っている分は消さない（超えていても追加だけ止める）。課金できない版（Android・Web）はサポーターと同じ枠。枠は記録の文書1つ（約1MB）に収まる数 --- */
 const STAMP_FREE=300,STAMP_SUP=1500,PHO_FREE=100,PHO_SUP=2000;
 const capTest=/[?&]mock=/.test(location.search)&&/[?&]captest=1/.test(location.search); // 模擬環境の確認用
@@ -4639,7 +4639,7 @@ const capOn=()=>(!!SUPX||capTest)&&!supOn(me);
 const stampMax=()=>capOn()?STAMP_FREE:STAMP_SUP,phoMax=()=>capOn()?PHO_FREE:PHO_SUP;
 const stampCount=()=>new Set(log.map(l=>l.pid)).size;
 const stampFull=id=>stampCount()>=stampMax()&&!log.some(l=>l.pid===id); // すでに持っている人との交換は上限に関係なくできる
-function capSheet(kind){const nm=kind==='pho'?'フォトスタンプ':'スタンプ',mx=kind==='pho'?phoMax():stampMax(),up=capOn(),sm=kind==='pho'?PHO_SUP:STAMP_SUP;
+function capSheet(kind){const nm=kind==='pho'?'フォトカード':'スタンプ',mx=kind==='pho'?phoMax():stampMax(),up=capOn(),sm=kind==='pho'?PHO_SUP:STAMP_SUP;
   openSheet(`<div class="result"><b style="font-size:20px">${nm}の保存がいっぱいです</b>
      <div class="note">${nm}は${mx.toLocaleString()}枚まで保存できます。${kind==='pho'?'':'すでに持っている人とは、これまでどおり交換できます。'}今ある分はそのまま残ります。</div>
      ${up?`<div class="note" style="margin-top:6px">サポーターになると${sm.toLocaleString()}枚まで保存できます。</div>`:''}</div>
@@ -4649,7 +4649,7 @@ function capSheet(kind){const nm=kind==='pho'?'フォトスタンプ':'スタン
 const openPhoto00=openPhoto;openPhoto=(id,back,redo)=>{if(!redo&&pholog.length>=phoMax()){capSheet('pho');return}return openPhoto00(id,back,redo)};
 const request00=request;request=(id,accepted,exArg)=>{if(id!=='demo'&&stampFull(id)){capSheet('stamp');return}return request00(id,accepted,exArg)};
 const openParty00=openParty;openParty=(asHost,info)=>{if(!(info&&info.id==='demo')&&stampCount()>=stampMax()){capSheet('stamp');return}return openParty00(asHost,info)};
-/* --- 一覧から消えたフォトスタンプを戻す（2026-11-07 れなさん）：写真はスマホに残っているのに、
+/* --- 一覧から消えたフォトカードを戻す（2026-11-07 れなさん）：写真はスマホに残っているのに、
    保存エラー（1.0.2）で一覧がクラウドに届かず、開き直すと見えなくなった分。写真のIDに作った時刻が入っているので、
    その日にこのアカウントで記録したスポットと結びつけて戻す。その日の記録がない写真（別アカウントの分など）は戻さない --- */
 async function recoverPho(){if(!PDB.pkeys)return;let ks;try{ks=await PDB.pkeys()}catch(e){return}
@@ -4661,7 +4661,7 @@ async function recoverPho(){if(!PDB.pkeys)return;let ks;try{ks=await PDB.pkeys()
     const before=c.filter(v=>(+v.t||0)<=t).sort((a,b)=>(+b.t||0)-(+a.t||0))[0];
     add.push({id,spot:(before||c[0]).id,d,t})}
   if(!add.length)return;
-  pholog.push(...add);pholog.sort((a,b)=>(+a.t||0)-(+b.t||0));savePho();render();toast(`見えなくなっていたフォトスタンプを${add.length}枚戻しました`)}
+  pholog.push(...add);pholog.sort((a,b)=>(+a.t||0)-(+b.t||0));savePho();render();toast(`見えなくなっていたフォトカードを${add.length}枚戻しました`)}
 setTimeout(()=>recoverPho().catch(()=>{}),4000);
 /* --- 運営が届けた写真を入れる（2026-11-11 れなさんの恵那峡SA）：端末から消えた写真を、本人の priv/phofix に一度だけ置いて届ける。
    一覧にある写真IDの分だけ端末に書き込み、入れられたら phofix を消す --- */
@@ -4669,7 +4669,7 @@ async function applyPhoFix(){const C=window.__cloud;if(!C||!C.phoFix)return;let 
   const m=d&&(d.ph&&typeof d.ph==='object'?d.ph:d);if(!m||typeof m!=='object')return;let n=0; // {ph:{ID:画像}} でも、ID をそのままフィールド名にしても読む
   for(const [id,url] of Object.entries(m)){if(typeof url!=='string'||!/^data:image\/jpeg;base64,/.test(url)||!pholog.some(p=>p.id===id))continue;
     try{await PDB.put(id,url);phoCache[id]=url;n++}catch(e){}}
-  if(!n)return;try{await C.phoFix.done()}catch(e){}render();toast(`フォトスタンプの写真を${n}枚お届けしました`)}
+  if(!n)return;try{await C.phoFix.done()}catch(e){}render();toast(`フォトカードの写真を${n}枚お届けしました`)}
 setTimeout(()=>applyPhoFix().catch(()=>{}),5000);
 /* --- 手紙を送る --- */
 const shrinkImg=src=>new Promise((ok,ng)=>{const im=new Image();im.onload=()=>{const s=Math.min(1,480/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*s);c.height=Math.round(im.height*s);c.getContext('2d').drawImage(im,0,0,c.width,c.height);ok(c.toDataURL('image/jpeg',.72))};im.onerror=ng;im.src=src});
@@ -4723,7 +4723,7 @@ async function checkMail(L){if(settings.mailOff||!RL)return;if(mailChecking){mai
   if(mailAgain){const n=mailAgain;mailAgain=null;checkMail(n)}}
 function openMails(back){const L=mails.filter(m=>!blocked.has(m.from)).slice().reverse();
   openSheet(`<b style="font-size:20px;display:block;text-align:center">届いた手紙</b>
-   <p class="note" style="text-align:center;margin:4px 0 12px">交換した人から届いたフォトスタンプです。写真はこのスマホの中だけに保存されています</p>
+   <p class="note" style="text-align:center;margin:4px 0 12px">交換した人から届いたフォトカードです。写真はこのスマホの中だけに保存されています</p>
    ${L.length?`<div class="list">${L.map(m=>{const p=person(m.from),x=SP(m.spot);return `<button class="li press" data-ml="${esc(m.id)}"><span class="oav">${mailStamp(m,44)}</span><div class="t"><b>${m.read?'':'🆕 '}${esc(p?p.name:'退会したユーザー')}</b><span>${esc(x?x.n:'スポット')} · ${dotD(m.d)}</span></div><span class="val">›</span></button>`}).join('')}</div>`:'<p class="note" style="text-align:center;margin:18px 0">まだ手紙は届いていません。</p>'}
    <button class="btn sub press" style="margin-top:12px" data-close>閉じる</button>`);
   bindClose(back||(()=>{}));hydratePho();
@@ -4761,14 +4761,14 @@ async function cbRestore(onProg){const ids=await RL.cb.idx();let n=0,i=0;
   pholog.sort((a,b)=>(a.t||0)-(b.t||0));savePho();return n}
 function openBackup(back){const on=supOn(me),left=cbLeftDays();
   openSheet(`<b style="font-size:20px;display:block;text-align:center">クラウドバックアップ</b>
-   <p class="note" style="text-align:center;margin:4px 0 12px">自分のフォトスタンプをサーバーに預けて、スマホをなくしても戻せるようにします${on?'':'（サポーター特典）'}</p>
+   <p class="note" style="text-align:center;margin:4px 0 12px">自分のフォトカードをサーバーに預けて、スマホをなくしても戻せるようにします${on?'':'（サポーター特典）'}</p>
    <div class="set"><div class="srow"><div class="t"><b>預けている写真</b><span id="cbInfo">確認しています…</span></div></div>
     ${on?`<div class="srow"><div class="t"><b>自動でバックアップする</b><span>アプリを開いたときに、新しい写真を預けます</span></div><button class="switch" role="switch" id="cbSw" aria-checked="${!!settings.cbOn}" aria-label="自動でバックアップする"></button></div>`:''}</div>
    <div id="cbMsg" class="note" role="status" style="text-align:center;margin:10px 0 0;min-height:1.4em"></div>
    ${on?'<button class="btn press" id="cbNow" style="margin-top:8px">今すぐバックアップ</button>':'<button class="btn press" id="cbSup" style="margin-top:8px">サポーターについて</button>'}
    <button class="btn sub press" id="cbRes" style="margin-top:8px" hidden>このスマホに戻す</button>
    <button class="btn sub press" id="cbDel" style="margin-top:8px" hidden><span class="danger">預けた写真をすべて削除</span></button>
-   <p class="note" style="margin:10px 4px 0">・預けるのは自分のフォトスタンプだけです（届いた手紙は預けません）。最大${CB_MAX.toLocaleString()}枚です。<br>・写真はサーバーに保存され、本人のアカウントからしか読めません。運営が見るのは、法令に基づく場合など、プライバシーポリシーに書いた場合だけです。<br>・解約すると新しく預けることはできなくなり、有効期限から90日で預けた写真は消えます。その間は戻せます。<br>・機種変更の引き継ぎとファイルでの持ち出しは、サポーターでなくても無料で使えます。</p>
+   <p class="note" style="margin:10px 4px 0">・預けるのは自分のフォトカードだけです（届いた手紙は預けません）。最大${CB_MAX.toLocaleString()}枚です。<br>・写真はサーバーに保存され、本人のアカウントからしか読めません。運営が見るのは、法令に基づく場合など、プライバシーポリシーに書いた場合だけです。<br>・解約すると新しく預けることはできなくなり、有効期限から90日で預けた写真は消えます。その間は戻せます。<br>・機種変更の引き継ぎとファイルでの持ち出しは、サポーターでなくても無料で使えます。</p>
    <button class="btn sub press" style="margin-top:12px" data-close>戻る</button>`);
   bindClose(back||(()=>{}));
   const msg=t=>{if($('#cbMsg'))$('#cbMsg').textContent=t},refresh=async()=>{let ids=[];try{ids=await RL.cb.idx()}catch(e){if($('#cbInfo'))$('#cbInfo').textContent='確認できませんでした';return}
