@@ -2927,7 +2927,7 @@ function spotKmDays(){if(_spkN===spotlog.length)return _spk;const by={};spotlog.
   _spk=o;_spkN=spotlog.length;return o}
 const kmSum=()=>{const r=store.get('rtkm1',{}),sp=spotKmDays();let t=0;for(const d of new Set([...Object.keys(r),...Object.keys(sp)]))t+=Math.max(+r[d]||0,sp[d]||0);return t};
 const kmFmt=k=>k<10?(Math.round(k*10)/10).toString():Math.round(k).toLocaleString();
-async function totalKm(){const c={...store.get('rtkm1',{})},td=today();let ch=false;for(const d of await rtDays()){if(c[d]!=null&&d!==td)continue;const p=await rtGet(d),k=p.length>=2?Math.round(rtKm(p)*100)/100:0;if(c[d]!==k){c[d]=k;ch=true}}if(ch)store.set('rtkm1',c);return kmSum()}
+async function totalKm(){const c={...store.get('rtkm1',{})},td=today();let ch=false;for(const d of await rtDays()){if(c[d]!=null&&d!==td)continue;const p=await rtGet(d),k=p.length>=2?Math.round(rtKm(p)*100)/100:0;if(!(c[d]>=k)){c[d]=k;ch=true}}if(ch)store.set('rtkm1',c);return kmSum()}
 // SNSに出すとき：出発と到着のまわり（各1km）を消して、自宅の場所が分からないようにする
 function rtTrim(pts,km=1){const c=[0];for(let i=1;i<pts.length;i++)c.push(c[i-1]+dist({la:pts[i-1][0],lo:pts[i-1][1]},{la:pts[i][0],lo:pts[i][1]}));
   const tot=c[c.length-1]||0;if(tot<km*2.5)return [];return pts.filter((p,i)=>c[i]>=km&&c[i]<=tot-km)}
