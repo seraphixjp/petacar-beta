@@ -3859,7 +3859,7 @@ function render(){
   const E=EVENTS[LIVE];
   $('#evbar').innerHTML=inEvent()?`<div class="evbar" style="background:${E.c1}"><span class="pulse"></span><span>チェックイン中 · ${E.name}</span><span>${E.close}まで</span></div>`:'';
   $$('.tab').forEach(b=>b.setAttribute('aria-current',b.dataset.t===tab?'page':'false'));
-  $('#ttl').textContent=TITLES[tab][0];fitTtl();$('#navt').textContent=TITLES[tab][0];$('.tab.fab').classList.toggle('live',nearOn());$('#sub').textContent=TITLES[tab][1];
+  $('#ttl').textContent=TITLES[tab][0];setTimeout(fitTtl,0);$('#navt').textContent=TITLES[tab][0];$('.tab.fab').classList.toggle('live',nearOn());$('#sub').textContent=TITLES[tab][1];
   $('#hact').innerHTML=tab==='me'?`<button class="iconbtn press bell${newsUnread().length?' dot':''}" id="bell" aria-label="お知らせ${newsUnread().length?`（未読${newsUnread().length}件）`:''}">${BELL}</button>${mailBtn()}<button class="iconbtn press" id="gear" aria-label="設定"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>`:'';
   if(tab==='me'){$('#gear').onclick=openSettings;$('#bell').onclick=openNews}
   const v=$('#view');v.innerHTML=views[tab]();
