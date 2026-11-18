@@ -102,7 +102,7 @@ button{font-family:inherit;color:inherit}
 @media (min-width:640px) and (min-height:700px){.shell{height:min(880px,calc(100% - 40px));margin-top:20px;border-radius:38px;border:8px solid #11161c;box-shadow:0 30px 80px rgba(0,0,0,.25)}}
 .scroll{flex:1;overflow-y:auto;overscroll-behavior:contain;padding:0 16px 24px}
 .lt{padding:14px 0 10px}
-.lt h1{margin:0;font-size:30px;font-weight:900;letter-spacing:-.01em}
+.lt h1{margin:0;font-size:30px;font-weight:900;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .lt p{margin:0;font-size:13px;color:var(--muted)}
 .enter{animation:enter .28s cubic-bezier(.2,.8,.2,1)}
 @keyframes enter{from{opacity:0;transform:translateX(14px)}}
@@ -3851,13 +3851,15 @@ function fitHito(el){if(!el||!el.isConnected)return;el.dataset.fit=1;el.style.fo
   const sw=el.scrollWidth-pad,cw=el.clientWidth-pad;if(!(cw>0)||sw<=cw+1)return;el.style.fontSize=Math.max(10,Math.floor(base*cw/sw*2)/2)+'px'}
 const fitHitoAll=()=>document.querySelectorAll('.hito,.hitop').forEach(fitHito);
 try{new MutationObserver(()=>{const L=document.querySelectorAll('.hito:not([data-fit]),.hitop:not([data-fit])');if(L.length)setTimeout(()=>L.forEach(fitHito),30)}).observe(document.documentElement,{childList:true,subtree:true});addEventListener('resize',fitHitoAll);document.fonts&&document.fonts.ready.then(fitHitoAll)}catch(e){}
+function fitTtl(){const t=$('#ttl');if(!t)return;t.style.fontSize='';let f=30;while(f>20&&t.scrollWidth>t.clientWidth+1){f--;t.style.fontSize=f+'px'}}
+try{addEventListener('resize',fitTtl);document.fonts&&document.fonts.ready.then(fitTtl)}catch(e){}
 function render(){
   clearInterval(modeTimer);
   if(tab==='rw'&&lastTab!=='rw'){newShown=unseen();seenB=gotKeys();store.set('seen2',seenB)}else if(tab!=='rw')newShown=[];
   const E=EVENTS[LIVE];
   $('#evbar').innerHTML=inEvent()?`<div class="evbar" style="background:${E.c1}"><span class="pulse"></span><span>チェックイン中 · ${E.name}</span><span>${E.close}まで</span></div>`:'';
   $$('.tab').forEach(b=>b.setAttribute('aria-current',b.dataset.t===tab?'page':'false'));
-  $('#ttl').textContent=TITLES[tab][0];$('#navt').textContent=TITLES[tab][0];$('.tab.fab').classList.toggle('live',nearOn());$('#sub').textContent=TITLES[tab][1];
+  $('#ttl').textContent=TITLES[tab][0];fitTtl();$('#navt').textContent=TITLES[tab][0];$('.tab.fab').classList.toggle('live',nearOn());$('#sub').textContent=TITLES[tab][1];
   $('#hact').innerHTML=tab==='me'?`<button class="iconbtn press bell${newsUnread().length?' dot':''}" id="bell" aria-label="お知らせ${newsUnread().length?`（未読${newsUnread().length}件）`:''}">${BELL}</button>${mailBtn()}<button class="iconbtn press" id="gear" aria-label="設定"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>`:'';
   if(tab==='me'){$('#gear').onclick=openSettings;$('#bell').onclick=openNews}
   const v=$('#view');v.innerHTML=views[tab]();
