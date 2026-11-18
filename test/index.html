@@ -2928,11 +2928,12 @@ async function rtAdd(la,lo,acc,t){if(!(acc<=200)||!isFinite(la)||!isFinite(lo))r
   if(rtLast){const k=dist(rtLast,{la,lo}),dt=t-rtLast.t;if(k<RT_KM&&!(dt>=RT_MS&&k>=.05))return} // 停まっている間は点を増やさない
   rtPts.push([+la.toFixed(4),+lo.toFixed(4),t]);rtLast={la,lo,t};try{await PDB.rput(d,rtPts)}catch(e){}
   const e=$('#rtn');if(e)e.textContent=rtPts.length;if(window.__tripLive&&d===today())window.__tripLive()}
+let rtDenied=false,rtDeniedTold=false; // 位置の許可がないとき：設定は変えず、この間だけ止める
 function rtStart(){if(rtWatch!=null||!settings.route||document.hidden||!navigator.geolocation)return;
   rtWatch=navigator.geolocation.watchPosition(p=>rtAdd(p.coords.latitude,p.coords.longitude,p.coords.accuracy||0,p.timestamp||Date.now()),
-    e=>{if(e.code===1){rtStop();settings.route=false;saveSet();const sw=$('#rtSw');if(sw)sw.setAttribute('aria-checked','false');toast('位置の利用が許可されていないため、ドライブの記録を止めました')}},{enableHighAccuracy:true,maximumAge:20000,timeout:60000})}
+    e=>{if(e.code===1){rtStop();rtDenied=true;if(!rtDeniedTold){rtDeniedTold=true;toast('位置の利用が許可されていないため、この端末ではドライブを記録できません（設定はオンのままです）')}}},{enableHighAccuracy:true,maximumAge:20000,timeout:60000})}
 function rtStop(){if(rtWatch!=null)navigator.geolocation.clearWatch(rtWatch);rtWatch=null}
-function setRoute(on){settings.route=!!on;saveSet();on?rtStart():rtStop()}
+function setRoute(on){settings.route=!!on;saveSet();if(on){rtDenied=false;rtDeniedTold=false;rtStart()}else rtStop()}
 document.addEventListener('visibilitychange',()=>document.hidden?rtStop():rtStart());
 setTimeout(rtStart,1500);
 const rtKm=pts=>{let k=0;for(let i=1;i<pts.length;i++)k+=dist({la:pts[i-1][0],lo:pts[i-1][1]},{la:pts[i][0],lo:pts[i][1]});return k};
