@@ -3333,12 +3333,19 @@ function sunTimes(la,lo,d=new Date()){const r=Math.PI/180,j=Date.UTC(d.getFullYe
 const WX={},WXN=c=>c===0?'快晴':c<=2?'晴れ':c===3?'くもり':c<=48?'霧':c<=57?'霧雨':c<=67?'雨':c<=77?'雪':c<=82?'にわか雨':c<=86?'にわか雪':'雷雨';
 // 天気の取得：8秒で打ち切る（予報APIが落ちていると、いつまでも返ってこないことがある）
 const wxFetch=u=>{const ac=window.AbortController?new AbortController():null,t=setTimeout(()=>ac&&ac.abort(),8000);return fetch(u,ac?{signal:ac.signal}:{}).then(r=>{clearTimeout(t);if(!r.ok)throw 0;return r.json()},e=>{clearTimeout(t);throw e})};
+// 今日の分だけ「今の時刻から後」の1時間ごとの予報で置き換える（もう止んだ雨を数えない）
+function wxRest(w){const d=w.daily;if(!w.hourly||!w.hourly.time||!d)return d;const h=w.hourly,t0=today(),hr=new Date().getHours(),o={...d};
+  const ix=h.time.map((t,i)=>[t,i]).filter(([t])=>t.slice(0,10)===t0&&+t.slice(11,13)>=hr).map(x=>x[1]);if(!ix.length)return d;
+  const pp=ix.map(i=>h.precipitation_probability&&h.precipitation_probability[i]).filter(v=>v!=null),wc=ix.map(i=>h.weather_code&&h.weather_code[i]).filter(v=>v!=null);
+  if(pp.length&&d.precipitation_probability_max){o.precipitation_probability_max=[Math.max(...pp),...d.precipitation_probability_max.slice(1)]}
+  if(wc.length&&d.weather_code){o.weather_code=[Math.max(...wc),...d.weather_code.slice(1)]}
+  return o}
 function spWeather(x){const el=$('#spWx');if(!el||x.la==null)return;const k=x.la.toFixed(2)+','+x.lo.toFixed(2);
   const day=(d,i,lb)=>`<div><b>${lb}</b> ${WXN(d.weather_code[i])} <span class="hi">${Math.round(d.temperature_2m_max[i])}℃</span>/<span class="lo">${Math.round(d.temperature_2m_min[i])}℃</span>${d.precipitation_probability_max&&d.precipitation_probability_max[i]!=null?` · 雨${d.precipitation_probability_max[i]}%`:''}</div>`;
-  const put=w=>{const e=$('#spWx');if(!e||!w)return;const d=w.daily,mn=Math.min(d.temperature_2m_min[0],d.temperature_2m_min[1]);
+  const put=w=>{const e=$('#spWx');if(!e||!w)return;const d=wxRest(w),mn=Math.min(d.temperature_2m_min[0],d.temperature_2m_min[1]);
     e.innerHTML=`<div class="wxr">${day(d,0,'今日')}${day(d,1,'明日')}</div>${mn<=3?`<div class="wxice"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 2v20M3.3 7l17.4 10M3.3 17L20.7 7M9 4l3 2 3-2M9 20l3-2 3 2"/></svg><span><b>路面凍結に注意</b>最低${Math.round(mn)}℃の予報です</span></div>`:''}<small class="srcsm">天気：Open-Meteo.com</small>`};
   if(WX[k]&&Date.now()-WX[k].at<18e5)return put(WX[k].w);
-  wxFetch(`https://api.open-meteo.com/v1/forecast?latitude=${x.la}&longitude=${x.lo}&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Asia%2FTokyo&forecast_days=2`).then(w=>{if(!w.daily)throw 0;WX[k]={w,at:Date.now()};put(w)}).catch(()=>{if(WX[k])return put(WX[k].w);const e=$('#spWx');if(e)e.innerHTML='<small>天気を読み込めませんでした（時間をおいて開き直してください）</small>'})}
+  wxFetch(`https://api.open-meteo.com/v1/forecast?latitude=${x.la}&longitude=${x.lo}&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Asia%2FTokyo&&hourly=weather_code,precipitation_probability&forecast_days=2`).then(w=>{if(!w.daily)throw 0;WX[k]={w,at:Date.now()};put(w)}).catch(()=>{if(WX[k])return put(WX[k].w);const e=$('#spWx');if(e)e.innerHTML='<small>天気を読み込めませんでした（時間をおいて開き直してください）</small>'})}
 // 冬季閉鎖（12〜4月だけ表示）
 const winNow=()=>{const m=new Date().getMonth()+1;return m>=12||m<=4};
 // 行きたいリスト（設定と一緒に保存＝クラウドにも残る）
@@ -3722,14 +3729,14 @@ function homeWx(ask){const el=$('#hwx');if(!el)return;
   if(!pos){if(ask)return getPos();
     try{navigator.permissions.query({name:'geolocation'}).then(r=>r.state==='granted'?getPos():btn(),btn)}catch(e){btn()}return}
   const k=pos.la.toFixed(2)+','+pos.lo.toFixed(2),st=sunTimes(pos.la,pos.lo),pl=hwxPlace(pos);
-  const put=w=>{const e=$('#hwx');if(!e||!w)return;const d=w.daily,c=d.weather_code[0],mn=d.temperature_2m_min[0],pp=d.precipitation_probability_max&&d.precipitation_probability_max[0],tips=wxTips(c,Math.round(d.temperature_2m_max[0]),Math.round(mn),pp,st,{wind:d.wind_speed_10m_max&&d.wind_speed_10m_max[0],uv:d.uv_index_max&&d.uv_index_max[0]});
+  const put=w=>{const e=$('#hwx');if(!e||!w)return;const d=wxRest(w),c=d.weather_code[0],mn=d.temperature_2m_min[0],pp=d.precipitation_probability_max&&d.precipitation_probability_max[0],tips=wxTips(c,Math.round(d.temperature_2m_max[0]),Math.round(mn),pp,st,{wind:d.wind_speed_10m_max&&d.wind_speed_10m_max[0],uv:d.uv_index_max&&d.uv_index_max[0]});
     e.innerHTML=`<div class="hwx1"><span class="hwxi" aria-hidden="true">${WXI(c)}</span><b>今日の天気</b><span class="hwxt">${WXN(c)}</span><span class="hi">${Math.round(d.temperature_2m_max[0])}℃</span><span class="lo">${Math.round(mn)}℃</span>${pp!=null?`<span class="hwxp">雨${pp}%</span>`:''}</div>
       <div class="hwx2">${st?`日の入り <b>${st.set}</b>`:''}${pl?` · ${esc(pl)}付近`:''}${mn<=3?' · <span class="hwxice">路面凍結に注意</span>':''}</div>
       ${tips.length?`<div class="hwxtip" id="hwxtip">💬 <span>${esc(tips[0])}</span></div>`:''}<small class="hwxsrc">天気：Open-Meteo.com</small>`;
     clearInterval(hwxTimer);if(tips.length>1&&!calm()){let i=0;hwxTimer=setInterval(()=>{const t=$('#hwxtip span');if(!t){clearInterval(hwxTimer);return}i=(i+1)%tips.length;t.classList.remove('in');void t.offsetWidth;t.textContent=tips[i];t.classList.add('in')},15000)}};
   const kh='h'+k;if(WX[kh]&&Date.now()-WX[kh].at<18e5)return put(WX[kh].w);
   if(!el.innerHTML)el.innerHTML='<small class="hwxn">天気を読み込んでいます…</small>';
-  wxFetch(`https://api.open-meteo.com/v1/forecast?latitude=${pos.la}&longitude=${pos.lo}&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max,uv_index_max&timezone=Asia%2FTokyo&forecast_days=2`).then(w=>{if(!w.daily)throw 0;WX[kh]={w,at:Date.now()};put(w)}).catch(()=>{if(WX[kh])return put(WX[kh].w);const e=$('#hwx');if(e)e.innerHTML='<small class="hwxn">天気を読み込めませんでした（時間をおいて開き直してください）</small>'})}
+  wxFetch(`https://api.open-meteo.com/v1/forecast?latitude=${pos.la}&longitude=${pos.lo}&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max,uv_index_max&timezone=Asia%2FTokyo&&hourly=weather_code,precipitation_probability&forecast_days=2`).then(w=>{if(!w.daily)throw 0;WX[kh]={w,at:Date.now()};put(w)}).catch(()=>{if(WX[kh])return put(WX[kh].w);const e=$('#hwx');if(e)e.innerHTML='<small class="hwxn">天気を読み込めませんでした（時間をおいて開き直してください）</small>'})}
 function render(){
   clearInterval(modeTimer);
   if(tab==='rw'&&lastTab!=='rw'){newShown=unseen();seenB=gotKeys();store.set('seen2',seenB)}else if(tab!=='rw')newShown=[];
