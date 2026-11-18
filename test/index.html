@@ -2447,8 +2447,8 @@ async function shareImage(){
   T(top.length?'飾っているリワード':'まだリワードはありません',W/2,906,30,'700','center','rgba(255,255,255,.92)');
   const imgs=await Promise.all(top.map(b=>svgToImg(medal(b,200,true))));
   top.forEach((b,i)=>{const col=i%4,row=Math.floor(i/4),inRow=Math.min(4,top.length-row*4),x=(W-(inRow*216+(inRow-1)*16))/2+col*232,y=926+row*136;box(x,y,216,128,24,'rgba(255,255,255,.1)','rgba(255,255,255,.22)');
-    const m=imgs[i];if(m)g.drawImage(m,x+108-36,y+8,72,72);
-    const tsz=fit(b.t,196,24,'700','"Zen Kaku Gothic New",sans-serif');T(b.t,x+108,y+104,tsz,'700','center');T(TIERS[b.tier].n,x+108,y+124,17,'500','center','rgba(255,255,255,.7)')});
+    const m=imgs[i];if(m)g.drawImage(m,x+108-32,y+6,64,64);
+    const tsz=fit(b.t,196,23,'700','"Zen Kaku Gothic New",sans-serif');T(b.t,x+108,y+96,tsz,'700','center');T(TIERS[b.tier].n,x+108,y+120,16,'500','center','rgba(255,255,255,.7)')});
   // 下の帯：ロゴ・アプリ名・（本番は）QRコード
   box(60,1200,960,124,30,'rgba(255,255,255,.95)');
   drawLogo(g,82,1214,96);
