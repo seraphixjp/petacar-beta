@@ -2290,7 +2290,7 @@ function showOnb(){
     {a:`<div style="display:flex;align-items:center;gap:6px">${medal(B('p30'),74)}${medal(B('zk100'),96)}${medal(B('eki100'),74)}</div>`,h:'集めるほど強くなる',p:'会った車は車種図鑑に、行った場所はスポットに残ります。記録するたびに経験値がたまってレベルが上がり、バッジや称号ももらえます。'},
     {a:`<div class="onbsp">${['tg','eki','jin','cir','dam','misa'].map(c=>{const x=SPOTS.find(v=>v.cat===c);return x?spotMark(x,true,54):''}).join('')}</div>`,h:'着いたら自動で記録',p:`峠・道の駅・神社・サーキットなど全国${(Math.floor(SPOTS.filter(x=>x.cat!=='st').length/100)*100).toLocaleString()}か所以上。近くに着くと記録されます。峠・SA・PA・道の駅・神社・サーキットなどは通過するだけ、お寺・お城・テーマパークなどは1分以上いると記録されます。`},
     {a:`<span class="onbic" style="--c:#b8892a">${FLAGI}</span><div class="onbstar">★★★★★</div>`,h:'ツアーで名所をめぐる',p:`四国八十八箇所、日本100名城、名水百選など${COURSES().length}本。★の数は難易度の目安です。まだ行っていない所を、Googleマップでまとめて道順にできます。`},
-    {a:`<span class="onbic" style="--c:#2f6fa3">${MAPI}</span><div class="onbflow"><i>🏁 出発</i><i>🚗 走行</i><i>📍 スポット</i><i>☕ 停車</i></div>`,h:'旅のしおりが自動でできる',p:'その日に走った道、寄ったスポット、停まった場所が時刻順に残ります。走っている途中でも、今日の流れを見返せます。'},
+    {a:`<span class="onbic" style="--c:#2f6fa3">${MAPI}</span><div class="onbflow"><i>🏁 出発</i><i>🚗 走行</i><i>📍 スポット</i></div>`,h:'旅のしおりが自動でできる',p:'その日に走った道、寄ったスポット、停まった場所が時刻順に残ります。走っている途中でも、今日の流れを見返せます。'},
     {a:`<span class="onbic" style="--c:#2c9c8f">${WXI(1)}</span><span class="onbic" style="--c:#b1456f">${STARI}</span>`,h:'出かける前にも',p:'スポットごとの天気・日の出と日の入り・路面凍結の注意がわかります。気になる場所は「行きたい」に入れておくと、ドライブプランが作れます。'},
     {a:`<span class="onbic" style="--c:#4f6478"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span>`,h:'位置情報の使い方',p:'交換の相手が近くにいるかの判定、スポットの記録、天気、ドライブの記録に使います。交換の相手に距離や現在地は伝わりません。自動記録は設定でいつでも止められます。'}];
   $('#onb').innerHTML=`<div class="onb" role="dialog" aria-modal="true" aria-label="ペタカーの使い方"><button class="skip" id="onbskip">スキップ</button>
@@ -3032,16 +3032,20 @@ function tripFlow(pts,sp,isT){if(!pts||pts.length<2)return '';
   seg(P.length-1);
   vis.filter(v=>!used.has(v)&&v.t>=P[0][2]-30*6e4&&v.t<=P[P.length-1][2]+30*6e4).forEach(v=>E.push({t:v.t,k:'spot',v}));
   E.sort((a,b)=>a.t-b.t);
+  // スポットでない停車は出さず、前後の走行をつなぐ
+  for(let i=E.length-1;i>=0;i--)if(E[i].k==='stop'&&!E[i].v)E.splice(i,1);
+  for(let i=E.length-1;i>0;i--)if(E[i].k==='run'&&E[i-1].k==='run'){E[i-1].ms+=E[i].ms;E[i-1].km+=E[i].km;E.splice(i,1)}
+  const nSp=E.filter(e=>e.k==='spot'||(e.k==='stop'&&e.v)).length;
   const last=P[P.length-1][2],live=isT&&Date.now()-last<20*6e4,mk=v=>v?`<button class="tfm press" data-spot="${esc(v.id)}">${spotMark(v.x,true,22)}<b>${esc(v.x.n)}</b></button>`:'';
   const row=(t,ic,body,cl='')=>`<div class="tfr${cl}"><span class="tlt">${t?hm(t):''}</span><span class="tfi">${ic}</span><div class="tfb">${body}</div></div>`;
   const L=[row(P[0][2],'🏁','<b>出発</b>',' ends')];
   E.forEach(e=>{if(e.k==='run')L.push(row(0,'🚗',`走行 ${durTxt(e.ms)} · ${kmTxt(e.km)}`,' run'));
     else if(e.k==='spot')L.push(row(e.t,'📍',mk(e.v)));
-    else if(e.k==='stop')L.push(row(e.t,e.v?'📍':'☕',e.v?`${mk(e.v)}<small>${durTxt(e.ms)}いた</small>`:`<b>停車</b> <small>${durTxt(e.ms)}</small>`));
+    else if(e.k==='stop')L.push(row(e.t,'📍',`${mk(e.v)}<small>${durTxt(e.ms)}いた</small>`));
     else L.push(row(e.t,'…',`<small>記録が途切れました（${durTxt(e.ms)}・${kmTxt(e.km)}先へ）</small>`,' run'))});
   L.push(row(last,live?'<span class="livedot"></span>':'🏁',live?'<b>いまここ</b> <small>記録中</small>':isT?`<b>最後の記録</b> <small>${durTxt(Date.now()-last)}前</small>`:'<b>到着</b>',' ends'));
   return `<div class="sec" style="margin-top:14px">ドライブの流れ</div>
-   <div class="tfsum"><div><b>${hm(P[0][2])}</b><span>出発</span></div><div><b>${durTxt(run)}</b><span>走った時間</span></div><div><b>${km<10?km.toFixed(1):Math.round(km)}<small>km</small></b><span>走った距離</span></div><div><b>${stops}</b><span>停車</span></div></div>
+   <div class="tfsum"><div><b>${hm(P[0][2])}</b><span>出発</span></div><div><b>${durTxt(run)}</b><span>走った時間</span></div><div><b>${km<10?km.toFixed(1):Math.round(km)}<small>km</small></b><span>走った距離</span></div><div><b>${nSp}</b><span>スポット</span></div></div>
    <div class="tflow">${L.join('')}</div>`}
 function openTripDay(d,back){const t=tripOf(d),isT=d===today();
   openSheet(`<div class="triphead"><span class="yk">TRIP NOTE</span><b>${+d.slice(5,7)}月${+d.slice(8)}日（${wdOf(d)}）</b><span>${d.slice(0,4)}年${t.prefs.length?' · '+esc(t.prefs.join('・')):''}</span></div>
