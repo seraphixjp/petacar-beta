@@ -3851,7 +3851,7 @@ function fitHito(el){if(!el||!el.isConnected)return;el.dataset.fit=1;el.style.fo
   const sw=el.scrollWidth-pad,cw=el.clientWidth-pad;if(!(cw>0)||sw<=cw+1)return;el.style.fontSize=Math.max(10,Math.floor(base*cw/sw*2)/2)+'px'}
 const fitHitoAll=()=>document.querySelectorAll('.hito,.hitop').forEach(fitHito);
 try{new MutationObserver(()=>{const L=document.querySelectorAll('.hito:not([data-fit]),.hitop:not([data-fit])');if(L.length)setTimeout(()=>L.forEach(fitHito),30)}).observe(document.documentElement,{childList:true,subtree:true});addEventListener('resize',fitHitoAll);document.fonts&&document.fonts.ready.then(fitHitoAll)}catch(e){}
-function fitTtl(){const t=$('#ttl');if(!t)return;t.style.fontSize='';let f=30;while(f>20&&t.scrollWidth>t.clientWidth+1){f--;t.style.fontSize=f+'px'}}
+function fitTtl(){const t=$('#ttl');if(!t)return;t.style.fontSize='';const r=document.createRange();r.selectNodeContents(t);const over=()=>r.getBoundingClientRect().width>t.clientWidth-.5;let f=30;while(f>20&&over()){f--;t.style.fontSize=f+'px'}}
 try{addEventListener('resize',fitTtl);document.fonts&&document.fonts.ready.then(fitTtl)}catch(e){}
 function render(){
   clearInterval(modeTimer);
