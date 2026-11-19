@@ -3435,8 +3435,16 @@ function wxRest(w){const d=w.daily;if(!w.hourly||!w.hourly.time||!d)return d;con
   const ix=h.time.map((t,i)=>[t,i]).filter(([t])=>t.slice(0,10)===t0&&+t.slice(11,13)>=hr).map(x=>x[1]);if(!ix.length)return d;
   const pp=ix.map(i=>h.precipitation_probability&&h.precipitation_probability[i]).filter(v=>v!=null),wc=ix.map(i=>h.weather_code&&h.weather_code[i]).filter(v=>v!=null);
   if(pp.length&&d.precipitation_probability_max){o.precipitation_probability_max=[Math.max(...pp),...d.precipitation_probability_max.slice(1)]}
-  if(wc.length&&d.weather_code){o.weather_code=[Math.max(...wc),...d.weather_code.slice(1)]}
+  if(d.weather_code){const c0=wxDay(h,t0,hr,hr<18?18:24,hr),c1=wxDay(h,d.time&&d.time[1],6,18,0);o.weather_code=[c0??d.weather_code[0],c1??d.weather_code[1],...d.weather_code.slice(2)]}
   return o}
+// その日の代表の天気：時間帯 [h0,h1) の1時間ごとの天気から。確率の低い雨記号は数えず、いちばん多いもの（同数なら雲の多い方）
+function wxDay(h,day,h0,h1,w0){if(!day||!h.weather_code)return null;const P=h.precipitation_probability||[],dry=[],wet=[];
+  h.time.forEach((t,i)=>{if(t.slice(0,10)!==day)return;const H=+t.slice(11,13),c=h.weather_code[i],p=P[i];if(c==null)return;
+    if(c>=51&&H>=w0&&p!=null&&p>=50)wet.push(c); // 雨・雪は1日のどこか（今日はいまから）で確率50%以上なら
+    if(H<h0||H>=h1)return;if(c>=51){if(p==null||(p>=30&&p<50))dry.push(3)}else dry.push(c)});
+  if(wet.length>=2)return Math.max(...wet);if(!dry.length)return wet.length?wet[0]:null;
+  const n={};dry.forEach(c=>{const k=c===0?0:c<=2?1:c===3?3:c;n[k]=(n[k]||0)+1});let best=null;for(const k in n)if(best==null||n[k]>n[best]||(n[k]===n[best]&&+k>+best))best=k;
+  return best==1?(dry.filter(c=>c===2).length>dry.filter(c=>c===1).length?2:1):+best}
 function wxSplit(w){const h=w&&w.hourly;if(!h||!h.time||!h.precipitation_probability)return {};const t0=today(),hr=new Date().getHours(),a=[],b=[];
   h.time.forEach((t,i)=>{if(t.slice(0,10)!==t0)return;const H=+t.slice(11,13),v=h.precipitation_probability[i];if(v==null||H<hr)return;(H<hr+2?a:b).push(v)});
   return {soon:a.length?Math.max(...a):null,later:b.length?Math.max(...b):0}}
