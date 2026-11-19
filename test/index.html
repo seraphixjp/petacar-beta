@@ -3858,8 +3858,10 @@ function homeWx(ask){const el=$('#hwx');if(!el)return;
   const sv=store.get('wxpos1',null),pos=here&&!here.demo&&here.la!=null?{la:here.la,lo:here.lo}:sv&&Date.now()-sv.at<216e5?sv:null;
   const btn=()=>{const e=$('#hwx');if(!e)return;e.innerHTML=`<button class="hwxb press" id="hwxb">${WXI(1)} 今日の天気を見る<small>現在地を使います</small></button>`;$('#hwxb').onclick=()=>homeWx(true)}; // 位置の許可の確認は非同期なので、その間に描き直されていても動くように探し直す
   const getPos=()=>{const e=$('#hwx');if(!e)return;if(!navigator.geolocation)return e.remove();e.innerHTML='<small class="hwxn">現在地を確かめています…</small>';
-    navigator.geolocation.getCurrentPosition(p=>{store.set('wxpos1',{la:p.coords.latitude,lo:p.coords.longitude,at:Date.now()});homeWx()},()=>{if($('#hwx'))$('#hwx').innerHTML='<small class="hwxn">位置情報が使えないため、天気を出せませんでした</small>'},{maximumAge:6e5,timeout:15000})};
+    navigator.geolocation.getCurrentPosition(p=>{store.set('wxpos1',{la:p.coords.latitude,lo:p.coords.longitude,at:Date.now()});try{localStorage.setItem('wxgeo1','1')}catch(e){}homeWx()},()=>{try{localStorage.removeItem('wxgeo1')}catch(e){}if($('#hwx'))$('#hwx').innerHTML='<small class="hwxn">位置情報が使えないため、天気を出せませんでした</small>'},{maximumAge:6e5,timeout:15000})};
   if(!pos){if(ask)return getPos();
+    let geoOk=false;try{geoOk=localStorage.getItem('wxgeo1')==='1'}catch(e){} // 前に現在地が取れた端末は確認を待たずに取る
+    if(geoOk)return getPos();
     try{navigator.permissions.query({name:'geolocation'}).then(r=>r.state==='granted'?getPos():btn(),btn)}catch(e){btn()}return}
   const k=pos.la.toFixed(2)+','+pos.lo.toFixed(2),st=sunTimes(pos.la,pos.lo),pl=hwxPlace(pos);
   const put=w=>{const e=$('#hwx');if(!e||!w)return;const d=wxRest(w),c=d.weather_code[0],mn=d.temperature_2m_min[0]??d.temperature_2m_min[1]??null,pp=d.precipitation_probability_max&&d.precipitation_probability_max[0],tips=wxTips(c,Math.round(d.temperature_2m_max[0]??NaN),Math.round(mn??NaN),pp,st,{wind:d.wind_speed_10m_max&&d.wind_speed_10m_max[0],uv:d.uv_index_max&&d.uv_index_max[0],...wxSplit(w),tPP:d.precipitation_probability_max&&d.precipitation_probability_max[1],...wxWk(d),rainAgo:wxRainAgo(w)}),wv=wxWarnNow(pos);
@@ -3884,7 +3886,13 @@ function zfOne(e){if(!e.isConnected||e.offsetParent===null)return;e.style.zoom='
 const afLines=e=>{let mx=0;const w=document.createTreeWalker(e,NodeFilter.SHOW_TEXT);let n;while(n=w.nextNode()){if(!n.textContent.trim())continue;const r=document.createRange();r.selectNodeContents(n);const T=[];for(const x of r.getClientRects()){if(x.width<1)continue;const t=Math.round(x.top);if(!T.some(v=>Math.abs(v-t)<3))T.push(t)}mx=Math.max(mx,T.length)}return mx}; // 文字の部分だけで行数を数える（アイコンの段は数えない）
 function afOne(e,min){if(!e.isConnected||e.offsetParent===null)return;e.style.fontSize='';if(afLines(e)<=1)return;let f=parseFloat(getComputedStyle(e).fontSize)||12;
   while(f>min&&afLines(e)>1){f=Math.max(min,f-.5);e.style.fontSize=f+'px'}if(afLines(e)>1)e.style.fontSize=''} // 最小でも入らなければ元の大きさで折り返す
-function afAll(root,force){for(const [q,m] of AFIT)(root||document).querySelectorAll(q).forEach(e=>{if(!force&&e.dataset.af)return;e.dataset.af=1;afOne(e,m)});
+const WMOK={};
+function wmFixBg(root){(root||document).querySelectorAll('[style*="upload.wikimedia.org"]').forEach(el=>{if(el.dataset.wbg)return;el.dataset.wbg=1;
+  const L=(el.getAttribute('style')||'').match(/https:\/\/upload\.wikimedia\.org\/[^'")\s]+/g)||[];
+  L.forEach(u=>{const fix=()=>{const b=wmBack(u);if(b&&el.isConnected)el.setAttribute('style',el.getAttribute('style').split(u).join(b))};
+    if(WMOK[u]===false)return fix();if(WMOK[u]===true)return;
+    const t=new Image();t.onload=()=>{WMOK[u]=true};t.onerror=()=>{WMOK[u]=false;fix()};t.src=u})})}
+function afAll(root,force){wmFixBg(root);for(const [q,m] of AFIT)(root||document).querySelectorAll(q).forEach(e=>{if(!force&&e.dataset.af)return;e.dataset.af=1;afOne(e,m)});
   (root||document).querySelectorAll(ZFIT).forEach(e=>{if(!force&&e.dataset.zf)return;e.dataset.zf=1;zfOne(e)})}
 try{let afT=0;new MutationObserver(()=>{clearTimeout(afT);afT=setTimeout(()=>afAll(document.getElementById('shell')),40)}).observe(document.documentElement,{childList:true,subtree:true});
   addEventListener('resize',()=>{clearTimeout(afT);afT=setTimeout(()=>afAll(document.getElementById('shell'),true),120)});document.fonts&&document.fonts.ready.then(()=>afAll(null,true))}catch(e){}
