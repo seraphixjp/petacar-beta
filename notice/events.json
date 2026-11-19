@@ -49,6 +49,14 @@
    "venue": "パシフィコ横浜"
   },
   {
+   "id": "sfm26",
+   "name": "SUBARU FAN MEETING 2026（チケット制）",
+   "from": "2026-12-06",
+   "to": "2026-12-06",
+   "cat": "fan",
+   "venue": "SUBARU 群馬製作所 本工場（群馬県太田市）"
+  },
+  {
    "id": "hrsf26",
    "name": "Honda Racing Season Finale 2026",
    "from": "2026-12-12",
@@ -111,22 +119,6 @@
    "venue": "名古屋市"
   },
   {
-   "id": "omcs27",
-   "name": "大阪モーターサイクルショー2027",
-   "from": "2027-03-20",
-   "to": "2027-03-22",
-   "cat": "show",
-   "venue": "インテックス大阪"
-  },
-  {
-   "id": "tmcs27",
-   "name": "東京モーターサイクルショー2027",
-   "from": "2027-03-26",
-   "to": "2027-03-28",
-   "cat": "show",
-   "venue": "東京ビッグサイト"
-  },
-  {
    "id": "st27-1",
    "name": "スーパー耐久 第1戦",
    "from": "2027-03-27",
@@ -165,14 +157,6 @@
    "venue": "鈴鹿サーキット",
    "spot": "cir:23:鈴鹿サーキット",
    "url": "https://www.suzukacircuit.jp/f1/"
-  },
-  {
-   "id": "nmcs27",
-   "name": "名古屋モーターサイクルショー2027",
-   "from": "2027-04-09",
-   "to": "2027-04-11",
-   "cat": "show",
-   "venue": "Aichi Sky Expo（愛知）"
   },
   {
    "id": "sf27-2",
@@ -292,16 +276,6 @@
    "cat": "rally",
    "venue": "北海道",
    "url": "https://motorsports.jaf.or.jp/regulations/announcement/notice/2026/20260924_01"
-  },
-  {
-   "id": "s8h27",
-   "name": "鈴鹿8時間耐久ロードレース",
-   "from": "2027-07-02",
-   "to": "2027-07-04",
-   "cat": "race",
-   "venue": "鈴鹿サーキット",
-   "spot": "cir:23:鈴鹿サーキット",
-   "url": "https://www.suzukacircuit.jp/8tai/"
   },
   {
    "id": "sf27-5",
@@ -432,17 +406,6 @@
    "venue": "富士スピードウェイ",
    "spot": "cir:21:富士スピードウェイ",
    "url": "https://superformula.net/"
-  },
-  {
-   "id": "motogp27",
-   "name": "MotoGP 日本グランプリ",
-   "from": "2027-10-15",
-   "to": "2027-10-17",
-   "cat": "race",
-   "venue": "モビリティリゾートもてぎ",
-   "spot": "cir:8:モビリティリゾートもてぎ",
-   "url": "https://www.motogp.com/ja",
-   "note": "暫定"
   },
   {
    "id": "sgt27-6",
