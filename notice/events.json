@@ -2,6 +2,16 @@
  "updated": "2026-11-19",
  "items": [
   {
+   "id": "jaf-2026-11-20-99d531",
+   "name": "全日本ラリー 最終戦 MONTRE 2026",
+   "from": "2026-11-20",
+   "to": "2026-11-22",
+   "cat": "rally",
+   "venue": "群馬県",
+   "source": "jaf",
+   "url": "https://motorsports.jaf.or.jp/calendar"
+  },
+  {
    "id": "sf26-r11",
    "name": "スーパーフォーミュラ 最終戦（第11・12戦）",
    "from": "2026-11-20",
