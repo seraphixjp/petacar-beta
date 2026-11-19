@@ -2103,7 +2103,7 @@ const views={
   return `<div class="member" style="background:${bgCSS(me)}">
     <button class="bgb" id="bgb" aria-label="背景を変える"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/></svg></button>
     <button class="bgb grb" id="grb" aria-label="ガレージを開く"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 4l9 6.5V20H3z"/><path d="M7 20v-7h10v7M7 15.5h10M7 18h10"/></svg></button>
-    <button class="bgb evb${evList().some(x=>x.from<=today()&&x.to>=today())?' live':''}" id="evb" aria-label="イベントカレンダーを開く"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/><path d="M8 14h2M14 14h2M8 17.5h2"/></svg></button>
+    ${EVCAL_ON?`<button class="bgb evb${evList().some(x=>x.from<=today()&&x.to>=today())?' live':''}" id="evb" aria-label="イベントカレンダーを開く"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/><path d="M8 14h2M14 14h2M8 17.5h2"/></svg></button>`:''}
     <button class="edit" id="mk" aria-label="スタンプを作る">${stamp(me,{size:150,ev:inEvent()?LIVE:null})}</button>
     <button class="nm nmb press" id="nmb" aria-label="表示名を変える">${me.official?OFFB:''}${supM(me)}${esc(me.name)}<svg class="npen" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button>
     <div style="margin-top:-6px">${clsChip({...rpgOf(myStats()),title:''})}</div>${expBar()}
@@ -3839,13 +3839,14 @@ function wxTips(c,hi,lo,pp,st,x={}){const T=[],now=new Date(),m=now.getMonth()+1
   return T.slice(0,8)}
 let hwxTimer=0;
 // イベントカレンダー（大きなレース・ラリー・モーターショー・ファン感謝祭だけ。notice/events.json）
+const EVCAL_ON=true; // 審査に出す版では build_app.py NOCAL=1 で false（カレンダーの入口を出さない）
 const EV_URL='https://seraphixjp.github.io/petacar-beta/notice/events.json',EV_CAT={race:['レース','#e5534b'],rally:['ラリー','#2e9e5b'],show:['ショー','#4c8ef7'],fan:['ファン感謝','#e8a21c'],drift:['ドリフト','#9b59d0']};
 let evAt=0;const evList=()=>{const L=ntcLS('evc1');return Array.isArray(L)?L.filter(x=>x&&x.id&&x.name&&/^\d{4}-\d{2}-\d{2}$/.test(x.from||'')).map(x=>({...x,to:/^\d{4}-\d{2}-\d{2}$/.test(x.to||'')?x.to:x.from})).sort((a,b)=>a.from<b.from?-1:a.from>b.from?1:0):[]};
 function evLoad(force){if(!force&&Date.now()-evAt<216e5)return;evAt=Date.now();const ac=window.AbortController?new AbortController():null,t=setTimeout(()=>ac&&ac.abort(),8000);
   fetch(EV_URL+'?t='+Math.floor(Date.now()/36e5),ac?{signal:ac.signal,cache:'no-store'}:{cache:'no-store'}).then(r=>{if(!r.ok)throw 0;return r.json()}).then(j=>{clearTimeout(t);if(Array.isArray(j&&j.items)){ntcLS('evc1',j.items);const c=$('#evcb');if(c)c.outerHTML=calCard();const b=$('#evcb');if(b)b.onclick=()=>openEvCal()}}).catch(()=>clearTimeout(t))}
 const evMD=d=>(+d.slice(5,7))+'/'+(+d.slice(8,10)),evRange=x=>x.from===x.to?evMD(x.from):x.from.slice(0,7)===x.to.slice(0,7)?evMD(x.from)+'〜'+(+x.to.slice(8,10)):evMD(x.from)+'〜'+evMD(x.to);
 const evWd=d=>'日月火水木金土'[new Date(d+'T12:00:00+09:00').getDay()];
-function calCard(){const d=today(),L=evList(),now=L.filter(x=>x.from<=d&&x.to>=d),nx=L.find(x=>x.from>d),x=now[0]||nx;
+function calCard(){if(!EVCAL_ON)return '';const d=today(),L=evList(),now=L.filter(x=>x.from<=d&&x.to>=d),nx=L.find(x=>x.from>d),x=now[0]||nx;
   return `<button class="calcard press" id="evcb"><span class="ei" aria-hidden="true">🏁</span><span class="t"><b>イベントカレンダー</b><small>${x?(now[0]?'開催中：':'次は '+evRange(x)+' ')+esc(x.name):L.length?'今後の予定を見る':'レース・モーターショーの日程'}</small></span><span class="go" aria-hidden="true">›</span></button>`}
 function openEvCal(ym,sel){const L=evList(),d=today();ym=ym||d.slice(0,7);const [Y,M]=ym.split('-').map(Number);
   const first=new Date(Date.UTC(Y,M-1,1)),days=new Date(Date.UTC(Y,M,0)).getUTCDate(),w0=first.getUTCDay(),pad=n=>String(n).padStart(2,'0');
