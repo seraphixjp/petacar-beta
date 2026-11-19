@@ -3839,7 +3839,7 @@ function wxTips(c,hi,lo,pp,st,x={}){const T=[],now=new Date(),m=now.getMonth()+1
   return T.slice(0,8)}
 let hwxTimer=0;
 // イベントカレンダー（大きなレース・ラリー・モーターショー・ファン感謝祭だけ。notice/events.json）
-const EV_URL='https://seraphixjp.github.io/petacar-beta/notice/events.json',EV_CAT={race:['レース','#e5534b'],rally:['ラリー','#2e9e5b'],show:['ショー','#4c8ef7'],fan:['ファン感謝','#e8a21c']};
+const EV_URL='https://seraphixjp.github.io/petacar-beta/notice/events.json',EV_CAT={race:['レース','#e5534b'],rally:['ラリー','#2e9e5b'],show:['ショー','#4c8ef7'],fan:['ファン感謝','#e8a21c'],drift:['ドリフト','#9b59d0']};
 let evAt=0;const evList=()=>{const L=ntcLS('evc1');return Array.isArray(L)?L.filter(x=>x&&x.id&&x.name&&/^\d{4}-\d{2}-\d{2}$/.test(x.from||'')).map(x=>({...x,to:/^\d{4}-\d{2}-\d{2}$/.test(x.to||'')?x.to:x.from})).sort((a,b)=>a.from<b.from?-1:a.from>b.from?1:0):[]};
 function evLoad(force){if(!force&&Date.now()-evAt<216e5)return;evAt=Date.now();const ac=window.AbortController?new AbortController():null,t=setTimeout(()=>ac&&ac.abort(),8000);
   fetch(EV_URL+'?t='+Math.floor(Date.now()/36e5),ac?{signal:ac.signal,cache:'no-store'}:{cache:'no-store'}).then(r=>{if(!r.ok)throw 0;return r.json()}).then(j=>{clearTimeout(t);if(Array.isArray(j&&j.items)){ntcLS('evc1',j.items);const c=$('#evcb');if(c)c.outerHTML=calCard();const b=$('#evcb');if(b)b.onclick=()=>openEvCal()}}).catch(()=>clearTimeout(t))}
@@ -3857,7 +3857,8 @@ function openEvCal(ym,sel){const L=evList(),d=today();ym=ym||d.slice(0,7);const 
   const show=sel?on(sel):inM,sp=id=>id&&SP(id);
   const li=show.map(x=>{const c=EV_CAT[x.cat]||EV_CAT.race,past=x.to<d,live=x.from<=d&&x.to>=d;return `<div class="evli"${past?' style="opacity:.55"':''}><div class="dt">${evRange(x)}<small>${evWd(x.from)}${x.from!==x.to?'〜'+evWd(x.to):''}曜${live?'・開催中':''}</small></div><div class="bd"><b><span class="tag" style="background:${c[1]}">${c[0]}</span>${esc(x.name)}</b><div class="v">${esc(x.venue||'')}${x.note?'　'+esc(x.note):''}</div>
     <div class="acts">${sp(x.spot)?`<button class="press" data-evsp="${esc(x.spot)}">スポットを見る</button>`:''}${x.url&&/^https:\/\//.test(x.url)?`<a href="${esc(x.url)}" target="_blank" rel="noopener">公式サイト</a>`:''}</div></div></div>`}).join('');
-  openSheet(`<b style="font-size:20px;display:block;text-align:center">イベントカレンダー</b><p class="note" style="text-align:center;margin:2px 0 6px">レース・ラリー・モーターショーなど、全国の大きなイベントだけ</p>
+  const dlg=$('#sh [role=dialog]'),keep=dlg&&dlg.querySelector('.evgrid'); // 開いているときは閉じずに中身だけ切り替える（ピコピコしない）
+  (keep?(h=>{const sc=$('#sh .sheet')||$('#sh'),y=sc?sc.scrollTop:0;dlg.innerHTML='<div class="grab" aria-hidden="true"></div>'+h;if(sc)sc.scrollTop=y}):openSheet)(`<b style="font-size:20px;display:block;text-align:center">イベントカレンダー</b><p class="note" style="text-align:center;margin:2px 0 6px">レース・ラリー・モーターショーなど、全国の大きなイベントだけ</p>
    <div class="evhd"><button class="press" id="evprev" aria-label="前の月"${ym<=minYm?' disabled':''}>‹</button><b>${Y}年${M}月</b><button class="press" id="evnext" aria-label="次の月"${ym>=maxYm?' disabled':''}>›</button></div>
    <div class="evgrid">${'日月火水木金土'.split('').map(w=>`<span class="w">${w}</span>`).join('')}${cells}</div>
    <div style="margin-top:12px">${sel?`<div class="note" style="margin-bottom:4px">${M}月${+sel.slice(8,10)}日のイベント　<button class="seclink press" id="evall">この月をすべて見る</button></div>`:''}${li||`<p class="note" style="text-align:center;padding:12px 0">${L.length?(sel?'この日のイベントはありません':'この月のイベントはありません'):'イベントの予定を読み込めませんでした。電波のよいところで開き直してください'}</p>`}</div>
