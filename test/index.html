@@ -2023,7 +2023,7 @@ const RSTATS=[
   {k:'charm',n:'人望',cls:'社交家',src:[['ppl','会った人',6],['best','一番仲良しの人と会った日数',10]]},
   {k:'luck',n:'運',cls:'勝負師',src:[['kira','EXが出た回数',15],['rare','レアが出た回数',10],['r4','★4以上の車種',20]]}];
 RSTATS.forEach(x=>x.f=s=>x.src.reduce((a,[k,,p])=>a+(+s[k]||0)*p,0));
-const JOB_K={run:35.9,trip:9.9,faith:20.2,expl:14,charm:27.2,luck:32.7}; // ジョブの経験値＝点×倍率（スポットの数の差をならす）
+const JOB_K={run:35.9,trip:14.2,faith:20.2,expl:14,charm:27.2,luck:32.7}; // ジョブの経験値＝点×倍率（スポットの数の差をならす）
 const jobLvOf=(p,k)=>lvOf(p*(JOB_K[k]||5)),tierOf=(p,k)=>{const L=jobLvOf(p,k);let ri=0;CLS_STEP.forEach(([x],i)=>{if(L>=x)ri=i});return ri};
 const jobNeed=(ri,k)=>CLS_STEP[ri]?Math.ceil(needXP(CLS_STEP[ri][0])/(JOB_K[k]||5)):null; // その格に必要なステータスの点
 function rpgOf(s){s=s||{};const e=expOf(s),L=lvOf(e),raw=RSTATS.map(x=>Math.round(+x.f(s)||0)),vals=RSTATS.map((x,i)=>[x,Math.min(999,raw[i])]);
