@@ -3965,16 +3965,31 @@ function washDay(d,i){const A=k=>d[k]&&d[k][i],N=k=>d[k]&&d[k][i+1];
   if(hi!=null&&hi>=30)return [2,'日差しが強い。朝夕に'];
   if(cn==null)return [3,'雨の心配なし'];
   return [3,'洗車日和']}
+// 週間天気のひとこと：洗車のおすすめの日＋（雨・雪の日 か 朝の凍結 の早い方）。2文まで
+function wkComment(D){if(!D.length)return '';const T=[],we=x=>x.wd===0||x.wd===6;
+  const best=lv=>D.filter(x=>x.ws&&x.ws[0]===lv),b3=best(3),b2=best(2);
+  const pick=L=>L.find(we)||L[0];
+  if(b3.length){const x=pick(b3);T.push(`洗車するなら${x.lab}がおすすめです`)}
+  else if(b2.length){const x=pick(b2);T.push(`洗車は${x.lab}がまだましです（${x.ws[1]}）`)}
+  else T.push('今週は洗車を見送るのが無難です');
+  const wet=D.filter(x=>x.ws&&x.ws[0]===0),ice=D.filter(x=>x.lo!=null&&x.lo<=0);
+  const wi=wet.length?D.indexOf(wet[0]):99,ii=ice.length?D.indexOf(ice[0]):99;
+  if(wi<99&&wi<=ii){const sn=wet.slice(0,2).some(x=>wkSnow(x.c));T.push(`${wet.slice(0,2).map(x=>x.lab).join('・')}${wet.length>2?'など':''}は${sn?'雪や雨':'雨'}の予報です`)}
+  else if(ii<99)T.push(`${ice[0].lab}の朝は氷点下。橋の上や日陰の凍結に注意`);
+  else if(D.filter(we).length&&D.filter(we).every(x=>x.ws&&x.ws[0]>=2))T.push('週末は天気がもちそうで、ドライブ日和です');
+  return T.join('。')+'。'}
 const WASH_I=['×','△','○','◎'],WASH_N=['見送り','微妙','まずまず','洗車日和'];
 function openWkWx(pos,pl){const k='w'+pos.la.toFixed(2)+','+pos.lo.toFixed(2);
   const draw=w=>{const d=w&&w.daily;if(!d||!d.time||!d.weather_code){openSheet(`<div class="result"><b style="font-size:18px">週間天気</b><div class="note">天気を読み込めませんでした（時間をおいて開き直してください）</div></div><button class="btn sub press" data-close style="margin-top:12px">閉じる</button>`);bindClose();return}
-    const t0=today(),WD='日月火水木金土',rows=[];
+    const t0=today(),WD='日月火水木金土',rows=[],days=[];
     d.time.forEach((t,i)=>{if(!t||t<t0||d.weather_code[i]==null)return;const dt=new Date(t+'T12:00:00+09:00'),wd=dt.getDay(),pp=d.precipitation_probability_max&&d.precipitation_probability_max[i],c=wxC(d.weather_code[i],pp),ws=washDay(d,i);
       const lab=t===t0?'今日':rows.length===1&&i>0&&d.time[i-1]===t0?'明日':`${+t.slice(5,7)}/${+t.slice(8,10)}`;
+      days.push({lab:lab.includes('/')?`${lab}(${WD[wd]})`:lab,wd,c:d.weather_code[i],pp,lo:d.temperature_2m_min[i],ws});
       rows.push(`<div class="wkr${wd===0||wd===6?' sun':''}"><div class="wkd"><b>${lab}</b><small>${lab.includes('/')?'':`${+t.slice(5,7)}/${+t.slice(8,10)} `}(${WD[wd]})</small></div><span class="wki" aria-hidden="true">${WXI(c)}</span>
         <div class="wkt"><b>${WXN(c)}</b><span><i class="hi">${wxR(d.temperature_2m_max[i])}</i> / <i class="lo">${wxR(d.temperature_2m_min[i])}</i>${pp!=null?` · 雨${pp}%`:''}</span></div>
         ${ws?`<div class="wkw l${ws[0]}" aria-label="洗車 ${WASH_N[ws[0]]}：${ws[1]}"><i>${WASH_I[ws[0]]}</i><small>${ws[1]}</small></div>`:'<div class="wkw"></div>'}</div>`)});
     openSheet(`<div class="result" style="padding-bottom:0"><b style="font-size:20px">週間天気と洗車予報</b><div class="note">${pl?esc(pl)+'付近 · ':''}右の印が洗車予報です</div></div>
+     ${(()=>{const t=wkComment(days);return t?`<div class="hwxtip" style="margin-top:12px">💬 <span>${esc(t)}</span></div>`:''})()}
      <div class="wkl">${rows.join('')}</div>
      <div class="wkleg"><span>◎ 洗車日和</span><span>○ まずまず</span><span>△ 微妙（翌日の雨・強風）</span><span>× 見送り</span></div>
      <p class="note" style="text-align:center;margin:8px 0 0">洗車予報は降水確率・翌日の天気・風・気温からの目安です</p>
