@@ -1780,10 +1780,17 @@ const QPOOL_OLD=11; // 2026年10月までは最初の11種から選ぶ
 const QPOOL_N=m=>m<'2026-11-01'?QPOOL_OLD:QPOOL.length;
 const quest=m=>QPOOL[moHash(m)%QPOOL_N(m)];
 // その月のお題（2026年10月から3つ）：1つ目＝今までのお題、2つ目＝1つ目と反対（スポット系⇔交換系）、3つ目＝残りから。系統は重ねない
-function quests(m){const q0=quest(m);if(m<'2026-10-01')return [q0];
-  const pool=QPOOL.slice(0,QPOOL_N(m)),out=[q0],fam=new Set([QFAM(q0)]);
+const QCACHE={};
+const moPrev=(m,k)=>{const d=new Date(m.slice(0,7)+'-15T12:00:00');d.setMonth(d.getMonth()-k);return ymd(d).slice(0,7)+'-01'};
+function quests(m){if(QCACHE[m])return QCACHE[m];let q0=quest(m);if(m<'2026-10-01')return QCACHE[m]=[q0];
+  const pool0=QPOOL.slice(0,QPOOL_N(m));
+  // 2027年1月から：前の2か月に出た系統は外す（足りなくなったら外さない）
+  const recent=m>='2027-01-01'?new Set([...quests(moPrev(m,1)),...quests(moPrev(m,2))].map(QFAM)):new Set();
+  const pool=pool0.filter(q=>!recent.has(QFAM(q))).length>=3?pool0.filter(q=>!recent.has(QFAM(q))):pool0;
+  if(recent.has(QFAM(q0))&&pool!==pool0)q0=pool[moHash(m+'a')%pool.length];
+  const out=[q0],fam=new Set([QFAM(q0)]);
   const pick=(salt,ok)=>{const c=pool.filter(q=>!fam.has(QFAM(q))&&ok(q));if(!c.length)return;const q=c[moHash(m+salt)%c.length];out.push(q);fam.add(QFAM(q))};
-  const ppl=QPEOPLE.has(QFAM(q0));pick('b',q=>QPEOPLE.has(QFAM(q))!==ppl);pick('c',()=>true);return out}
+  const ppl=QPEOPLE.has(QFAM(q0));pick('b',q=>QPEOPLE.has(QFAM(q))!==ppl);pick('c',()=>true);return QCACHE[m]=out}
 const qDone=m=>{const d=moData(m);return quests(m).filter(q=>q.f(d)>=q.g)};
 const questOk=m=>qDone(m).length>0; // 1つでも達成した月（連続記録はこれで数える）
 const qMonths=()=>[...new Set([...log.map(l=>moStart(l.d)),...spotlog.map(v=>moStart(v.d))])];
