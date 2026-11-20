@@ -579,7 +579,7 @@ html:lang(ja){word-break:auto-phrase}body{text-wrap:pretty}h1,h2,h3,b,strong,spa
 .thr{display:flex;gap:10px;align-items:center}.thi{font-size:20px;width:28px;text-align:center;flex:none}.thr b{display:block;font-size:13px}.thr span{font-size:12px;color:var(--muted)}
 
 /* マイスタンプの今日の天気（2026-11-17） */
-.hwx{margin:10px 0 0;padding:10px 14px;border-radius:16px;background:var(--surface);display:grid;gap:3px}.hwx:empty{display:none}
+.hwx{margin:10px 0 0;padding:10px 14px;border-radius:16px;background:var(--surface);display:grid;gap:3px}.hwx.tap{cursor:pointer;position:relative}.hwx.tap:active{transform:scale(.99)}.hwxwk{color:var(--accent);font-weight:700;white-space:nowrap}.wkl{display:grid;gap:8px;margin-top:12px}.wkr{display:grid;grid-template-columns:62px 30px 1fr auto;align-items:center;gap:8px;padding:10px 12px;border-radius:14px;background:var(--surface)}.wkr .wkd b{display:block;font-size:14px}.wkr .wkd small{font:500 11px var(--mono);color:var(--muted)}.wkr .wki{font-size:24px;line-height:1;text-align:center}.wkr .wkt{min-width:0}.wkr .wkt b{font-size:13px}.wkr .wkt span{display:block;font:500 12px var(--mono);color:var(--muted);white-space:nowrap}.wkr .wkt .hi{color:#e8551c}.wkr .wkt .lo{color:#3b82c4}.wkw{display:grid;justify-items:center;min-width:74px;text-align:center}.wkw i{font-style:normal;font-size:20px;font-weight:900;line-height:1.1}.wkw small{font-size:10.5px;color:var(--muted);line-height:1.25;max-width:84px}.wkw.l3 i{color:#1d9a5a}.wkw.l2 i{color:#3b82c4}.wkw.l1 i{color:#d4a017}.wkw.l0 i{color:#9aa3ad}.wkr.sun{outline:1px solid rgba(232,85,28,.25)}.wkleg{display:flex;flex-wrap:wrap;gap:4px 12px;justify-content:center;font-size:11px;color:var(--muted);margin-top:10px}.hwx:empty{display:none}
 .hwx1{display:flex;align-items:baseline;gap:6px;flex-wrap:nowrap;white-space:nowrap;overflow:hidden}.hwxtm{margin-left:auto;padding-left:7px;border-left:1px solid var(--line,rgba(127,127,127,.25));font-size:10.5px;font-weight:700;color:var(--muted);display:flex;flex-direction:column;align-items:flex-end;line-height:1.12;flex-shrink:0;align-self:center}.hwxtm b{font-weight:600;display:flex;align-items:center;gap:2px}.hwxtm i{font-style:normal;font-size:12px}.hwxi{font-size:22px;line-height:1;align-self:center}.hwx1 b{font-size:13px;color:var(--muted)}.hwxt{font-weight:800;font-size:16px;min-width:0;overflow:hidden;text-overflow:ellipsis}
 .hwx .hi{color:#e8551c;font-weight:800;font-family:var(--mono)}.hwx .lo{color:#3b82f6;font-weight:800;font-family:var(--mono)}.hwxp{font-size:12.5px;color:var(--muted)}
 .hwx2{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.hwx2 b{color:var(--ink);font-family:var(--mono)}.hwx2 small{display:block;font-size:10px;opacity:.6;margin-top:1px}.hwxice{color:#3b82f6;font-weight:700}
@@ -3893,7 +3893,7 @@ function wxTips(c,hi,lo,pp,st,x={}){const T=[],now=new Date(),m=now.getMonth()+1
   return T.slice(0,8)}
 let hwxTimer=0;
 // イベントカレンダー（大きなレース・ラリー・モーターショー・ファン感謝祭だけ。notice/events.json）
-const EVCAL_ON=true; // 審査に出す版では build_app.py NOCAL=1 で false（カレンダーの入口を出さない）
+const EVCAL_ON=false; // 2026-11-20 鈴木さん「イベントカレンダーは一旦無しで」＝全部の版で入口を出さない（戻すときは true。審査版は build_app.py NOCAL=1 でも false）
 const EV_URL='https://seraphixjp.github.io/petacar-beta/notice/events.json',EV_CAT={race:['レース','#e5534b'],rally:['ラリー','#2e9e5b'],show:['ショー','#4c8ef7'],fan:['ファン感謝','#e8a21c'],drift:['ドリフト','#9b59d0']};
 let evAt=0;const evList=()=>{const L0=ntcLS('evc1'),L=Array.isArray(L0)&&L0.length?L0:EV_SEED;return Array.isArray(L)?L.filter(x=>x&&x.id&&x.name&&/^\d{4}-\d{2}-\d{2}$/.test(x.from||'')).map(x=>({...x,to:/^\d{4}-\d{2}-\d{2}$/.test(x.to||'')?x.to:x.from})).sort((a,b)=>a.from<b.from?-1:a.from>b.from?1:0):[]};
 function evLoad(force){if(!force&&Date.now()-evAt<216e5)return;evAt=Date.now();const ac=window.AbortController?new AbortController():null,t=setTimeout(()=>ac&&ac.abort(),8000);
@@ -3948,6 +3948,42 @@ function hwxMq(sp){const m=sp&&sp.querySelector('.mq');if(!m||calm()||!m.animate
   const t=m.textContent,a=document.createElement('span'),g=document.createElement('span'),c=document.createElement('span');a.textContent=t;c.textContent=t;c.setAttribute('aria-hidden','true');g.style.display='inline-block';g.style.width='3em';
   m.textContent='';m.append(a,g,c);m.dataset.loop=1;const w=a.offsetWidth+g.offsetWidth,run=w/30*1000,T=run+1500; // 1秒に30px・1周ごとに最初1.5秒止まる
   m.dataset.until=Date.now()+T;m.animate([{transform:'translateX(0)'},{transform:'translateX(0)',offset:1500/T},{transform:`translateX(${-w}px)`}],{duration:T,iterations:Infinity,easing:'linear'})},60)}
+/* ===== 週間天気と洗車予報（2026-11-20） ===== */
+const wkSnow=c=>c!=null&&((c>=71&&c<=77)||c===85||c===86);
+// 洗車予報：[段階(3◎ 2○ 1△ 0×), 理由]。翌日の天気も見る（洗った次の日に雨や雪だと汚れるので）
+function washDay(d,i){const A=k=>d[k]&&d[k][i],N=k=>d[k]&&d[k][i+1];
+  const c=A('weather_code'),pp=A('precipitation_probability_max'),hi=A('temperature_2m_max'),lo=A('temperature_2m_min'),wind=A('wind_speed_10m_max'),cn=N('weather_code'),pn=N('precipitation_probability_max');
+  if(c==null)return null;const rain=c>=51&&c<95&&!wkSnow(c);
+  if(wkSnow(c))return [0,'雪の予報'];
+  if(c>=95)return [0,'雷雨の予報'];
+  if((pp!=null&&pp>=50)||(rain&&pp==null))return [0,'雨の予報'];
+  const nx=cn==null?null:wkSnow(cn)?'雪':(pn!=null&&pn>=50)||(cn>=51&&pn==null)?'雨':null;
+  if(nx)return [1,`翌日が${nx}の予報`];
+  if(wind!=null&&wind>=36)return [1,'風が強く砂ぼこり'];
+  if(pp!=null&&pp>=30)return [2,'にわか雨に注意'];
+  if(lo!=null&&lo<=0)return [2,'朝は凍る。昼に洗って'];
+  if(hi!=null&&hi>=30)return [2,'日差しが強い。朝夕に'];
+  if(cn==null)return [3,'雨の心配なし'];
+  return [3,'洗車日和']}
+const WASH_I=['×','△','○','◎'],WASH_N=['見送り','微妙','まずまず','洗車日和'];
+function openWkWx(pos,pl){const k='w'+pos.la.toFixed(2)+','+pos.lo.toFixed(2);
+  const draw=w=>{const d=w&&w.daily;if(!d||!d.time||!d.weather_code){openSheet(`<div class="result"><b style="font-size:18px">週間天気</b><div class="note">天気を読み込めませんでした（時間をおいて開き直してください）</div></div><button class="btn sub press" data-close style="margin-top:12px">閉じる</button>`);bindClose();return}
+    const t0=today(),WD='日月火水木金土',rows=[];
+    d.time.forEach((t,i)=>{if(!t||t<t0||d.weather_code[i]==null)return;const dt=new Date(t+'T12:00:00+09:00'),wd=dt.getDay(),pp=d.precipitation_probability_max&&d.precipitation_probability_max[i],c=wxC(d.weather_code[i],pp),ws=washDay(d,i);
+      const lab=t===t0?'今日':rows.length===1&&i>0&&d.time[i-1]===t0?'明日':`${+t.slice(5,7)}/${+t.slice(8,10)}`;
+      rows.push(`<div class="wkr${wd===0||wd===6?' sun':''}"><div class="wkd"><b>${lab}</b><small>${lab.includes('/')?'':`${+t.slice(5,7)}/${+t.slice(8,10)} `}(${WD[wd]})</small></div><span class="wki" aria-hidden="true">${WXI(c)}</span>
+        <div class="wkt"><b>${WXN(c)}</b><span><i class="hi">${wxR(d.temperature_2m_max[i])}</i> / <i class="lo">${wxR(d.temperature_2m_min[i])}</i>${pp!=null?` · 雨${pp}%`:''}</span></div>
+        ${ws?`<div class="wkw l${ws[0]}" aria-label="洗車 ${WASH_N[ws[0]]}：${ws[1]}"><i>${WASH_I[ws[0]]}</i><small>${ws[1]}</small></div>`:'<div class="wkw"></div>'}</div>`)});
+    openSheet(`<div class="result" style="padding-bottom:0"><b style="font-size:20px">週間天気と洗車予報</b><div class="note">${pl?esc(pl)+'付近 · ':''}右の印が洗車予報です</div></div>
+     <div class="wkl">${rows.join('')}</div>
+     <div class="wkleg"><span>◎ 洗車日和</span><span>○ まずまず</span><span>△ 微妙（翌日の雨・強風）</span><span>× 見送り</span></div>
+     <p class="note" style="text-align:center;margin:8px 0 0">洗車予報は降水確率・翌日の天気・風・気温からの目安です</p>
+     <small class="hwxsrc" style="display:block;text-align:center;margin-top:6px">天気：${w.src==='met'?'ノルウェー気象局（MET Norway）':w.src==='jma'?'気象庁':'Open-Meteo.com'}</small>
+     <button class="btn sub press" data-close style="margin-top:12px">閉じる</button>`);bindClose()};
+  if(WX[k]&&Date.now()-WX[k].at<18e5&&WX[k].d===today())return draw(WX[k].w);
+  openSheet(`<div class="result"><b style="font-size:18px">週間天気と洗車予報</b><div class="note">天気を読み込んでいます…</div></div>`);
+  wxFetch(`https://api.open-meteo.com/v1/forecast?latitude=${pos.la}&longitude=${pos.lo}&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max&timezone=Asia%2FTokyo&forecast_days=8`)
+    .then(w=>{if(!w||!w.daily)throw 0;WX[k]={w,at:Date.now(),d:today()};if($('#sh'))draw(w)}).catch(()=>{if($('#sh'))draw(null)})}
 function homeWx(ask){const el=$('#hwx');if(!el)return;
   const sv=store.get('wxpos1',null),pos=here&&!here.demo&&here.la!=null?{la:here.la,lo:here.lo}:sv&&Date.now()-sv.at<216e5?sv:null;
   const btn=()=>{const e=$('#hwx');if(!e)return;e.innerHTML=`<button class="hwxb press" id="hwxb">${WXI(1)} 今日の天気を見る<small>現在地を使います</small></button>`;$('#hwxb').onclick=()=>homeWx(true)}; // 位置の許可の確認は非同期なので、その間に描き直されていても動くように探し直す
@@ -3960,9 +3996,11 @@ function homeWx(ask){const el=$('#hwx');if(!el)return;
   const k=pos.la.toFixed(2)+','+pos.lo.toFixed(2),st=sunTimes(pos.la,pos.lo),pl=hwxPlace(pos);
   const put=w=>{const e=$('#hwx');if(!e||!w)return;const d=wxRest(w),c=wxC(d.weather_code[0],d.precipitation_probability_max&&d.precipitation_probability_max[0]),mn=d.temperature_2m_min[0]??d.temperature_2m_min[1]??null,pp=d.precipitation_probability_max&&d.precipitation_probability_max[0],tips=wxTips(c,Math.round(d.temperature_2m_max[0]??NaN),Math.round(mn??NaN),pp,st,{wind:d.wind_speed_10m_max&&d.wind_speed_10m_max[0],uv:d.uv_index_max&&d.uv_index_max[0],...wxSplit(w),tPP:d.precipitation_probability_max&&d.precipitation_probability_max[1],...wxWk(d),rainAgo:wxRainAgo(w),tm:{c:wxC(d.weather_code[1],d.precipitation_probability_max&&d.precipitation_probability_max[1]),hi:d.temperature_2m_max[1],lo:d.temperature_2m_min[1],pp:d.precipitation_probability_max&&d.precipitation_probability_max[1],wind:d.wind_speed_10m_max&&d.wind_speed_10m_max[1]}}),wv=wxWarnNow(pos);
     e.innerHTML=`<div class="hwx1"><span class="hwxi" aria-hidden="true">${WXI(c)}</span><span class="hwxt">${WXN(c)}</span><span class="hi">${wxR(d.temperature_2m_max[0])}</span><span class="lo">${wxR(mn)}</span>${pp!=null?`<span class="hwxp">雨${pp}%</span>`:''}${d.weather_code[1]!=null?`<span class="hwxtm" aria-label="明日の天気 ${WXN(wxC(d.weather_code[1],d.precipitation_probability_max&&d.precipitation_probability_max[1]))}"><b>明日<i aria-hidden="true">${WXI(wxC(d.weather_code[1],d.precipitation_probability_max&&d.precipitation_probability_max[1]))}</i></b><span>${d.temperature_2m_max[1]!=null?Math.round(d.temperature_2m_max[1])+'°':''}${d.temperature_2m_min[1]!=null?'/'+Math.round(d.temperature_2m_min[1])+'°':''}${d.precipitation_probability_max&&d.precipitation_probability_max[1]!=null?` 雨${d.precipitation_probability_max[1]}%`:''}</span></span>`:''}</div>
-      <div class="hwx2">${st?`日の入り <b>${st.set}</b>`:''}${pl?` · ${esc(pl)}付近`:''}${mn!=null&&mn<=3?' · <span class="hwxice">路面凍結に注意</span>':''}</div>
+      <div class="hwx2">${st?`日の入り <b>${st.set}</b>`:''}${pl?` · ${esc(pl)}付近`:''}${mn!=null&&mn<=3?' · <span class="hwxice">路面凍結に注意</span>':''} · <span class="hwxwk">週間・洗車 ›</span></div>
       ${wv?`<div class="hwxwarn${wv.lv>=3?' hi3':''}" role="alert">⚠️ <span>${esc(wv.name)}</span></div>`:''}
       ${tips.length?`<div class="hwxtip" id="hwxtip">💬 <span><i class="mq">${esc(tips[0])}</i></span></div>`:''}<small class="hwxsrc">天気：${w.src==='met'?'ノルウェー気象局（MET Norway）':w.src==='jma'?'気象庁':'Open-Meteo.com'}${wv?'／注意報・警報：気象庁':''}</small>`;
+    e.classList.add('tap');e.setAttribute('role','button');e.setAttribute('aria-label','週間天気と洗車予報を見る');e.tabIndex=0;
+    e.onclick=ev=>{if(!e.querySelector('.hwx1')||ev.target.closest('a,button'))return;openWkWx(pos,pl)};e.onkeydown=ev=>{if(ev.key==='Enter')e.onclick(ev)};
     clearInterval(hwxTimer);hwxMq($('#hwxtip span'));if(tips.length>1&&!calm()){let i=0;let last=Date.now();hwxTimer=setInterval(()=>{const t=$('#hwxtip span');if(!t){clearInterval(hwxTimer);return}if(!mqDue(t,last,15000))return;last=Date.now();i=(i+1)%tips.length;t.classList.remove('in');void t.offsetWidth;t.innerHTML='<i class="mq"></i>';t.firstChild.textContent=tips[i];t.classList.add('in');hwxMq(t)},1000)}};
   const kh='h'+k,wp=wxWarn(pos).catch(()=>null);if(WX[kh]&&Date.now()-WX[kh].at<18e5&&WX[kh].d===today()){put(WX[kh].w);wp.then(v=>{if(v&&v.length&&WX[kh])put(WX[kh].w)});return}
   if(!el.innerHTML)el.innerHTML='<small class="hwxn">天気を読み込んでいます…</small>';
