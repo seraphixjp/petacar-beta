@@ -2310,10 +2310,11 @@ function upd11Later(){if(store.get('upd15',0))return;let n=0;const t=setInterval
 // Android の戻る：開いている画面を1つ閉じる。閉じる物がなければ false（アプリ側でアプリを裏へ）
 window.__petaBack=function(){try{
   const lv=document.getElementById('lvo');if(lv){const h=lv.parentElement;if(h)h.innerHTML='';return true}
+  if($('#sh')){dismissSheet();return true}
   if($('#smap')&&$('#smap').innerHTML.trim()){closeSpotMap();return true}
-  if($('#sh')){closeSheet();return true}
   const u=$('#upd11');if(u&&u.classList.contains('on')){const x=$('#u11x');if(x)x.click();else u.remove();return true}
   if($('#onb .onb'))return true;
+  if(tab==='sp'&&spView){spView='';render();return true}
   if(tab!=='me'){tab='me';render();return true}
  }catch(e){}return false};
 function showOnb(){
@@ -4665,7 +4666,7 @@ function startWatch(){if(watchId!=null||!navigator.geolocation||document.hidden)
   watchId=navigator.geolocation.watchPosition(onPos,e=>{if(e.code===1)stopWatch()},{enableHighAccuracy:true,maximumAge:15000,timeout:30000})}
 function stopWatch(){if(watchId!=null)navigator.geolocation.clearWatch(watchId);watchId=null}
 document.addEventListener('visibilitychange',()=>document.hidden?stopWatch():startWatch());
-try{navigator.permissions.query({name:'geolocation'}).then(s=>{if(s.state==='granted')startWatch()}).catch(()=>{})}catch(e){}
+try{navigator.permissions.query({name:'geolocation'}).then(s=>{if(s.state==='granted')startWatch();s.onchange=()=>{if(s.state==='granted')startWatch();else stopWatch()}}).catch(()=>{})}catch(e){} // 2026-11-20 あとから許可した時も（ひまり指摘）
 function arrive(x){arrived.add(x.id);buzz([250,120,250]);sfx.chime(); // 運転中でも気づけるよう、長めに2回震わせる（2026-10-08 鈴木さん）
   if(PASSCAT[x.cat]||settings.autoIn){ // 自動記録オン（開いている間）も、ここでそのまま押す // 峠・橋・道は停まる場所がないので、通過で印を押す（運転中に画面を触らせない）
     if(spotlog.some(v=>v.id===x.id&&v.d===today()))return;
