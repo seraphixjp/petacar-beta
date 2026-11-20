@@ -918,9 +918,10 @@ const RINGS=['#e8551c','#1f3a5f','#1d8a4b','#7b3fa0','#d4a017','#18212b'];
 const EVENTS={
   akagi:{name:'赤城山 朝オフ',short:'AKAGI MORNING MEET',c1:'#1f5c3f',c2:'#e9c46a'},
   haruna:{name:'榛名湖 ミーティング',short:'HARUNA LAKE MEETING',c1:'#26466e',c2:'#bfd6f2'},
-  ota:{name:'スバルMEETING太田 2026',short:'SUBARU MEETING OTA 2026',c1:'#14305a',c2:'#e9b949',radius:500,hours:'10:00–15:00',close:'15:00'}
+  ota:{name:'スバルMEETING太田 2026',short:'SUBARU MEETING OTA 2026',c1:'#14305a',c2:'#e9b949',radius:500,hours:'10:00–15:00',close:'15:00'},
+  sfm26:{name:'SUBARU FAN MEETING 2026',short:'SUBARU FAN MEETING 2026',c1:'#0f2f6b',c2:'#e9b949',radius:1000,hours:'9:00–15:00',open:'09:00',close:'15:00',date:'2026-12-06',la:36.2990,lo:139.3865,venue:'SUBARU 群馬製作所 本工場',bg:'bg/sfm26.jpg'}
 };
-const LIVE='ota', OUTSIDE='場所の記録なし';
+const LIVE='sfm26', OUTSIDE='場所の記録なし';
 const ymd=d=>{const z=new Date(d.getTime()-d.getTimezoneOffset()*6e4);return z.toISOString().slice(0,10)};
 const daysAgo=n=>{const d=new Date();d.setDate(d.getDate()-n);return ymd(d)};
 const today=()=>ymd(new Date());
@@ -1412,7 +1413,7 @@ const save=()=>{if(!me.sample)store.set('me2',me);store.set('log2',log)};
 let tab='me', spView='', lastTab=null, nearUntil=0, nearby=[], incoming=null, inTimer=null, modeTimer=null, qrTimer=null, ciTimer=null;
 let lastTog=0, sheetAt=0, boost=false, colSort=store.get('sort2','love');
 let ci={state:'far',t0:0};
-const inEvent=()=>false; // 開催中のイベントなし（スバルMEETING太田は2027年に延期・2026-11-18）
+const inEvent=()=>ci.state==='in'; // 2026-11-20: SUBARU FAN MEETING 2026（12/6）でチェックインを有効に
 const nearOn=()=>Date.now()<nearUntil;
 const placeOf=l=>l.ev&&EVENTS[l.ev]?EVENTS[l.ev].name:(l.place||OUTSIDE);
 const daysWith=id=>log.filter(l=>l.pid===id).length;
@@ -1963,8 +1964,8 @@ const albName=(p,l)=>l.im?((l.car&&l.car.car)||'')+((l.vr||1)>1?' '+vName(l.vr):
 const best=id=>{const ls=log.filter(l=>l.pid===id);if(!ls.length)return undefined;const last=ls[ls.length-1],kira=ls.some(l=>l.kira),rare=!kira&&ls.some(l=>l.rare);return {...last,kira,rare}};
 
 /* event pieces */
-function evCard(){return '';
-  const E=EVENTS[LIVE],bg=`background:linear-gradient(180deg,rgba(6,10,18,.2),rgba(6,10,18,.85) 75%),url(bg/pa.jpg) center 40%/cover`;
+function evCard_demo(){
+  const E=EVENTS[LIVE],bg=`background:linear-gradient(180deg,rgba(6,10,18,.2),rgba(6,10,18,.85) 75%),url(${E.bg||'bg/pa.jpg'}) center 40%/cover`;
   if(ci.state==='in')return `<div class="evcard" style="${bg}"><div class="eh"><span class="pulse" style="width:8px;height:8px;border-radius:50%;background:#7dffb0"></span>チェックイン中</div><b>${E.name}</b>
     <div class="note">「近くの人」はこのイベントの参加者だけになります。交換したスタンプには限定のフチが付き、EXの確率も2倍です。</div>
     <button class="btn ghost press" id="ckout">チェックアウト</button></div>`;
@@ -1975,7 +1976,7 @@ function evCard(){return '';
     <button class="btn press" id="arrive">（試作）会場に着いたことにする</button>
     <div class="note">範囲内に5分いると自動でチェックインします。通り過ぎただけでは反応しません。</div></div>`;
 }
-function bindEv(){
+function bindEv_demo(){
   const a=$('#arrive');if(a)a.onclick=()=>{ci={state:'arriving',t0:Date.now()};render();clearInterval(ciTimer);ciTimer=setInterval(()=>{
     const f=Math.min(1,(Date.now()-ci.t0)/5000);const b=$('#ciBar'),l=$('#ciLeft');if(b)b.style.width=f*100+'%';if(l)l.textContent=Math.ceil(5-f*5);
     if(f>=1){clearInterval(ciTimer);ci={state:'in'};nearby=[];if(nearOn())fillNearby();render();sfx.chime();toast('チェックインしました');}},100)};
@@ -2123,6 +2124,7 @@ const views={
   ${questCard()}
   ${tripCard()}
   ${wrapY()?`<button class="yrcard press" id="wrapb" style="margin-top:10px"><span class="yk">PETACAR ${wrapY()}</span><b>${wrapY()}年のまとめ</b><span class="ys">この1年の出会いとスポットを振り返る</span><span class="ya" aria-hidden="true">›</span></button>`:''}
+  ${evCard()?'<div class="sec">イベント</div>'+evCard():''}
   <div class="sec hsec">最近の交換<button class="seclink" id="allrec">すべて見る ›</button></div>
   <div class="list">${log.slice().sort((a,b)=>b.d.localeCompare(a.d)).slice(0,4).map(l=>{const p=person(l.pid);return `<button class="li press" data-p="${p.id}">${stamp(p,{size:44,ev:l.ev,sz:l.sz,fr:l.fr,kira:l.kira,rare:l.rare,v:l.v,im:l.im,rg:l.rg})}<div class="t"><b>${supM(p)}${esc(p.name)} ${l.kira?'<span class="tag kira">EX</span>':l.rare?'<span class="tag rare">レア</span>':''}</b><span>${esc(placeOf(l))}</span></div><span class="d">${fmtD(l.d)}</span></button>`}).join('')}</div>`;
  },
@@ -4647,7 +4649,7 @@ const inRange=(x,p)=>dist(p,x)*1000<=(x.cat==='st'?Math.max(ST_R,Math.min(p.acc|
 function wantNear(){try{const ws=wantSet();if(!ws.size||!myPos||myPos.acc>1000)return;const t=today(),N=store.get('wantN',{});if(N.d!==t){N.d=t;N.k=[]}
   for(const id of ws){const x=SP(id);if(!x||x.la==null||N.k.includes(id)||spotlog.some(v=>v.id===id&&v.d===t))continue;const d=dist(myPos,x);
     if(d<=3){N.k.push(id);store.set('wantN',N);toast(`行きたいリストの「${x.n}」まで約${fmtKm(d)}です`);break}}}catch(e){}}
-function onPos(p){const c=p.coords;myPos={la:c.latitude,lo:c.longitude,acc:c.accuracy,at:Date.now()};onShopPos();
+function onPos(p){const c=p.coords;myPos={la:c.latitude,lo:c.longitude,acc:c.accuracy,at:Date.now()};onShopPos();onEvPos();
   const first=!here;here={la:myPos.la,lo:myPos.lo,label:'現在地'};if(first)spotSort='near';
   if(tab==='sp'&&!$('#sh')&&(first||!lastDrawn||dist(lastDrawn,myPos)>0.2)){lastDrawn={...myPos};render()}
   else if(tab==='me'&&!$('#sh')&&(first||!lastDrawn||dist(lastDrawn,myPos)>0.5)){lastDrawn={...myPos};render()}  // マイスタンプの近くのスポット
@@ -4761,6 +4763,59 @@ async function presence(force){
     liveBody={until:Date.now()+OPEN_MS,cell:cellOf(p),upd:Date.now(),m:'o'};await C.live.set(liveBody)}catch(e){}finally{presBusy=false}}
 document.addEventListener('visibilitychange',()=>{if(document.hidden){if(liveBody&&liveBody.m==='o'&&!nearOn()){liveBody=null;C.live.clear()}}else presence(true)});
 setInterval(()=>presence(),30000);setTimeout(()=>presence(true),1500);
+
+/* ===== イベントのチェックイン（2026-11-20 鈴木さん：SUBARU FAN MEETING 2026 で有効に）=====
+   開催日の開催時間内に、会場の範囲に5分いたらチェックイン（アプリを開いている間だけ。位置が3分以上届かなければ数え直す）。
+   範囲から300m以上出たら（2回続けて）か、終了時刻でチェックアウト。自分でチェックアウトしたら、その日は自動では入り直さない。
+   チェックイン中に交換したスタンプにはイベント名入りのフチが付き、EXの確率は2倍（showResult の inEvent()）。 */
+const EV_DWELL=300000;
+const evE=()=>EVENTS[LIVE];
+const jstNow=()=>new Date(Date.now()+9*3600e3).toISOString();
+function evPhase(){const E=evE();if(!E||!E.date)return 'none';const n=jstNow(),d=n.slice(0,10),hm=n.slice(11,16);
+  if(d<E.date)return (Date.parse(E.date)-Date.parse(d))/864e5<=7?'soon':'none';
+  if(d>E.date)return 'none';if(hm<(E.open||'00:00'))return 'early';if(hm>=E.close)return 'over';return 'open'}
+const evKey=()=>'ci_'+LIVE+'_'+((evE()||{}).date||'');
+try{const s0=store.get(evKey(),null);if(s0&&typeof s0==='object'&&evPhase()==='open'&&['in','arriving','far'].includes(s0.state))ci=s0}catch(e){}
+const ciSave=()=>{try{store.set(evKey(),ci)}catch(e){}};
+const evDist=p=>{const E=evE();return dist1(p,{la:E.la,lo:E.lo})*1000};
+let evOut=0;
+function evBarUpd(){const b=$('#ciBar'),l=$('#ciLeft');if(!b||ci.state!=='arriving')return;const f=Math.min(1,(Date.now()-ci.t0)/EV_DWELL);
+  b.style.width=(f*100).toFixed(1)+'%';if(l)l.textContent=Math.max(1,Math.ceil((EV_DWELL-(Date.now()-ci.t0))/60000))}
+function onEvPos(){const ph=evPhase();
+  if(ph!=='open'){if(ci.state!=='far'||ci.off){const was=ci.state==='in';ci={state:'far',t0:0};ciSave();if(was)toast('イベントの終了時刻になったので、チェックアウトしました');if(!$('#sh'))render()}return}
+  if(ci.off||!myPos||myPos.acc>300||Date.now()-myPos.at>120000)return;
+  const E=evE(),d=evDist(myPos),inside=d<=E.radius+Math.min(myPos.acc,100),out=d>E.radius+300&&myPos.acc<=150,now=Date.now();
+  if(ci.state==='in'){if(out){if(++evOut>=2){ci={state:'far',t0:0};evOut=0;ciSave();if(!$('#sh'))render();toast('会場の範囲を出たので、チェックアウトしました')}}else evOut=0;return}
+  if(!inside){if(ci.state==='arriving'&&(out||now-(ci.seen||0)>180000)){ci={state:'far',t0:0};ciSave();if(!$('#sh'))render()}return}
+  if(ci.state!=='arriving'||now-(ci.seen||0)>180000){ci={state:'arriving',t0:now,seen:now};ciSave();if(!$('#sh'))render();return}
+  ci.seen=now;
+  if(now-ci.t0>=EV_DWELL){ci={state:'in',t0:ci.t0,at:now};ciSave();nearby=[];if(nearOn())fillNearby();if(!$('#sh'))render();sfx.chime();buzz([40,40,80]);toast(`${E.name}にチェックインしました`)}
+  else{ciSave();evBarUpd()}}
+setInterval(()=>{if(document.hidden||evPhase()!=='open'||ci.off)return;evBarUpd();
+  // 会場の近く（20km以内）にいるか、チェックインの途中・最中は、止まっていても位置を取り直す（許可済みのときだけ。許可を聞く画面は出さない）
+  const near=myPos&&evDist(myPos)<20000;
+  if((ci.state!=='far'||near)&&(!myPos||Date.now()-myPos.at>30000))posIfAllowed().then(()=>onEvPos());else onEvPos()},20000);
+function evCard(){const E=evE(),ph=evPhase();if(!E||ph==='none'||(ph==='over'&&ci.state!=='in'))return '';
+  const bg=`background:linear-gradient(180deg,rgba(6,10,18,.2),rgba(6,10,18,.86) 70%),url(${E.bg||'bg/pa.jpg'}) center 35%/cover`;
+  const when=`${fmtD(E.date)}（日）${E.hours}`,perk='チェックイン中に交換したスタンプには、イベント名入りの限定のフチが付き、EXの確率も2倍になります。';
+  if(ci.state==='in')return `<div class="evcard" style="${bg}"><div class="eh"><span class="pulse" style="width:8px;height:8px;border-radius:50%;background:#7dffb0"></span>チェックイン中</div><b>${esc(E.name)}</b>
+    <div class="note">交換したスタンプには限定のフチが付き、EXの確率も2倍です。${esc(E.close)}まで。</div>
+    <button class="btn ghost press" id="ckout">チェックアウト</button></div>`;
+  if(ci.state==='arriving'){const f=Math.min(1,(Date.now()-ci.t0)/EV_DWELL),left=Math.max(1,Math.ceil((EV_DWELL-(Date.now()-ci.t0))/60000));
+    return `<div class="evcard" style="${bg}"><div class="eh">会場の範囲内です</div><b>${esc(E.name)}</b>
+    <div class="prog"><i id="ciBar" style="width:${(f*100).toFixed(1)}%"></i></div><div class="meta">あと <span id="ciLeft">${left}</span>分でチェックイン（アプリを開いたままにしてください）</div></div>`}
+  if(ph==='soon'||ph==='early')return `<div class="evcard" style="${bg}"><div class="eh">${ph==='soon'?'もうすぐ開催':'今日開催'}</div><b>${esc(E.name)}</b>
+    <div class="meta">${when} · ${esc(E.venue||'')}</div>
+    <div class="note">当日の開催時間に、会場（範囲${E.radius>=1000?E.radius/1000+'km':E.radius+'m'}）でアプリを開いて5分いると、自動でチェックインします。${perk}</div></div>`;
+  const km=myPos&&Date.now()-myPos.at<600000?evDist(myPos)/1000:null;
+  return `<div class="evcard" style="${bg}"><div class="eh">近くで開催中のイベント</div><b>${esc(E.name)}</b>
+    <div class="meta">${E.hours} · ${esc(E.venue||'')}${km!=null?` · 会場まで約${km<1?Math.round(km*10)/10:Math.round(km)}km`:''}</div>
+    ${ci.off?'<button class="btn press" id="ckagain">もう一度チェックインする</button>':km==null?'<button class="btn press" id="evLoc">現在地で確認する</button>':''}
+    <div class="note">会場の範囲内でアプリを開いて5分いると、自動でチェックインします。${perk}</div></div>`}
+function bindEv(){
+  const o=$('#ckout');if(o)o.onclick=()=>{ci={state:'far',t0:0,off:1};ciSave();if(nearOn())fillNearby();render();toast('チェックアウトしました')};
+  const a=$('#ckagain');if(a)a.onclick=()=>{ci={state:'far',t0:0};ciSave();getPos().then(()=>{onEvPos();render()})};
+  const l=$('#evLoc');if(l)l.onclick=()=>getPos().then(p=>{if(!p){toast('位置情報が使えませんでした。設定で位置情報を許可してください');return}onEvPos();render()})}
 
 /* ===== 機種変更の引き継ぎ・手紙・クラウドバックアップ（2026-11-05 鈴木さん）=====
    写真の保存先はスマホの中が基本。サーバーは受け渡しの間だけ使う（クラウドバックアップだけは本人が選んだときに保管する）。
