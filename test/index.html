@@ -1413,7 +1413,7 @@ const save=()=>{if(!me.sample)store.set('me2',me);store.set('log2',log)};
 let tab='me', spView='', lastTab=null, nearUntil=0, nearby=[], incoming=null, inTimer=null, modeTimer=null, qrTimer=null, ciTimer=null;
 let lastTog=0, sheetAt=0, boost=false, colSort=store.get('sort2','love');
 let ci={state:'far',t0:0};
-const inEvent=()=>ci.state==='in'; // 2026-11-20: SUBARU FAN MEETING 2026（12/6）でチェックインを有効に
+const inEvent=()=>ci.state==='in'&&(typeof evPhase!=='function'||evPhase()==='open'); // 2026-11-20: SUBARU FAN MEETING 2026（12/6）でチェックインを有効に。開催時間を過ぎたら位置が来なくても終わり
 const nearOn=()=>Date.now()<nearUntil;
 const placeOf=l=>l.ev&&EVENTS[l.ev]?EVENTS[l.ev].name:(l.place||OUTSIDE);
 const daysWith=id=>log.filter(l=>l.pid===id).length;
@@ -2130,7 +2130,7 @@ const views={
  },
  ex(){
   const on=nearOn();
-  return `${seasonNote()}${ci.state!=='in'?evCard()+'<div style="height:12px"></div>':''}${exBand()}
+  return `${seasonNote()}${ci.state!=='in'&&evCard()?evCard()+'<div style="height:12px"></div>':''}${exBand()}
   <div class="${on?'group':''}">${on?`<div class="exlive"><div class="exradar" aria-hidden="true"><i></i><i></i><i></i><svg class="exclock" viewBox="0 0 120 120"><circle cx="60" cy="60" r="54"/><circle id="leftRing" cx="60" cy="60" r="54"/></svg><span class="exme">${stamp(me,{size:70})}</span></div>
     <div class="exlt"><span class="livedot"></span><b>近くの人に表示中</b></div><div class="exleft">あと <span id="left"></span></div><div class="note" style="text-align:center">時間になると自動で終わります</div>
     <button class="btn sm sub press" id="tog" role="switch" aria-checked="true" aria-label="交換を終える" style="margin-top:8px">終える</button></div>`
@@ -3964,7 +3964,7 @@ function washDay(d,i){const A=k=>d[k]&&d[k][i],N=k=>d[k]&&d[k][i+1];
   if(lo!=null&&lo<=0)return [2,'朝は凍る。昼に洗って'];
   if(hi!=null&&hi>=30)return [2,'日差しが強い。朝夕に'];
   if(pp==null)return [2,'降水確率の発表なし']; // 予備の取得先で発表がない日は言い切らない
-  if(cn==null)return [3,'雨の心配なし'];
+  if(cn==null)return [2,'雨の心配なし（翌日は未発表）'];
   return [3,'洗車日和']}
 // 日ごとの風：Open-Meteo は km/h → m/s。lv 1＝強い（平均10m/s以上か瞬間20m/s以上）、2＝非常に強い（平均15m/s以上か瞬間30m/s以上）
 const WDIR=['北','北東','東','南東','南','南西','西','北西'];
@@ -3993,6 +3993,7 @@ function openWkWx(pos,pl){const k='w'+pos.la.toFixed(2)+','+pos.lo.toFixed(2);
   const draw=w=>{const d=w&&w.daily;if(!d||!d.time||!d.weather_code){openSheet(`<div class="result"><b style="font-size:18px">週間天気</b><div class="note">天気を読み込めませんでした（時間をおいて開き直してください）</div></div><button class="btn sub press" data-close style="margin-top:12px">閉じる</button>`);bindClose();return}
     const t0=today(),WD='日月火水木金土',rows=[],days=[],idx=[];
     d.time.forEach((t,i)=>{if(t&&t>=t0&&d.weather_code[i]!=null)idx.push(i)});
+    if(!idx.length)return draw(null);
     const his=idx.map(i=>d.temperature_2m_max[i]).filter(v=>v!=null&&isFinite(v)),los=idx.map(i=>d.temperature_2m_min[i]).filter(v=>v!=null&&isFinite(v));
     const tMin=Math.min(...los,...his),tMax=Math.max(...his,...los),span=Math.max(1,tMax-tMin),pc=v=>+((v-tMin)/span*100).toFixed(1);
     idx.forEach((i,n)=>{const t=d.time[i],dt=new Date(t+'T12:00:00+09:00'),wd=dt.getDay(),pp=d.precipitation_probability_max&&d.precipitation_probability_max[i],c=wxC(d.weather_code[i],pp),ws=washDay(d,i),wn=wkWind(d,i);
@@ -4015,9 +4016,9 @@ function openWkWx(pos,pl){const k='w'+pos.la.toFixed(2)+','+pos.lo.toFixed(2);
      <small class="hwxsrc" style="display:block;text-align:center;margin-top:6px">天気：${w.src==='met'?'ノルウェー気象局（MET Norway）':w.src==='jma'?'気象庁':'Open-Meteo.com'}</small>
      <button class="btn sub press" data-close style="margin-top:12px">閉じる</button>`);bindClose()};
   if(WX[k]&&Date.now()-WX[k].at<18e5&&WX[k].d===today())return draw(WX[k].w);
-  openSheet(`<div class="result"><b style="font-size:18px">週間天気と洗車予報</b><div class="note">天気を読み込んでいます…</div></div>`);
+  openSheet(`<div class="result" id="wkLoad"><b style="font-size:18px">週間天気と洗車予報</b><div class="note">天気を読み込んでいます…</div></div>`);
   wxFetch(`https://api.open-meteo.com/v1/forecast?latitude=${pos.la}&longitude=${pos.lo}&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant&timezone=Asia%2FTokyo&forecast_days=8`)
-    .then(w=>{if(!w||!w.daily)throw 0;WX[k]={w,at:Date.now(),d:today()};if($('#sh'))draw(w)}).catch(()=>{if($('#sh'))draw(null)})}
+    .then(w=>{if(!w||!w.daily)throw 0;const nd=(w.daily.time||[]).length;WX[k]={w,at:Date.now()-(nd<5?27*6e4:0),d:today()};if($('#wkLoad'))draw(w)}).catch(()=>{if($('#wkLoad'))draw(null)})} // 予備の取得先で日数が少ないときは3分で取り直す。読み込み中に別の画面を開いていたら上書きしない
 function homeWx(ask){const el=$('#hwx');if(!el)return;
   const sv=store.get('wxpos1',null),pos=here&&!here.demo&&here.la!=null?{la:here.la,lo:here.lo}:sv&&Date.now()-sv.at<216e5?sv:null;
   const btn=()=>{const e=$('#hwx');if(!e)return;e.innerHTML=`<button class="hwxb press" id="hwxb">${WXI(1)} 今日の天気を見る<small>現在地を使います</small></button>`;$('#hwxb').onclick=()=>homeWx(true)}; // 位置の許可の確認は非同期なので、その間に描き直されていても動くように探し直す
@@ -4079,7 +4080,7 @@ function render(){
   $$('[data-p]').forEach(b=>b.onclick=()=>detail(b.dataset.p));
   if(tab==='me'){fitNm();try{document.fonts&&document.fonts.ready.then(fitNm)}catch(e){}$$('.nearme [data-spot]').forEach(b=>b.onclick=()=>openSpot(b.dataset.spot));if($('#locate2'))$('#locate2').onclick=()=>locate();if($('#nearAll'))$('#nearAll').onclick=()=>{tab='sp';render()};if($('#tcWant'))$('#tcWant').onclick=()=>{tab='sp';render();setTimeout(()=>{const e=$('#planb');if(e)e.closest('.sec').scrollIntoView({behavior:'smooth',block:'start'});else toast('スポットの詳細で「行きたい」を押すと、ここに集まります')},120)};if($('#tcCrs'))$('#tcCrs').onclick=()=>openCourses();if($('#tcPlan'))$('#tcPlan').onclick=()=>{planSel=null;openPlan()};if($('#supTop'))$('#supTop').onclick=()=>openSup();$$('[data-nice]').forEach(b=>b.onclick=()=>sendNice(b.dataset.nice));if($('#shareb'))$('#shareb').onclick=openShare;if($('#htTour'))$('#htTour').onclick=()=>openCourses();if($('#htTrip'))$('#htTrip').onclick=()=>openTrip();if($('#htWant'))$('#htWant').onclick=()=>openWantList();if($('#htMap'))$('#htMap').onclick=()=>openMap();$('#mk').onclick=openCrop;if($('#mkFirst'))$('#mkFirst').onclick=openCrop;if($('#qcard'))$('#qcard').onclick=openQuests;$('#hito').onclick=openHito;if($('#nmb'))$('#nmb').onclick=openName;$('#carb').onclick=()=>openGarage(render);if($('#grb'))$('#grb').onclick=()=>openGarage(render);if($('#evb'))$('#evb').onclick=()=>openEvCal();if($('#newsTop'))$('#newsTop').onclick=()=>openNewsItem($('#newsTop').dataset.n);if($('#openRow'))$('#openRow').onclick=()=>{tab='ex';render()};$('#bgb').onclick=openBg;if($('#wrapb'))$('#wrapb').onclick=openWrap;if($('#tripb'))$('#tripb').onclick=()=>{const n=tripOf(today()).spots.length;n||settings.route?openTripDay(today()):openTrip()};$('#allrec').onclick=()=>{colView='stamp';store.set('colv2',colView);colSort='recent';store.set('sort2',colSort);tab='col';render()}}
   if(tab==='col'||tab==='sp'){$$('[data-shop]').forEach(b=>b.onclick=()=>openShop(b.dataset.shop));if($('#demoShop'))$('#demoShop').onclick=demoShop}
-  if(tab==='col'){$$('[data-cv]').forEach(b=>b.onclick=()=>{colView=b.dataset.cv;store.set('colv2',colView);render()});$$('[data-csort]').forEach(b=>b.onclick=()=>{cardSort=b.dataset.csort;render()});$$('#view [data-cardp]').forEach(b=>{b.onclick=e=>{e.stopPropagation();openCard(b.dataset.cardp)};b.onkeydown=e=>{if(e.key==='Enter')openCard(b.dataset.cardp)}});$$('#view [data-cards]').forEach(b=>{b.onclick=e=>{e.stopPropagation();openCardSpot(b.dataset.cards)};b.onkeydown=e=>{if(e.key==='Enter')openCardSpot(b.dataset.cards)}});$$('[data-maker]').forEach(b=>b.onclick=()=>openMaker(b.dataset.maker));$$('[data-car]').forEach(b=>b.onclick=()=>openCar(b.dataset.car));$$('[data-zkmk]').forEach(b=>b.onclick=()=>{zkMk=b.dataset.zkmk;zkLim=60;render()});if($('#zkMore'))$('#zkMore').onclick=()=>{zkLim+=60;render()};$$('#view [data-pho]').forEach(b=>b.onclick=()=>openPho(b.dataset.pho))}
+  if(tab==='col'){$$('[data-cv]').forEach(b=>b.onclick=()=>{colView=b.dataset.cv;store.set('colv2',colView);render()});$$('[data-csort]').forEach(b=>b.onclick=()=>{cardSort=b.dataset.csort;render()});$$('#view [data-cardp]').forEach(b=>{b.onclick=e=>{e.stopPropagation();openCard(b.dataset.cardp)};b.onkeydown=e=>{if(e.key==='Enter')openCard(b.dataset.cardp)}});$$('#view [data-cards]').forEach(b=>{b.onclick=e=>{e.stopPropagation();openCardSpot(b.dataset.cards)};b.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openCardSpot(b.dataset.cards)}}});$$('[data-maker]').forEach(b=>b.onclick=()=>openMaker(b.dataset.maker));$$('[data-car]').forEach(b=>b.onclick=()=>openCar(b.dataset.car));$$('[data-zkmk]').forEach(b=>b.onclick=()=>{zkMk=b.dataset.zkmk;zkLim=60;render()});if($('#zkMore'))$('#zkMore').onclick=()=>{zkLim+=60;render()};$$('#view [data-pho]').forEach(b=>b.onclick=()=>openPho(b.dataset.pho))}
   if(tab==='sp'&&spView==='want'){$$('[data-spot]').forEach(b=>b.onclick=()=>openSpot(b.dataset.spot));$('#wpBack').onclick=()=>{spView='';render();$('#scroll').scrollTop=0};if($('#wlPlan'))$('#wlPlan').onclick=()=>{planSel=null;openPlan()}}
   else if(tab==='sp'){$$('[data-spot]').forEach(b=>b.onclick=()=>openSpot(b.dataset.spot));if($('#mapb'))$('#mapb').onclick=openMap;if($('#crsb'))$('#crsb').onclick=()=>openCourses();if($('#evcb'))$('#evcb').onclick=()=>openEvCal();if($('#wantb'))$('#wantb').onclick=()=>{spView='want';render();$('#scroll').scrollTop=0};if($('#srchb'))$('#srchb').onclick=()=>{const q=$('#spq');if(q){q.scrollIntoView({behavior:'smooth',block:'center'});setTimeout(()=>q.focus({preventScroll:true}),350)}};if($('#planb'))$('#planb').onclick=()=>{planSel=null;openPlan()};if($('#spmapb'))$('#spmapb').onclick=()=>openSpotMap();bindSpList();$('#locate').onclick=locate;if($('#demoArr'))$('#demoArr').onclick=demoArrive;if($('#autoOn'))$('#autoOn').onclick=()=>askAlways(render);$$('[data-ss]').forEach(b=>b.onclick=()=>{spotSort=b.dataset.ss;spotLim=40;render()});$$('[data-cat]').forEach(b=>b.onclick=()=>{spotCat=b.dataset.cat;spotLim=40;render()});
     $('#spq').oninput=e=>{spotQ=e.target.value;spotLim=40;$('#spl').innerHTML=spList();bindSpList()};$('#sppref').onchange=e=>{spotPref=e.target.value;spotLim=40;$('#spl').innerHTML=spList();bindSpList()}}
@@ -4861,8 +4862,9 @@ function evPhase(){const E=evE();if(!E||!E.date)return 'none';const n=jstNow(),d
   if(d<E.date)return (Date.parse(E.date)-Date.parse(d))/864e5<=7?'soon':'none';
   if(d>E.date)return 'none';if(hm<(E.open||'00:00'))return 'early';if(hm>=E.close)return 'over';return 'open'}
 const evKey=()=>'ci_'+LIVE+'_'+((evE()||{}).date||'');
-try{const s0=store.get(evKey(),null);if(s0&&typeof s0==='object'&&evPhase()==='open'&&['in','arriving','far'].includes(s0.state))ci=s0}catch(e){}
-const ciSave=()=>{try{store.set(evKey(),ci)}catch(e){}};
+// 状態は端末の中だけ（クラウドの記録文書には入れない。別の端末で開いてもチェックイン中にならない）
+try{const s0=JSON.parse(localStorage.getItem(evKey())||'null');if(s0&&typeof s0==='object'&&evPhase()==='open'&&['in','arriving','far'].includes(s0.state))ci=s0}catch(e){}
+const ciSave=()=>{try{localStorage.setItem(evKey(),JSON.stringify(ci))}catch(e){}};
 const evDist=p=>{const E=evE();return dist1(p,{la:E.la,lo:E.lo})*1000};
 let evOut=0;
 function evBarUpd(){const b=$('#ciBar'),l=$('#ciLeft');if(!b||ci.state!=='arriving')return;const f=Math.min(1,(Date.now()-ci.t0)/EV_DWELL);
@@ -4876,11 +4878,15 @@ function onEvPos(){const ph=evPhase();
   if(ci.state!=='arriving'||now-(ci.seen||0)>180000){ci={state:'arriving',t0:now,seen:now};ciSave();if(!$('#sh'))render();return}
   ci.seen=now;
   if(now-ci.t0>=EV_DWELL){ci={state:'in',t0:ci.t0,at:now};ciSave();nearby=[];if(nearOn())fillNearby();if(!$('#sh'))render();sfx.chime();buzz([40,40,80]);toast(`${E.name}にチェックインしました`)}
-  else{ciSave();evBarUpd()}}
-setInterval(()=>{if(document.hidden||evPhase()!=='open'||ci.off)return;evBarUpd();
+  else evBarUpd()}
+setInterval(()=>{if(document.hidden)return;
+  if(evPhase()!=='open'){if(ci.state!=='far'||ci.off)onEvPos();return} // 終了時刻を過ぎたら、位置が来なくてもチェックアウト
+  if(ci.off)return;evBarUpd();
   // 会場の近く（20km以内）にいるか、チェックインの途中・最中は、止まっていても位置を取り直す（許可済みのときだけ。許可を聞く画面は出さない）
   const near=myPos&&evDist(myPos)<20000;
-  if((ci.state!=='far'||near)&&(!myPos||Date.now()-myPos.at>30000))posIfAllowed().then(()=>onEvPos());else onEvPos()},20000);
+  if((ci.state!=='far'||near)&&(!myPos||Date.now()-myPos.at>30000)){
+    try{navigator.permissions.query({name:'geolocation'}).then(st=>st.state==='granted'?getPos():null).then(()=>onEvPos(),()=>onEvPos())}catch(e){onEvPos()}}
+  else onEvPos()},20000);
 function evCard(){const E=evE(),ph=evPhase();if(!E||ph==='none'||(ph==='over'&&ci.state!=='in'))return '';
   const bg=`background:linear-gradient(180deg,rgba(6,10,18,.2),rgba(6,10,18,.86) 70%),url(${E.bg||'bg/pa.jpg'}) center 35%/cover`;
   const when=`${fmtD(E.date)}（日）${E.hours}`,perk='チェックイン中に交換したスタンプには、イベント名入りの限定のフチが付き、EXの確率も2倍になります。';
