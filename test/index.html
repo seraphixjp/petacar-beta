@@ -3963,6 +3963,7 @@ function washDay(d,i){const A=k=>d[k]&&d[k][i],N=k=>d[k]&&d[k][i+1];
   if(pp!=null&&pp>=30)return [2,'にわか雨に注意'];
   if(lo!=null&&lo<=0)return [2,'朝は凍る。昼に洗って'];
   if(hi!=null&&hi>=30)return [2,'日差しが強い。朝夕に'];
+  if(pp==null)return [2,'降水確率の発表なし']; // 予備の取得先で発表がない日は言い切らない
   if(cn==null)return [3,'雨の心配なし'];
   return [3,'洗車日和']}
 // 日ごとの風：Open-Meteo は km/h → m/s。lv 1＝強い（平均10m/s以上か瞬間20m/s以上）、2＝非常に強い（平均15m/s以上か瞬間30m/s以上）
@@ -4004,7 +4005,7 @@ function openWkWx(pos,pl){const k='w'+pos.la.toFixed(2)+','+pos.lo.toFixed(2);
     // 見出し：今日の天気に合わせた写真の上に、今日の天気とひとこと
     const i0=idx[0],P=k=>d[k]&&i0!=null?d[k][i0]:null,c0=i0!=null?wxC(d.weather_code[i0],P('precipitation_probability_max')):1;
     const ph=c0>=95?'storm':wkSnow(c0)?'snow':c0>=51?'rain':c0>=3?'cloud':'clear',cmt=wkComment(days);
-    const h0=i0!=null?`<div class="wkh1"><span class="wkhi" aria-hidden="true">${WXI(c0)}</span><div><b>${WXN(c0)}</b><span>${wxR(P('temperature_2m_max'))} / ${wxR(P('temperature_2m_min'))}${P('precipitation_probability_max')!=null?` · 雨${P('precipitation_probability_max')}%`:''}</span></div></div>`:'';
+    const h0=i0!=null?`<div class="wkh1"><span class="wkhi" aria-hidden="true">${WXI(c0)}</span><div><b>${d.time[i0]===t0?'今日 ':days[0]?days[0].lab+' ':''}${WXN(c0)}</b><span>${wxR(P('temperature_2m_max'))} / ${wxR(P('temperature_2m_min'))}${P('precipitation_probability_max')!=null?` · 雨${P('precipitation_probability_max')}%`:''}</span></div></div>`:'';
     openSheet(`<div class="wkhero" style="background-image:linear-gradient(180deg,rgba(8,12,18,.2) 0%,rgba(8,12,18,.5) 50%,rgba(8,12,18,.9) 100%),url(bg/wx_${ph}.jpg)">
        <div class="wkht"><b>週間天気と洗車予報</b><small>${pl?esc(pl)+'付近':''}</small></div>${h0}
        ${cmt?`<div class="wkcm">💬 <span>${esc(cmt)}</span></div>`:''}<small class="wkcr">写真：Unsplash（CC0）</small></div>
