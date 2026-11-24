@@ -1330,7 +1330,7 @@ const SPMAP=new Map(SPOTS.map(x=>[x.id,x]));const SP=id=>SPMAP.get(id);
 const SPOT_RETIRED=[{"id": "tp:27:淡路ワールドパークONOKORO", "n": "淡路ワールドパークONOKORO", "cat": "tp", "pref": "兵庫", "la": 34.41575, "lo": 134.89841, "ad": "淡路市塩田新島8-5", "nt": "世界の建築物ミニチュアと遊園地", "gone": 1}, {"id": "tg:3:笹ノ峠", "n": "笹ノ峠", "cat": "tg", "pref": "宮城", "la": 37.81028, "lo": 140.69177, "ad": "宮城県丸森町筆甫", "nt": "県道45号の峠", "gone": 1}, {"id": "tg:28:平石峠", "n": "平石峠", "cat": "tg", "pref": "奈良", "la": 34.50234, "lo": 135.67331, "ad": "奈良県葛城市竹内", "nt": "県道704号の峠", "gone": 1}, {"id": "tg:27:駒返峠", "n": "駒返峠", "cat": "tg", "pref": "兵庫", "la": 35.52411, "lo": 134.91944, "ad": "兵庫県豊岡市出石町奥小野", "nt": "県道706号の峠", "gone": 1}, {"id": "tg:27:鴨内峠", "n": "鴨内峠", "cat": "tg", "pref": "兵庫", "la": 35.23169, "lo": 135.0671, "ad": "兵庫県丹波市氷上町鴨内", "nt": "県道282号の峠", "gone": 1}, {"id": "tg:27:瓶割峠", "n": "瓶割峠", "cat": "tg", "pref": "兵庫", "la": 35.12496, "lo": 135.12571, "ad": "兵庫県丹波市春日町国領", "nt": "県道138号の峠", "gone": 1}, {"id": "tg:27:原峠", "n": "原峠", "cat": "tg", "pref": "兵庫", "la": 35.0461, "lo": 135.3382, "ad": "兵庫県丹波篠山市福住", "nt": "県道309号の峠", "gone": 1}, {"id": "cir:16:大日スポーツランド", "n": "大日スポーツランド", "cat": "cir", "pref": "石川", "la": 36.2938, "lo": 136.5603, "ad": "石川県白山市阿手町", "nt": "", "gone": 1, "why": "営業しているか確認中のため、一時的に一覧から外しています。"}];SPOT_RETIRED.forEach(x=>SPMAP.set(x.id,x));
 /* 全国の鉄道駅（国土数値情報 N02-2024・約9,000駅）。別ファイルを後から読み込む */
 let ST_READY=false;const ST_R=200;
-try{fetch('stations.json').then(r=>r.ok?r.json():[]).then(a=>{for(const [g,n,pi,la,lo,ln] of a){const x={id:'rw:'+g,n:n+'駅',cat:'st',pref:PREFS[pi]||'',la,lo,ad:ln,st:''};SPOTS.push(x);SPMAP.set(x.id,x)}ST_READY=true;if(window.__onSpotsLoaded)window.__onSpotsLoaded();if(typeof render==='function'&&tab==='sp'&&!$('#sh'))render()}).catch(()=>{})}catch(e){}
+try{fetch('stations.json').then(r=>r.ok?r.json():[]).then(a=>{for(const [g,n,pi,la,lo,ln] of a){const x={id:'rw:'+g,n:n+'駅',cat:'st',pref:PREFS[pi]||'',la,lo,ad:ln,st:''};SPOTS.push(x);SPMAP.set(x.id,x)}ST_READY=true;try{kmRecalc()}catch(e){}if(window.__onSpotsLoaded)window.__onSpotsLoaded();if(typeof render==='function'&&tab==='sp'&&!$('#sh'))render()}).catch(()=>{})}catch(e){}
 const SAMPLE_SPOTLOG=[{id:'akagi',d:daysAgo(60)},{id:'akagi',d:daysAgo(30)},{id:'haruna',d:daysAgo(32)},{id:SPOT_OLD.kanra,d:daysAgo(5)},{id:SPOT_OLD.kanra,d:daysAgo(12)},{id:'cir:7:筑波サーキット',d:daysAgo(20)},{id:SPOT_OLD.daikoku,d:daysAgo(14)},{id:'subaru',d:daysAgo(40)}];
 let spotlog=(store.get('spot2',null)||[]).map(v=>({...v,id:SPOT_OLD[v.id]||v.id})); // 駅（後読み）など、まだ一覧に無いidも捨てない。捨てると次の保存で消える
 const saveSpots=()=>store.set('spot2',spotlog);
@@ -2122,7 +2122,7 @@ const views={
     ${inEvent()?`<div class="note" style="color:rgba(255,255,255,.85)">今日はイベント限定のフチで交換されます</div>`:''}
     ${myPins().length?`<div class="mpins">${pinRow(myPins())}</div>`:''}
     <div class="mstats"><span><b>${log.length}</b>交換回数</span><span><b>${ppl.length}</b>会った人</span><span><b>${kc}</b>EX</span></div>
-    <div class="mband"><span>${PINI}スポット <b>${[...spotSet()].filter(id=>!id.startsWith('rw:')).length.toLocaleString()}</b> か所</span><i></i><span>${NAVI}総移動 <b>${kmFmt(kmSum())}</b> km</span></div></div><div class="hwx" id="hwx" aria-live="polite"></div>
+    <div class="mband"><span>${PINI}スポット <b>${[...spotSet()].filter(id=>!id.startsWith('rw:')).length.toLocaleString()}</b> か所</span><i></i><span>${NAVI}総移動 <b class="kmTot">${kmFmt(kmSum())}</b> km</span></div></div><div class="hwx" id="hwx" aria-live="polite"></div>
   ${me.def?`<button class="newsrow press" id="mkFirst"><span class="ntag" style="--nc:var(--accent)">はじめに</span><b>自分の車の写真でスタンプを作る</b><span class="val" aria-hidden="true">›</span></button>`:''}
   ${supTop()}${newsTop()}${openRow()}
   <button class="shcard press" id="shareb" aria-label="プロフィールをSNSでシェア"><span class="shmini" aria-hidden="true"><i class="shd" style="border-color:${me.official?'#d4a017':okColor(me.ring)};background-image:url('${esc(IMG(me.img)||avatar(okColor(me.ring)))}')"></i><i class="shl"></i><i class="shl s"></i><i class="shb"></i></span><span class="sht"><b>プロフィールをシェア</b><span>リワード・スポット・総移動を1枚の画像に</span></span><svg class="sha" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg></button>
@@ -2990,9 +2990,15 @@ let _spk=null,_spkN=-1;
 function spotKmDays(){if(_spkN===spotlog.length)return _spk;const by={};spotlog.forEach(v=>{(by[v.d]=by[v.d]||[]).push(v)});const o={};
   for(const d in by){const L=by[d].slice().sort((a,b)=>(a.t||0)-(b.t||0)).map(v=>SP(v.id)).filter(x=>x&&isFinite(x.la)&&isFinite(x.lo));let k=0;for(let i=1;i<L.length;i++)k+=dist({la:L[i-1].la,lo:L[i-1].lo},{la:L[i].la,lo:L[i].lo});if(k>0)o[d]=k}
   _spk=o;_spkN=spotlog.length;return o}
-const kmSum=()=>{const r=store.get('rtkm1',{}),sp=spotKmDays();let t=0;for(const d of new Set([...Object.keys(r),...Object.keys(sp)]))t+=Math.max(+r[d]||0,sp[d]||0);return t};
+// 日ごとの最高値を kmb1 に控える＝スポットの座標を直しても、駅データが届く前でも、合計は減らない（2026-11-24）
+const kmSum=()=>{const r=store.get('rtkm1',{})||{},sp=spotKmDays(),b={...(store.get('kmb1',{})||{})};let t=0,ch=false;for(const d of new Set([...Object.keys(b),...Object.keys(r),...Object.keys(sp)])){const o=+b[d]||0,v=Math.max(o,Math.round(Math.max(+r[d]||0,sp[d]||0)*100)/100);if(v>o){b[d]=v;ch=true}t+=v}if(ch)store.set('kmb1',b);return Math.max(t,+hiS.km||0)};
 const kmFmt=k=>k<10?(Math.round(k*10)/10).toString():Math.round(k).toLocaleString();
-async function totalKm(){const c={...store.get('rtkm1',{})},td=today();let ch=false;for(const d of await rtDays()){if(c[d]!=null&&d!==td)continue;const p=await rtGet(d),k=p.length>=2?Math.round(rtKm(p)*100)/100:0;if(!(c[d]>=k)){c[d]=k;ch=true}}if(ch)store.set('rtkm1',c);return kmSum()}
+const kmDirty=new Set();let kmAll=false; // kmDirty＝ルートの点が変わった日。閉じている間に走った前日の分なども後から足す（2026-11-24）
+{const rp0=PDB.rput;PDB.rput=async(d,v)=>{const r=await rp0(d,v);kmDirty.add(d);return r}}
+async function totalKm(){const td=today(),all=!kmAll,n={};for(const d of await rtDays()){const c0=store.get('rtkm1',{})||{};if(c0[d]!=null&&d!==td&&!all&&!kmDirty.has(d))continue;kmDirty.delete(d);const p=await rtGet(d);n[d]=p.length>=2?Math.round(rtKm(p)*100)/100:0}
+  kmAll=true;const c={...(store.get('rtkm1',{})||{})};let ch=false;for(const d in n)if(!(c[d]>=n[d])){c[d]=n[d];ch=true}if(ch)store.set('rtkm1',c);return kmSum()}
+function kmShow(k){document.querySelectorAll('#rpgKm,.kmTot').forEach(e=>{e.textContent=kmFmt(k)})}
+function kmRecalc(){_spkN=-1;return totalKm().then(kmShow).catch(()=>{})}
 // SNSに出すとき：出発と到着のまわり（各1km）を消して、自宅の場所が分からないようにする
 function rtTrim(pts,km=1){const c=[0];for(let i=1;i<pts.length;i++)c.push(c[i-1]+dist({la:pts[i-1][0],lo:pts[i-1][1]},{la:pts[i][0],lo:pts[i][1]}));
   const tot=c[c.length-1]||0;if(tot<km*2.5)return [];return pts.filter((p,i)=>c[i]>=km&&c[i]<=tot-km)}
@@ -4082,7 +4088,7 @@ function render(){
   const v=$('#view');v.innerHTML=views[tab]();
   if(lastTab!==tab){v.classList.remove('enter','fromL');void v.offsetWidth;if(TABO.indexOf(tab)<TABO.indexOf(lastTab))v.classList.add('fromL');v.classList.add('enter');motionIn(v);$('#scroll').scrollTop=0;$('#navbar').classList.remove('on');lastTab=tab}
   bindEv();if(tab==='me')homeWx();ntcShow();
-  if($('#ttlb'))$('#ttlb').onclick=openTitles;if($('#frb'))$('#frb').onclick=openFrames;if($('#rpghelp'))$('#rpghelp').onclick=openRpgHelp;if($('#rpgKm'))totalKm().then(k=>{const e=$('#rpgKm');if(e)e.textContent=kmFmt(k)});if($('#jobb'))$('#jobb').onclick=openJobs;checkLevelUp();checkSets();hydratePho();
+  if($('#ttlb'))$('#ttlb').onclick=openTitles;if($('#frb'))$('#frb').onclick=openFrames;if($('#rpghelp'))$('#rpghelp').onclick=openRpgHelp;if($('#rpgKm'))totalKm().then(kmShow).catch(()=>{});if($('#jobb'))$('#jobb').onclick=openJobs;checkLevelUp();checkSets();hydratePho();
   $('.tab[data-t=rw]').classList.toggle('dot',tab!=='rw'&&unseen().length>0);$('.tab[data-t=col]').classList.toggle('dot',zkNew().length>0);
   $$('[data-p]').forEach(b=>b.onclick=()=>detail(b.dataset.p));
   if(tab==='me'){fitNm();try{document.fonts&&document.fonts.ready.then(fitNm)}catch(e){}$$('.nearme [data-spot]').forEach(b=>b.onclick=()=>openSpot(b.dataset.spot));if($('#locate2'))$('#locate2').onclick=()=>locate();if($('#nearAll'))$('#nearAll').onclick=()=>{tab='sp';render()};if($('#tcWant'))$('#tcWant').onclick=()=>{tab='sp';render();setTimeout(()=>{const e=$('#planb');if(e)e.closest('.sec').scrollIntoView({behavior:'smooth',block:'start'});else toast('スポットの詳細で「行きたい」を押すと、ここに集まります')},120)};if($('#tcCrs'))$('#tcCrs').onclick=()=>openCourses();if($('#tcPlan'))$('#tcPlan').onclick=()=>{planSel=null;openPlan()};if($('#supTop'))$('#supTop').onclick=()=>openSup();$$('[data-nice]').forEach(b=>b.onclick=()=>sendNice(b.dataset.nice));if($('#shareb'))$('#shareb').onclick=openShare;if($('#htTour'))$('#htTour').onclick=()=>openCourses();if($('#htTrip'))$('#htTrip').onclick=()=>openTrip();if($('#htWant'))$('#htWant').onclick=()=>openWantList();if($('#htMap'))$('#htMap').onclick=()=>openMap();$('#mk').onclick=openCrop;if($('#mkFirst'))$('#mkFirst').onclick=openCrop;if($('#qcard'))$('#qcard').onclick=openQuests;$('#hito').onclick=openHito;if($('#nmb'))$('#nmb').onclick=openName;$('#carb').onclick=()=>openGarage(render);if($('#grb'))$('#grb').onclick=()=>openGarage(render);if($('#evb'))$('#evb').onclick=()=>openEvCal();if($('#newsTop'))$('#newsTop').onclick=()=>openNewsItem($('#newsTop').dataset.n);if($('#openRow'))$('#openRow').onclick=()=>{tab='ex';render()};$('#bgb').onclick=openBg;if($('#wrapb'))$('#wrapb').onclick=openWrap;if($('#tripb'))$('#tripb').onclick=()=>{const n=tripOf(today()).spots.length;n||settings.route?openTripDay(today()):openTrip()};$('#allrec').onclick=()=>{colView='stamp';store.set('colv2',colView);colSort='recent';store.set('sort2',colSort);tab='col';render()}}
@@ -4397,7 +4403,7 @@ function provText(){const p=(C.providers&&C.providers())||[];const n=p.map(x=>x=
      <button class="srow press" style="width:100%;border:0;background:none;cursor:pointer;text-align:left" data-doc="guide"><div class="t"><b>コミュニティガイドライン</b><span>安全に交換するためのルール</span></div><span class="val">›</span></button>
      <button class="srow press" style="width:100%;border:0;background:none;cursor:pointer;text-align:left" data-doc="contact"><div class="t"><b>お問い合わせ・不具合の報告</b></div><span class="val">›</span></button>
      <button class="srow press" style="width:100%;border:0;background:none;cursor:pointer;text-align:left" data-doc="credits"><div class="t"><b>データと素材の出典</b></div><span class="val">›</span></button>
-     <div class="srow"><div class="t"><b>バージョン</b></div><span class="val" style="font-family:var(--mono)">Web版・11/20更新</span></div></div>
+     <div class="srow"><div class="t"><b>バージョン</b></div><span class="val" style="font-family:var(--mono)">Web版・11/24更新</span></div></div>
    <div class="sec">アカウント</div>
    <div class="set"><div class="srow"><div class="t"><b>ログイン方法</b><span>${provText()}</span></div></div>${linkRows()}
      <button class="srow press" style="width:100%;border:0;background:none;cursor:pointer;text-align:left" id="logout"><div class="t"><b>ログアウト</b></div></button>
@@ -4545,7 +4551,7 @@ const ASK_MS=120000,WINDOW_MS=5000; // 振るタイミングのずれは5秒ま�
 const cellOf=p=>p?[Math.round(p.la*20)/20,Math.round(p.lo*20)/20]:null; // 約5kmのマス目。細かい位置は共有しない
 const nearCell=(a,b)=>!!a&&!!b&&Math.abs(a[0]-b[0])<=0.1&&Math.abs(a[1]-b[1])<=0.1; // どちらかの位置がわからないときは「近く」にしない（2026-10-08 遠くの人から申し込めた不具合）
 const getPos=()=>new Promise(ok=>{if(!navigator.geolocation)return ok(null);
-  navigator.geolocation.getCurrentPosition(p=>{myPos={la:p.coords.latitude,lo:p.coords.longitude,acc:p.coords.accuracy,at:Date.now()};startWatch();ok(myPos)},()=>ok(null),{enableHighAccuracy:true,timeout:8000,maximumAge:30000})});
+  navigator.geolocation.getCurrentPosition(p=>{myPos={la:p.coords.latitude,lo:p.coords.longitude,acc:p.coords.accuracy,at:Date.now(),spd:p.coords.speed,ts:p.timestamp};startWatch();ok(myPos)},()=>ok(null),{enableHighAccuracy:true,timeout:8000,maximumAge:30000})});
 async function askMotion(){try{if(typeof DeviceMotionEvent==='undefined'){motionOK=false;return}
   if(typeof DeviceMotionEvent.requestPermission==='function')motionOK=(await DeviceMotionEvent.requestPermission())==='granted';else motionOK=true}catch(e){motionOK=false}}
 // 審査用アカウント（招待リストに demo:true）だけに出る、1人で交換を試せる相手
@@ -4733,6 +4739,7 @@ async function betaCheckin(x,b,rec){
   b.disabled=true;const t0=b.textContent;b.textContent='位置を確認しています…';
   const p=await getPos();b.disabled=false;b.textContent=t0;
   if(!p){toast('位置情報が使えませんでした。設定で位置情報を許可してください');return}
+  if(planeOf(p.la,p.lo,p.acc,p.spd,p.ts||p.at)){toast('飛行機で移動中は、スポットを記録できません');return}
   const d=dist(p,x)*1000;if(d>(x.cat==='st'?Math.max(250,Math.min(p.acc||0,300)):Math.max(x.cat==='tp'?800:400,p.acc||0))){toast(`このスポットから約${fmtKm(d/1000)}離れています。着いてから押してください`);return}
   rec()}
 /* アプリを開いている間は位置を追い、スポットに着いたら知らせる（閉じているときは動かない） */
@@ -4743,12 +4750,22 @@ const inRange=(x,p)=>dist(p,x)*1000<=(x.cat==='st'?Math.max(ST_R,Math.min(p.acc|
 function wantNear(){try{const ws=wantSet();if(!ws.size||!myPos||myPos.acc>1000)return;const t=today(),N=store.get('wantN',{});if(N.d!==t){N.d=t;N.k=[]}
   for(const id of ws){const x=SP(id);if(!x||x.la==null||N.k.includes(id)||spotlog.some(v=>v.id===id&&v.d===t))continue;const d=dist(myPos,x);
     if(d<=3){N.k.push(id);store.set('wantN',N);toast(`行きたいリストの「${x.n}」まで約${fmtKm(d)}です`);break}}}catch(e){}}
-function onPos(p){const c=p.coords;myPos={la:c.latitude,lo:c.longitude,acc:c.accuracy,at:Date.now()};onShopPos();onEvPos();
+/* 飛行機で移動中はスポットを記録しない（2026-11-24）：時速335km以上が2回続いたら飛行機とみなし（新幹線は最高320km）、時速162kmを下回るまで続ける＝降下中も押さない */
+const PLANE_IN=93,PLANE_OUT=45,PLANE_KEEP=600e3;let plOn=false,plHit=0,plPrev=null,plAt=0,plRes=false;
+function planeOf(la,lo,acc,spd,t){if(plOn&&Date.now()-plAt>PLANE_KEEP)plOn=plRes=false;if(plPrev&&t<=plPrev.t)return plOn||plRes;
+  let v=spd!=null&&spd>=0?spd:-1;
+  if(v<0&&plPrev&&acc<=100&&plPrev.acc<=100){const dt=(t-plPrev.t)/1000;if(dt>=5&&dt<=300)v=dist(plPrev,{la,lo})*1000/dt}
+  plPrev={la,lo,acc,t};if(v<0)return plRes=plOn;
+  if(v>=PLANE_OUT)plAt=Date.now();
+  if(v>=PLANE_IN){if(++plHit>=2)plOn=true}else{plHit=0;if(v<PLANE_OUT)plOn=false}
+  return plRes=plOn||v>=PLANE_IN}
+function onPos(p){const c=p.coords;myPos={la:c.latitude,lo:c.longitude,acc:c.accuracy,at:Date.now(),spd:c.speed,ts:p.timestamp||Date.now()};onShopPos();onEvPos();
   const first=!here;here={la:myPos.la,lo:myPos.lo,label:'現在地'};if(first)spotSort='near';
   if(tab==='sp'&&!$('#sh')&&(first||!lastDrawn||dist(lastDrawn,myPos)>0.2)){lastDrawn={...myPos};render()}
   else if(tab==='me'&&!$('#sh')&&(first||!lastDrawn||dist(lastDrawn,myPos)>0.5)){lastDrawn={...myPos};render()}  // マイスタンプの近くのスポット
   wantNear();  // 行きたいリストのスポットに3km以内まで近づいたら、その日1回だけ知らせる
-  if(c.accuracy>500)return;const t=today(),now=Date.now(),fast=c.speed!=null&&c.speed>8; // 約30km/hより速いときは走行中とみなし、数え直す
+  if(c.accuracy>500)return;if(planeOf(myPos.la,myPos.lo,myPos.acc,c.speed,myPos.ts)){for(const id in spotIn){delete spotIn[id];delete spotSeen[id]}return}
+  const t=today(),now=Date.now(),fast=c.speed!=null&&c.speed>8; // 約30km/hより速いときは走行中とみなし、数え直す
   const cand=SPOTS.filter(x=>x.la!=null&&!arrived.has(x.id)&&!spotlog.some(v=>v.id===x.id&&v.d===t)&&inRange(x,myPos));
   for(const id in spotIn)if(!cand.some(x=>x.id===id)){delete spotIn[id];delete spotSeen[id]}
   const hit=cand.filter(x=>{if(PASSCAT[x.cat])return true;
@@ -4756,8 +4773,8 @@ function onPos(p){const c=p.coords;myPos={la:c.latitude,lo:c.longitude,acc:c.acc
     spotSeen[x.id]=now;return now-spotIn[x.id]>=SPOT_DWELL}).sort((a,b)=>dist(myPos,a)-dist(myPos,b))[0];
   if(hit)arrive(hit)}
 setInterval(()=>{if(document.hidden||!Object.keys(spotIn).length||(myPos&&Date.now()-myPos.at<30000))return; // 止まっていると位置が届かないことがあるので、スポットの範囲にいる間は自分から取り直す
-  getPos().then(p=>{if(p)onPos({coords:{latitude:p.la,longitude:p.lo,accuracy:p.acc,speed:null}})})},20000);
-window.__onSpotsLoaded=()=>{if(myPos&&Date.now()-myPos.at<120000)onPos({coords:{latitude:myPos.la,longitude:myPos.lo,accuracy:myPos.acc}})}; // 駅データが後から届いたら到着を判定し直す
+  getPos().then(p=>{if(p)onPos({coords:{latitude:p.la,longitude:p.lo,accuracy:p.acc,speed:p.spd>=0?p.spd:null},timestamp:p.ts})})},20000);
+window.__onSpotsLoaded=()=>{if(myPos&&Date.now()-myPos.at<120000)onPos({coords:{latitude:myPos.la,longitude:myPos.lo,accuracy:myPos.acc,speed:myPos.spd},timestamp:myPos.ts})}; // 駅データが後から届いたら到着を判定し直す
 function startWatch(){if(watchId!=null||!navigator.geolocation||document.hidden)return;
   watchId=navigator.geolocation.watchPosition(onPos,e=>{if(e.code===1)stopWatch()},{enableHighAccuracy:true,maximumAge:15000,timeout:30000})}
 function stopWatch(){if(watchId!=null)navigator.geolocation.clearWatch(watchId);watchId=null}
