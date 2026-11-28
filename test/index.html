@@ -772,6 +772,12 @@ html:lang(ja){word-break:auto-phrase}body{text-wrap:pretty}h1,h2,h3,b,strong,spa
 .nptx{font-size:14px;line-height:1.6}
 .npnote{margin:10px 0 0;font-size:12px;line-height:1.5;color:#aab3c8}
 .npin .u11btns{padding:14px 20px 18px}
+.aws:empty{display:none}
+.aws.home{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 12px;margin-top:8px}
+.awi{display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:0;padding:0;color:inherit;max-width:96px}
+.awi small{font-size:10px;font-weight:800;line-height:1.25;text-align:center;opacity:.92}
+.aws.home .awi small{color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.6)}
+.awshelf{display:flex;flex-wrap:wrap;justify-content:center;gap:10px 16px;padding:12px}
 .rkex{position:relative;display:inline-block;line-height:0;vertical-align:middle}
 .rkex>svg{display:block}
 .rkex>.k{position:absolute;inset:0;overflow:hidden;pointer-events:none;mix-blend-mode:screen;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 3C62 9 75 10 88 8.5V45C88 71 71 87 50 97C29 87 12 71 12 45V8.5C25 10 38 9 50 3Z'/%3E%3C/svg%3E") center/100% 100% no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 3C62 9 75 10 88 8.5V45C88 71 71 87 50 97C29 87 12 71 12 45V8.5C25 10 38 9 50 3Z'/%3E%3C/svg%3E") center/100% 100% no-repeat}
@@ -2186,6 +2192,7 @@ const views={
     <div><button class="chip carchip press" id="carb" aria-label="ガレージ（今日の車を選ぶ）">${CARI}${esc(carLabel(me))}${me.garage.length>1?`<small>${me.garage.length}台</small>`:''}<i aria-hidden="true">▾</i></button> <span class="chip">${esc(me.pref)}</span></div>
     ${inEvent()?`<div class="note" style="color:rgba(255,255,255,.85)">今日はイベント限定のフチで交換されます</div>`:''}
     ${myPins().length?`<div class="mpins">${pinRow(myPins())}</div>`:''}
+    ${awSlot(myUid(),'home')}
     <div class="mstats"><span><b>${log.length}</b>交換回数</span><span><b>${ppl.length}</b>会った人</span><span><b>${kc}</b>EX</span></div>
     <div class="mband"><span>${PINI}スポット <b>${[...spotSet()].filter(id=>!id.startsWith('rw:')).length.toLocaleString()}</b> か所</span><i></i><span>${NAVI}総移動 <b class="kmTot">${kmFmt(kmSum())}</b> km</span></div></div><div class="hwx" id="hwx" aria-live="polite"></div>
   ${me.def?`<button class="newsrow press" id="mkFirst"><span class="ntag" style="--nc:var(--accent)">はじめに</span><b>自分の車の写真でスタンプを作る</b><span class="val" aria-hidden="true">›</span></button>`:''}
@@ -4036,7 +4043,7 @@ function ntcPop(x,again){const P=x.pop||{};if($('#ntcpop'))return;
   const close=()=>{el.classList.remove('on');setTimeout(()=>el.remove(),260)};
   $('#npx').onclick=close;el.onclick=e=>{if(e.target===el)close()};
   const g=$('#npgo');if(g)g.onclick=()=>{close();const v=String(P.go);if(/^https:\/\//.test(v))window.open(v,'_blank','noopener');else if(v==='rank')openRank();else if(['me','col','sp','rw'].includes(v)){tab=v;render()}}}
-/* 年末ランキング：今の順位（2026-11-28） */
+/* ペタカーランキング：順位（2026-11-28・2027年以降も同じ素材で年だけ変える） */
 let rkU=0;
 const rk_MET={go:['#fff6c8','#f4c430','#c8901a','#7a5208'],si:['#ffffff','#d5dae1','#9aa3ad','#4f5863'],br:['#ffe0c2','#e0995e','#b06a30','#6a3a14']};
 const rk_grad=(id,c)=>`<linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1"><stop stop-color="${c[0]}"/><stop offset=".35" stop-color="${c[1]}"/><stop offset=".7" stop-color="${c[2]}"/><stop offset="1" stop-color="${c[3]}"/></linearGradient>`;
@@ -4119,13 +4126,30 @@ function rk_rookie(size=46,year='2026'){const id='n'+(++rkU),g=rk_MET.go;
  <path d="M24 18Q36 17 47 12" fill="none" stroke="#fff" stroke-opacity=".6" stroke-width="2" stroke-linecap="round"/></svg><i class="k"></i></span>`}
 const RK_URL='https://seraphixjp.github.io/petacar-beta/notice/'+(!(window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform())&&/\/test\/|localhost|127\.0\.0\.1/.test(location.href)?'ranking_test':'ranking')+'.json';
 let rkTab='lv';const RK_STAFF=['9kZ79k8z7zdRQeBUfmXRC6BKuJs1','ehahc20aaObVsUwryapB6Hcxlja2']; // 運営（まちょ・れな）は対象外
+/* ランキングの受賞（2026-11-28）：notice/awards.json を読んで本人に付ける。通常のリワード一覧には出さない */
+const AW_URL='https://seraphixjp.github.io/petacar-beta/notice/'+(!(window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform())&&/\/test\/|localhost|127\.0\.0\.1/.test(location.href)?'awards_test':'awards')+'.json';
+let AW=ntcLS('aw1')||{};const awH={};
+function awHash(uid){if(!uid)return Promise.resolve('');if(awH[uid]!==undefined)return Promise.resolve(awH[uid]);
+  try{return crypto.subtle.digest('SHA-256',new TextEncoder().encode('petacar:'+uid)).then(b=>awH[uid]=[...new Uint8Array(b)].slice(0,8).map(x=>x.toString(16).padStart(2,'0')).join('')).catch(()=>awH[uid]='')}catch(e){return Promise.resolve(awH[uid]='')}}
+function awLoad(){fetch(AW_URL+'?t='+Math.floor(Date.now()/36e5),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(j&&typeof j==='object'&&!Array.isArray(j)){AW=j;ntcLS('aw1',j);awRefresh()}}).catch(()=>{})}
+const awOf=h=>{const out=[];if(!h)return out;Object.keys(AW).filter(y=>/^\d{4}$/.test(y)).sort().reverse().forEach(y=>{const a=AW[y]&&AW[y][h];(Array.isArray(a)?a:a?[a]:[]).forEach(x=>{if(x&&(x.k==='nw'||(x.k==='lv'&&+x.r>=1&&+x.r<=10)))out.push({y,k:x.k,r:+x.r||0})})});return out};
+const awLabel=a=>a.k==='nw'?`${a.y} 新人賞`:`${a.y} レベル総合 ${a.r}位`;
+const awBadge=(a,sz)=>a.k==='nw'?rk_rookie(sz,a.y):a.r<=3?rk_trophy(a.r,sz,a.y):rk_ribbon(a.r,sz,a.y);
+const myUid=()=>window.__cloud&&__cloud.uid||'';
+const awSlot=(uid,mode)=>uid?`<div class="aws ${mode}" data-aw="${esc(uid)}" data-awm="${mode}"></div>`:'';
+function awRefresh(){$$('[data-aw]').forEach(el=>{const uid=el.dataset.aw,m=el.dataset.awm;awHash(uid).then(h=>{const L=awOf(h);
+  if(!L.length){el.innerHTML='';return}
+  const items=L.map(a=>`<button type="button" class="awi press" data-awl="${esc(awLabel(a))}" aria-label="${esc(awLabel(a))}">${awBadge(a,m==='home'?44:52)}<small>${esc(awLabel(a))}</small></button>`).join('');
+  el.innerHTML=m==='sec'?`<div class="sec">ペタカーランキングの受賞</div><div class="group awshelf">${items}</div>`:items;
+  el.querySelectorAll('[data-awl]').forEach(b=>b.onclick=e=>{e.stopPropagation();toast(b.dataset.awl)})})})}
+setTimeout(awLoad,2500);
 const rkConf=()=>`<div class="rkconf" aria-hidden="true">${Array.from({length:28},(_,i)=>`<i style="left:${(i*37+7)%100}%;background:${['#f2c94c','#fff1b8','#e8551c','#ffffff','#c9a227','#7ec8ff'][i%6]};animation-duration:${4+(i%5)*.8}s;animation-delay:${-((i*.73)%6).toFixed(2)}s"></i>`).join('')}</div>`;
-function openRank(){if($('#rkv'))return;const el=document.createElement('div');el.id='rkv';el.className='rkv';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');el.setAttribute('aria-label','年末ペタカーランキング');
-  el.innerHTML=`<div class="rkin"><div class="rktop"><button class="rkx press" id="rkx" aria-label="閉じる">×</button><div><p class="npsub">PETACAR RANKING 2026</p><h2>年末ペタカーランキング</h2></div></div><div id="rkb"><p class="rkmsg">読み込んでいます…</p></div></div>`;
+function openRank(){if($('#rkv'))return;const el=document.createElement('div');el.id='rkv';el.className='rkv';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');el.setAttribute('aria-label','ペタカーランキング');
+  el.innerHTML=`<div class="rkin"><div class="rktop"><button class="rkx press" id="rkx" aria-label="閉じる">×</button><div><p class="npsub" id="rksub">PETACAR RANKING</p><h2 id="rkh">ペタカーランキング</h2></div></div><div id="rkb"><p class="rkmsg">読み込んでいます…</p></div></div>`;
   document.body.appendChild(el);requestAnimationFrame(()=>el.classList.add('on'));
   const close=()=>{el.classList.remove('on');setTimeout(()=>el.remove(),260)};$('#rkx').onclick=close;
   fetch(RK_URL+'?t='+Math.floor(Date.now()/6e5),{cache:'no-store'}).then(r=>{if(!r.ok)throw 0;return r.json()}).then(j=>{window.__rk=j;rkDraw()}).catch(()=>{const b=$('#rkb');if(b)b.innerHTML='<p class="rkmsg">ランキングを読み込めませんでした。電波のよいところでもう一度開いてください。</p>'})}
-function rkDraw(){const j=window.__rk,b=$('#rkb');if(!j||!b)return;
+function rkDraw(){const j=window.__rk,b=$('#rkb');if(!j||!b)return;const yr=String(j.year||'');if($('#rkh'))$('#rkh').textContent='ペタカーランキング'+yr;if($('#rksub'))$('#rksub').textContent='PETACAR RANKING '+yr;
   const md=d=>{const m=/^\d{4}-(\d\d)-(\d\d)/.exec(d||'');return m?(+m[1])+'月'+(+m[2])+'日':''},hm=(String(j.at||'').split(' ')[1]||'');
   const P=r=>({name:r.n,img:r.img,ring:r.ring}),car=r=>esc([r.mk,r.car].filter(Boolean).join(' '));
   const L=(Array.isArray(j.lv)?j.lv:[]).slice(0,10),N=(Array.isArray(j.rookie)?j.rookie:[]).slice(0,5);
@@ -4277,7 +4301,7 @@ function render(){
   if(tab==='me'){$('#gear').onclick=openSettings;$('#bell').onclick=openNews}
   const v=$('#view');v.innerHTML=views[tab]();
   if(lastTab!==tab){v.classList.remove('enter','fromL');void v.offsetWidth;if(TABO.indexOf(tab)<TABO.indexOf(lastTab))v.classList.add('fromL');v.classList.add('enter');motionIn(v);$('#scroll').scrollTop=0;$('#navbar').classList.remove('on');lastTab=tab}
-  bindEv();if(tab==='me')homeWx();ntcShow();
+  bindEv();if(tab==='me')homeWx();ntcShow();awRefresh();
   if($('#ttlb'))$('#ttlb').onclick=openTitles;if($('#frb'))$('#frb').onclick=openFrames;if($('#rpghelp'))$('#rpghelp').onclick=openRpgHelp;if($('#rpgKm'))totalKm().then(kmShow).catch(()=>{});if($('#jobb'))$('#jobb').onclick=openJobs;checkLevelUp();checkSets();hydratePho();
   $('.tab[data-t=rw]').classList.toggle('dot',tab!=='rw'&&unseen().length>0);$('.tab[data-t=col]').classList.toggle('dot',zkNew().length>0);
   $$('[data-p]').forEach(b=>b.onclick=()=>detail(b.dataset.p));
@@ -4477,7 +4501,7 @@ function detail(id){
    <div class="lv" style="margin-top:4px">${Array.from({length:10},(_,i)=>`<i class="${i<n?'on':''}"></i>`).join('')}</div>
    <div class="hearts" style="font-size:14px">♥${n} · ${rank(n)}</div>
    <div class="note">次に会ったとき EX ${pct(kiraRate(n,false))} · レア ${pct(rareRate(n,false))}（イベント中は EX ${pct(kiraRate(n,true))}）</div></div>
-   ${rewardsBlock(p.name,ps,ps.pins,ps.showStats!==false,ps.showRewards!==false)}
+   ${awSlot(id,'sec')}${rewardsBlock(p.name,ps,ps.pins,ps.showStats!==false,ps.showRewards!==false)}
    <div class="sec">もらったスタンプ <span class="chip">${variants.length}種類</span></div>
    <div class="album">${variants.map(l=>`<div class="alb">${stamp(p,{size:64,ev:l.ev,sz:l.sz,fr:l.fr,kira:l.kira,rare:l.rare,v:l.v,im:l.im,rg:l.rg})}${variants.length>1?`<span>${esc(albName(p,l))}</span>`:''}</div>`).join('')}</div>
    ${variants.length>1?`<p class="note" style="margin:6px 4px 0">${esc(p.name)}さんのスタンプは、車ごと・作り直すごとに変わります。前のスタンプは、その日に会えた人だけの記録です。</p>`:''}
@@ -4621,7 +4645,7 @@ function previewMe(){
   openSheet(`<div class="note" style="text-align:center;margin-bottom:10px">ほかの人には、このように表示されます</div>
    <div class="result pcard" style="background:${bgCSS(me)}">${stamp(me,{size:120})}<b style="font-size:20px">${me.official?OFFB:''}${supM(me)}${esc(me.name)}</b>${me.msg?`<div class="hitop">${esc(me.msg)}</div>`:''}${snsRow(mySns())}
    <div><span class="chip">${esc(carLabel(me))}</span> <span class="chip">${esc(me.pref)}</span></div></div>
-   ${rewardsBlock(me.name,st,myPins(),settings.pubStats,settings.pubRewards)}
+   ${awSlot(myUid(),'sec')}${rewardsBlock(me.name,st,myPins(),settings.pubStats,settings.pubRewards)}
    <div class="sec">参加したイベント</div>
    <div class="group">${settings.pubEvents?(evs.length?`<div style="display:flex;flex-wrap:wrap;gap:6px">${evs.map(e=>`<span class="chip">${esc(EVENTS[e].name)}</span>`).join('')}</div>`:'<div class="note">まだありません</div>'):`<div class="hiddenbox">${LOCK}非公開です</div>`}</div>
    <button class="btn sub press" style="margin-top:14px" id="back">設定に戻る</button>`);
@@ -4726,8 +4750,9 @@ function openSheet(html){if(!$('#sh'))sheetFocusReturn=document.activeElement;$(
     if(!items.length){e.preventDefault();d.focus();return}const first=items[0],last=items[items.length-1];if(e.shiftKey&&(document.activeElement===first||document.activeElement===d)){e.preventDefault();last.focus()}else if(!e.shiftKey&&(document.activeElement===last||document.activeElement===d)){e.preventDefault();first.focus()}};
   g.onpointerdown=e=>{y0=e.clientY;dy=0;g.setPointerCapture(e.pointerId);d.style.transition='none'};
   g.onpointermove=e=>{if(y0===null)return;dy=Math.max(0,e.clientY-y0);d.style.transform=`translateY(${dy}px)`};
-  g.onpointerup=g.onpointercancel=()=>{if(y0===null)return;y0=null;d.style.transition='transform .2s';if(dy>90)dismissSheet();else d.style.transform=''}}
+  g.onpointerup=g.onpointercancel=()=>{if(y0===null)return;y0=null;d.style.transition='transform .2s';if(dy>90)dismissSheet();else d.style.transform=''};awAfterSheet()}
 function dismissSheet(){const a=sheetAfter;closeSheet();a&&a()}
+function awAfterSheet(){setTimeout(()=>{try{awRefresh()}catch(e){}},0)}
 function closeSheet(){clearInterval(qrTimer);const el=$('#sh');
   if(el){const gh=el.cloneNode(true);gh.removeAttribute('id');gh.setAttribute('aria-hidden','true');gh.inert=true;gh.querySelectorAll('[id]').forEach(n=>n.removeAttribute('id'));gh.classList.add('out');$('#shell').appendChild(gh);setTimeout(()=>gh.remove(),220)}
   $('#sheet').innerHTML='';if(sheetFocusReturn&&sheetFocusReturn.isConnected)sheetFocusReturn.focus({preventScroll:true});sheetFocusReturn=null;if(window.__wantDirty){window.__wantDirty=0;setTimeout(()=>{if(!$('#sh')&&tab==='sp')render()},260)}}
