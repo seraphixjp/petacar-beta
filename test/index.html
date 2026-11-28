@@ -4031,28 +4031,30 @@ const rk_star4=(x,y,r)=>`<path d="M${x} ${y-r}Q${x} ${y} ${x+r} ${y}Q${x} ${y} $
 const rk_exDefs=id=>`<linearGradient id="${id}rb" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".3" stop-color="#ff7ad9" stop-opacity=".75"/><stop offset=".5" stop-color="#fff3a0" stop-opacity=".95"/><stop offset=".7" stop-color="#7ee3ff" stop-opacity=".75"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>`;
 const rk_exBand=(id,dur=2.8)=>`<g clip-path="url(#${id}cp)" style="mix-blend-mode:screen"><g transform="skewX(-22)"><rect x="-40" y="0" width="34" height="100" fill="url(#${id}rb)"><animateTransform attributeName="transform" type="translate" values="-20 0;180 0;180 0" keyTimes="0;.6;1" dur="${dur}s" repeatCount="indefinite"/></rect></g></g>`;
 const rk_exStars=(pts,col)=>`<g fill="${col}">${pts.map(([x,y,r],i)=>`<g opacity=".2">${rk_star4(x,y,r)}<animate attributeName="opacity" values=".15;1;.15" dur="${(1.6+i*.35).toFixed(2)}s" begin="${(i*.45).toFixed(2)}s" repeatCount="indefinite"/></g>`).join('')}</g>`;
-// 1〜3位：ペタカーの車の形のトロフィー（アイコンの車の屋根に順位の数字を乗せる）＋EXエフェクト
-// 2026-11-28 鈴木さん案「ペタカーの車の形・棒は要らない・車の上にそのまま順位・数字にチェッカーは不要」
+// 1〜3位：ペタカーのロゴの車のトロフィー（アイコンの車の輪郭をそのまま写し、屋根に順位の数字）＋EXエフェクト
+// 2026-11-28 鈴木さん案「ペタカーの車の形・棒は要らない・車の上にそのまま順位・数字にチェッカーは不要・ロゴの車を忠実に再現」
+// 車の輪郭は icon-512.png の白い車体を画像から読み取ったもの（1+(x-72)*0.26, 82-(302-y)*0.26）
+const RK_CAR='M14.9 65.5Q14.6 66.7 14.7 67.4Q14.8 68.2 15 69Q15.3 69.8 15.8 70.5Q16.3 71.2 17 71.9Q17.7 72.5 18.4 73Q19.2 73.4 20.2 73.8Q21.3 74.2 23.6 74.6Q26 75 27.8 75Q29.6 75 30.1 74.8Q30.5 74.6 30.8 74.2Q31.1 73.8 31.6 72.3Q32.1 70.8 32.8 69.9Q33.4 69.1 34.6 68.1Q35.8 67.2 37.1 66.8Q38.4 66.5 40 66.6Q41.6 66.7 42.9 67.4Q44.1 68.1 45.2 69.3Q46.2 70.6 46.9 72.4Q47.5 74.2 47.9 74.5Q48.2 74.8 48.7 74.9Q49.1 75 53.6 75Q58.2 75 58.6 74.9Q59 74.8 59.4 74.4Q59.8 74 60.3 72.3Q60.9 70.6 61.7 69.6Q62.4 68.6 63.6 67.8Q64.7 67.1 66.3 66.7Q67.8 66.4 69.4 66.7Q70.9 67 72.2 67.9Q73.5 68.8 74.3 69.8Q75 70.8 75.5 72.4Q76 74 76.4 74.4Q76.8 74.8 79.9 74.9Q82.9 75 84.3 74.9Q85.8 74.7 87.6 74.2Q89.4 73.7 90.8 72.8Q92.2 72 93 70.9Q93.9 69.8 94.2 68.5Q94.5 67.2 94.5 66.4Q94.4 65.6 94.2 64.8Q94 64.1 93.2 62.7Q92.3 61.3 91.4 60.4Q90.4 59.6 89.3 58.9Q88.1 58.2 86.7 57.6Q85.2 57.1 83.8 56.7Q82.4 56.3 81.9 56Q81.3 55.7 80.9 55Q80.4 54.4 79.8 52.9Q79.2 51.3 78.6 50Q77.9 48.7 77.3 47.8Q76.6 46.9 75.7 46Q74.8 45.1 73.9 44.5Q73 44 72.1 43.7Q71.2 43.3 67.4 42.9Q63.7 42.5 57.9 42.5Q52.2 42.5 49.2 42.7Q46.2 42.9 41.7 43.6Q37.1 44.2 34.9 45Q32.7 45.7 31.3 46.6Q29.9 47.6 28.8 48.9Q27.7 50.3 27.1 51.7Q26.4 53.1 26.1 55.2Q25.7 57.3 25.4 58Q25.1 58.6 24.5 59Q23.9 59.4 21.5 60.2Q19.2 60.9 18.2 61.5Q17.2 62.1 16.6 62.6Q16 63.1 15.6 63.7Q15.2 64.3 14.9 65.5Z';
 function rk_trophy(rank,size=46,year='2026'){const t=['go','si','br'][rank-1],c=rk_MET[t],id='t'+(++rkU);
  const ink=t==='si'?'#2f353d':t==='br'?'#3f200c':'#352100';
- const CAR='M15 75C10.5 75 9 70 11 65.5C13 61.5 19 59.5 26 58.5C29.5 50.5 37 46 48 46C59.5 46 66 51.5 70.5 57.5C79 58.5 87 60.5 89.5 65C91.5 69.5 89 75 84 75Z';
- const num=`<text x="48.5" y="47.5" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-weight="900" font-size="54">${rank}</text>`;
+ const num=`<text x="49" y="42" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-weight="900" font-size="50">${rank}</text>`;
  return `<svg width="${size}" height="${size}" viewBox="0 0 100 100" role="img" aria-label="${year} レベル総合 ${rank}位"><defs>${rk_grad(id+'m',c)}${rk_exDefs(id)}
- <linearGradient id="${id}b" x1="0" y1="0" x2="0" y2="1"><stop stop-color="${c[0]}"/><stop offset=".45" stop-color="${c[1]}"/><stop offset="1" stop-color="${c[2]}"/></linearGradient>
+ <linearGradient id="${id}b" x1="0" y1="0" x2="0" y2="1"><stop stop-color="${c[0]}"/><stop offset=".5" stop-color="${c[1]}"/><stop offset="1" stop-color="${c[2]}"/></linearGradient>
  <linearGradient id="${id}n" x1="0" y1="0" x2="0" y2="1"><stop stop-color="${c[0]}"/><stop offset=".5" stop-color="${c[1]}"/><stop offset="1" stop-color="${c[2]}"/></linearGradient>
- <clipPath id="${id}cp">${num}<path d="${CAR}"/><path d="M20 84H80L84 97H16Z"/></clipPath></defs>
- <g stroke="${c[2]}" stroke-width="2.4" stroke-linecap="round"><path d="M2 62H8M1 67.5H6"/></g>
- <path d="${CAR}" fill="url(#${id}b)" stroke="${ink}" stroke-width="2.6" stroke-linejoin="round"/>
- <path d="M12 69.5H89.5" stroke="${c[3]}" stroke-width="1" opacity=".55"/>
- <path d="M31 53Q38 48.5 47 48.5" fill="none" stroke="#fff" stroke-opacity=".8" stroke-width="2.2" stroke-linecap="round"/>
- <circle cx="85.5" cy="64.5" r="2.4" fill="#ffe680" stroke="${ink}" stroke-width="1"/>
- ${[31,67].map(x=>`<circle cx="${x}" cy="75.5" r="7.4" fill="#1d1f24" stroke="${ink}" stroke-width="1.2"/><circle cx="${x}" cy="75.5" r="3.2" fill="url(#${id}m)"/>`).join('')}
- <text x="48.5" y="47.5" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-weight="900" font-size="54" fill="url(#${id}n)" stroke="${ink}" stroke-width="5" stroke-linejoin="round" paint-order="stroke">${rank}</text>
- <path d="M42 14Q46 11 51 12" fill="none" stroke="#fff" stroke-opacity=".7" stroke-width="2" stroke-linecap="round"/>
+ <clipPath id="${id}body"><path d="${RK_CAR}"/></clipPath>
+ <clipPath id="${id}cp">${num}<path d="${RK_CAR}"/><circle cx="39.2" cy="74.3" r="7.7"/><circle cx="67.8" cy="74.3" r="7.7"/><path d="M20 84H80L84 97H16Z"/></clipPath></defs>
+ <g stroke="${c[1]}" stroke-width="1.8" stroke-linecap="round"><path d="M4.2 61.2H9.5M1.9 66.7H9.5M4.7 72.1H9.5"/></g>
+ <path d="${RK_CAR}" fill="url(#${id}b)"/>
+ <rect x="0" y="71.1" width="100" height="12" fill="${c[2]}" opacity=".55" clip-path="url(#${id}body)"/>
+ <path d="${RK_CAR}" fill="none" stroke="${ink}" stroke-width="2" stroke-linejoin="round"/>
+ <path d="M33 47Q40 43 50 42.5" fill="none" stroke="#fff" stroke-opacity=".75" stroke-width="2" stroke-linecap="round"/>
+ <ellipse cx="91.3" cy="64.7" rx="1.9" ry="2.6" fill="#ffe45c" stroke="${ink}" stroke-width=".9"/>
+ ${[39.2,67.8].map(x=>`<circle cx="${x}" cy="74.3" r="7.7" fill="#1b1b1b"/><circle cx="${x}" cy="74.3" r="3.6" fill="url(#${id}m)"/><circle cx="${x}" cy="74.3" r="1.3" fill="#1b1b1b"/>`).join('')}
+ <text x="49" y="42" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-weight="900" font-size="50" fill="url(#${id}n)" stroke="${ink}" stroke-width="4.6" stroke-linejoin="round" paint-order="stroke">${rank}</text>
  <path d="M20 84H80L84 97H16Z" fill="#1b1f27" stroke="url(#${id}m)" stroke-width="1.8" stroke-linejoin="round"/>
  <text x="50" y="94.3" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-weight="900" font-size="10.5" fill="url(#${id}m)" letter-spacing=".6">${year}</text>
  ${rk_exBand(id,2.4+rank*.3)}
- ${rk_exStars([[82,22,6.5],[16,30,5],[88,44,4],[22,10,4]],rank===1?'#fff7c2':'#fff')}</svg>`}
+ ${rk_exStars([[84,18,6.5],[14,28,5],[90,38,4],[22,8,4]],rank===1?'#fff7c2':'#fff')}</svg>`}
 // 4〜10位：金の丸メダル＋赤とチェッカーのリボン（案A）
 function rk_ribbon(rank,size=46,year='2026'){const id='r'+(++rkU),g=rk_MET.go;
  const tail=sd=>`M${50+sd*2} 52L${50+sd*38} 86L${50+sd*27} 87L${50+sd*24} 99L${50-sd*10} 60Z`;
