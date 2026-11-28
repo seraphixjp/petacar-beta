@@ -772,6 +772,32 @@ html:lang(ja){word-break:auto-phrase}body{text-wrap:pretty}h1,h2,h3,b,strong,spa
 .nptx{font-size:14px;line-height:1.6}
 .npnote{margin:10px 0 0;font-size:12px;line-height:1.5;color:#aab3c8}
 .npin .u11btns{padding:14px 20px 18px}
+.rkv{position:fixed;inset:0;z-index:61;background:#0b1022;color:#fff;overflow:auto;opacity:0;transition:opacity .25s;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+.rkv.on{opacity:1}
+.rkin{max-width:480px;margin:0 auto;padding:12px 16px 32px}
+.rktop{display:flex;gap:12px;align-items:center;margin:6px 0 4px}
+.rktop h2{margin:0;font-size:22px;font-weight:900;background:linear-gradient(180deg,#fff6c8,#f4c430 60%,#c8901a);-webkit-background-clip:text;background-clip:text;color:transparent}
+.rkx{width:36px;height:36px;border-radius:50%;border:0;background:rgba(255,255,255,.1);color:#fff;font-size:20px;flex:none}
+.rkat{margin:4px 0 12px;font-size:12px;color:#aab3c8}
+.rkmsg{text-align:center;color:#aab3c8;margin:40px 0}
+.rktabs{display:flex;gap:6px;margin:0 0 12px}
+.rktabs button{flex:1;padding:10px 0;border-radius:12px;border:1.5px solid transparent;background:rgba(255,255,255,.07);color:#aab3c8;font-weight:800;font-size:14px}
+.rktabs button.on{border-color:#e9b949;color:#fff;background:rgba(233,185,73,.14)}
+.rkpod{display:grid;grid-template-columns:1fr 1.15fr 1fr;align-items:end;gap:6px;padding:12px 8px 0;border-radius:18px;background:radial-gradient(120% 90% at 50% 10%,#2a3a66,#121a33 60%);box-shadow:0 0 0 1.5px #6b5320 inset;overflow:hidden}
+.rkpc{display:flex;flex-direction:column;align-items:center;min-width:0;text-align:center}
+.rkpc .stamp,.rkpc>svg{margin:-6px auto 2px}
+.rkpc b{font-size:13px;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rkpc span{font-size:11px;color:#f4c430;font-weight:800}
+.rkstep{width:100%;margin-top:6px;border-radius:10px 10px 0 0;display:grid;place-items:center;font:900 16px system-ui;color:rgba(0,0,0,.45)}
+.rkpc.p1 .rkstep{height:44px;background:linear-gradient(#f6d365,#c8961e)}.rkpc.p2 .rkstep{height:30px;background:linear-gradient(#e9edf2,#9aa3ad)}.rkpc.p3 .rkstep{height:22px;background:linear-gradient(#f0b989,#a8622e)}
+.rklist{margin-top:12px;border-radius:16px;background:rgba(255,255,255,.06);overflow:hidden}
+.rkrow{display:flex;align-items:center;gap:10px;padding:8px 12px;border-top:1px solid rgba(255,255,255,.07)}.rkrow:first-child{border-top:0}
+.rkrow .t{flex:1;min-width:0}.rkrow .t b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rkrow .t span{font-size:11px;color:#aab3c8}
+.rklv{text-align:right;font-weight:900;font-size:14px}.rklv small{display:block;font-size:10px;color:#aab3c8;font-weight:600}
+.rkic{flex:none;display:grid;place-items:center}.rknum{width:24px;font:900 14px system-ui;color:#f4c430}
+.rkme{background:rgba(232,85,28,.16)}.rkyou{font-size:11px;font-weight:800;color:#ffb28f;width:36px}
+.rknw{display:flex;align-items:center;gap:10px;padding:14px;border-radius:18px;background:radial-gradient(120% 90% at 0% 0%,#163a26,#14191f 70%);box-shadow:0 0 0 1.5px #24563a inset}
+.rknw .t b{display:block;font-size:18px}.rknw .t span{font-size:12px;color:#9fd8b4}
 .smpk{background:none;border:0;display:grid;place-items:center;-webkit-tap-highlight-color:transparent}
 .smpk .mk{display:grid;place-items:center;width:18px;height:18px;border-radius:50%;background:var(--c);border:2px solid #fff;box-sizing:border-box;box-shadow:0 1px 3px rgba(0,0,0,.35)}
 .smpk .mk svg{width:11px;height:11px;fill:none;stroke:#fff;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
@@ -3988,7 +4014,87 @@ function ntcPop(x,again){const P=x.pop||{};if($('#ntcpop'))return;
   document.body.appendChild(el);requestAnimationFrame(()=>el.classList.add('on'));
   const close=()=>{el.classList.remove('on');setTimeout(()=>el.remove(),260)};
   $('#npx').onclick=close;el.onclick=e=>{if(e.target===el)close()};
-  const g=$('#npgo');if(g)g.onclick=()=>{close();const v=String(P.go);if(/^https:\/\//.test(v))window.open(v,'_blank','noopener');else if(['me','col','sp','rw'].includes(v)){tab=v;render()}}}
+  const g=$('#npgo');if(g)g.onclick=()=>{close();const v=String(P.go);if(/^https:\/\//.test(v))window.open(v,'_blank','noopener');else if(v==='rank')openRank();else if(['me','col','sp','rw'].includes(v)){tab=v;render()}}}
+/* 年末ランキング：今の順位（2026-11-28） */
+let rkU=0;
+const rk_MET={go:['#fff6c8','#f4c430','#c8901a','#7a5208'],si:['#ffffff','#d5dae1','#9aa3ad','#4f5863'],br:['#ffe0c2','#e0995e','#b06a30','#6a3a14']};
+const rk_grad=(id,c)=>`<linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1"><stop stop-color="${c[0]}"/><stop offset=".35" stop-color="${c[1]}"/><stop offset=".7" stop-color="${c[2]}"/><stop offset="1" stop-color="${c[3]}"/></linearGradient>`;
+// 月桂樹：下から左右に弧を描いて上へ。葉は弧の向きに沿って外側・内側交互
+const rk_laurel=(fill,cx,cy,r,n,stroke)=>{let s='';const D=Math.PI/180,P=(sd,f,k=1)=>[cx+sd*r*k*Math.sin(f*D),cy+r*k*Math.cos(f*D)];
+ for(const sd of[-1,1]){const a=P(sd,25),b=P(sd,95,1.12),c=P(sd,145);s+=`<path d="M${a[0].toFixed(1)} ${a[1].toFixed(1)}Q${b[0].toFixed(1)} ${b[1].toFixed(1)} ${c[0].toFixed(1)} ${c[1].toFixed(1)}" fill="none" stroke="${fill}" stroke-width="2.4" stroke-linecap="round"/>`;
+  for(let i=0;i<n;i++){const f=35+i*(105/(n-1)),out=i%2?1.1:.9,[x,y]=P(sd,f,out),ang=Math.atan2(sd*Math.cos(f*D),Math.sin(f*D))/D+(i%2?-sd*28:sd*28);
+   s+=`<ellipse cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" rx="2.9" ry="6.2" transform="rotate(${ang.toFixed(0)} ${x.toFixed(1)} ${y.toFixed(1)})" fill="${fill}" stroke="${stroke||'none'}" stroke-width=".5"/>`}}return s};
+const rk_checker=(x,y,w,h,cols,rows,c1,c2)=>{let s='';const cw=w/cols,ch=h/rows;for(let r=0;r<rows;r++)for(let c=0;c<cols;c++)s+=`<rect x="${(x+c*cw).toFixed(2)}" y="${(y+r*ch).toFixed(2)}" width="${cw.toFixed(2)}" height="${ch.toFixed(2)}" fill="${(r+c)%2?c2:c1}"/>`;return s};
+const rk_plate=(y,txt,fill,stroke,ink)=>`<rect x="31" y="${y}" width="38" height="13" rx="6.5" fill="${fill}" stroke="${stroke}" stroke-width="1.2"/><text x="50" y="${y+10}" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-weight="900" font-size="9.4" fill="${ink}" letter-spacing=".4">${txt}</text>`;
+// EXエフェクト：アプリのEXスタンプと同じ「虹色の光が斜めに走る＋星がまたたく」
+const rk_star4=(x,y,r)=>`<path d="M${x} ${y-r}Q${x} ${y} ${x+r} ${y}Q${x} ${y} ${x} ${y+r}Q${x} ${y} ${x-r} ${y}Q${x} ${y} ${x} ${y-r}Z"/>`;
+const rk_exDefs=id=>`<linearGradient id="${id}rb" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".3" stop-color="#ff7ad9" stop-opacity=".75"/><stop offset=".5" stop-color="#fff3a0" stop-opacity=".95"/><stop offset=".7" stop-color="#7ee3ff" stop-opacity=".75"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>`;
+const rk_exBand=(id,dur=2.8)=>`<g clip-path="url(#${id}cp)" style="mix-blend-mode:screen"><g transform="skewX(-22)"><rect x="-40" y="0" width="34" height="100" fill="url(#${id}rb)"><animateTransform attributeName="transform" type="translate" values="-20 0;180 0;180 0" keyTimes="0;.6;1" dur="${dur}s" repeatCount="indefinite"/></rect></g></g>`;
+const rk_exStars=(pts,col)=>`<g fill="${col}">${pts.map(([x,y,r],i)=>`<g opacity=".2">${rk_star4(x,y,r)}<animate attributeName="opacity" values=".15;1;.15" dur="${(1.6+i*.35).toFixed(2)}s" begin="${(i*.45).toFixed(2)}s" repeatCount="indefinite"/></g>`).join('')}</g>`;
+// 1〜3位：表彰台トロフィー（案A）＋EXエフェクト
+function rk_trophy(rank,size=46,year='2026'){const t=['go','si','br'][rank-1],c=rk_MET[t],id='t'+(++rkU);
+ const num=`<text x="50" y="53" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-weight="900" font-size="46">${rank}</text>`;
+ return `<svg width="${size}" height="${size}" viewBox="0 0 100 100" role="img" aria-label="${year} レベル部門 ${rank}位"><defs>${rk_grad(id+'m',c)}${rk_exDefs(id)}<linearGradient id="${id}s" x1="0" y1="0" x2="0" y2="1"><stop stop-color="${c[1]}"/><stop offset="1" stop-color="${c[3]}"/></linearGradient>
+ <clipPath id="${id}cp">${num}<path d="M24 62L30 54H70L76 62Z"/><rect x="22" y="62" width="56" height="22" rx="3"/>${rk_laurel('#000',50,40,28,6)}</clipPath></defs>
+ <g stroke="${c[1]}" stroke-width="2.4" stroke-linecap="round" opacity=".9"><path d="M50 4v6M34 8l3 5M66 8l-3 5M24 16l4 3M76 16l-4 3"/></g>
+ ${rk_laurel(`url(#${id}m)`,50,40,28,6,c[3])}
+ <path d="M24 62L30 54H70L76 62Z" fill="${c[0]}" stroke="${c[3]}" stroke-width="1"/>
+ <rect x="22" y="62" width="56" height="22" rx="3" fill="url(#${id}s)" stroke="${c[3]}" stroke-width="1.2"/>
+ <g>${rk_checker(30,65,40,8,8,2,'#111','#fff')}</g>
+ <text x="50" y="53" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-weight="900" font-size="46" fill="url(#${id}m)" stroke="${c[3]}" stroke-width="2.4" paint-order="stroke">${rank}</text>
+ <path d="M38 22Q44 16 52 18" fill="none" stroke="#fff" stroke-opacity=".7" stroke-width="2" stroke-linecap="round"/>
+ ${rk_exBand(id,2.4+rank*.3)}
+ ${rk_plate(80,year,'#1b1f27',c[1],c[0])}
+ ${rk_exStars([[86,22,7],[13,58,5.5],[82,64,4.5],[18,14,4.5]],rank===1?'#fff7c2':'#fff')}</svg>`}
+// 4〜10位：金の丸メダル＋赤とチェッカーのリボン（案A）
+function rk_ribbon(rank,size=46,year='2026'){const id='r'+(++rkU),g=rk_MET.go;
+ const tail=sd=>`M${50+sd*2} 52L${50+sd*38} 86L${50+sd*27} 87L${50+sd*24} 99L${50-sd*10} 60Z`;
+ return `<svg width="${size}" height="${size}" viewBox="0 0 100 100" role="img" aria-label="${year} レベル部門 ${rank}位"><defs>${rk_grad(id+'m',g)}<linearGradient id="${id}r" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#ff5a4a"/><stop offset=".55" stop-color="#d42a22"/><stop offset="1" stop-color="#8e1410"/></linearGradient>
+ <clipPath id="${id}cl"><path d="${tail(-1)}"/></clipPath><clipPath id="${id}cr"><path d="${tail(1)}"/></clipPath><radialGradient id="${id}f" cx=".4" cy=".3" r=".8"><stop stop-color="#ffe9a0"/><stop offset=".6" stop-color="#e8b52c"/><stop offset="1" stop-color="#a87412"/></radialGradient></defs>
+ <path d="${tail(-1)}" fill="url(#${id}r)" stroke="#6e0e0b" stroke-width="1"/><g clip-path="url(#${id}cl)">${rk_checker(8,80,40,20,8,4,'#111','#fff')}</g>
+ <path d="${tail(1)}" fill="url(#${id}r)" stroke="#6e0e0b" stroke-width="1"/><g clip-path="url(#${id}cr)">${rk_checker(52,80,40,20,8,4,'#111','#fff')}</g>
+ <circle cx="50" cy="38" r="31" fill="url(#${id}m)" stroke="${g[3]}" stroke-width="1.4"/>
+ <circle cx="50" cy="38" r="25" fill="url(#${id}f)" stroke="${g[3]}" stroke-width="1"/>
+ ${rk_laurel(g[3],50,38,19,5)}
+ <text x="50" y="50" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-weight="900" font-size="${rank>9?27:33}" fill="#2a1a00" stroke="#fff6c8" stroke-width="1.6" paint-order="stroke">${rank}</text>
+ <path d="M30 26Q38 14 52 13" fill="none" stroke="#fff" stroke-opacity=".7" stroke-width="2" stroke-linecap="round"/>
+ ${rk_plate(64,year,'#1b1f27',g[1],g[0])}</svg>`}
+// 新人賞：若葉マークのロゼット（案A）
+function rk_rookie(size=46,year='2026'){const id='n'+(++rkU),g=rk_MET.go;let sc='';const R=34,n=16;for(let i=0;i<n;i++){const a=i/n*Math.PI*2;sc+=`<circle cx="${(50+Math.cos(a)*R*.86).toFixed(1)}" cy="${(42+Math.sin(a)*R*.86).toFixed(1)}" r="7.2"/>`}
+ return `<svg width="${size}" height="${size}" viewBox="0 0 100 100" role="img" aria-label="${year} 新人賞"><defs>${rk_grad(id+'m',g)}<radialGradient id="${id}g" cx=".4" cy=".3" r=".8"><stop stop-color="#4fd27f"/><stop offset=".7" stop-color="#1f9a4f"/><stop offset="1" stop-color="#0f5e2e"/></radialGradient></defs>
+ <path d="M34 62L24 94L36 88L44 97L50 70Z" fill="#1f9a4f" stroke="#0f5e2e" stroke-width="1"/><path d="M66 62L76 94L64 88L56 97L50 70Z" fill="#1f9a4f" stroke="#0f5e2e" stroke-width="1"/>
+ <g fill="url(#${id}g)" stroke="#0f5e2e" stroke-width=".8">${sc}</g><circle cx="50" cy="42" r="29" fill="url(#${id}g)"/>
+ <circle cx="50" cy="42" r="22" fill="url(#${id}m)" stroke="${g[3]}" stroke-width="1.2"/><circle cx="50" cy="42" r="18.5" fill="#fffdf2"/>
+ <path d="M50 30L39 24Q36 23 36 26V43Q36 48 41 51L50 57Z" fill="#ffd400" stroke="#8a6d00" stroke-width="1"/>
+ <path d="M50 30L61 24Q64 23 64 26V43Q64 48 59 51L50 57Z" fill="#17a34a" stroke="#0b5c28" stroke-width="1"/>
+ <path d="M50 3l2.6 5.4 5.9.8-4.3 4.1 1 5.8L50 16.4l-5.2 2.7 1-5.8-4.3-4.1 5.9-.8Z" fill="url(#${id}m)" stroke="${g[3]}" stroke-width=".8"/>
+ ${rk_plate(73,year,`url(#${id}m)`,g[3],'#3a2400')}</svg>`}
+const RK_URL='https://seraphixjp.github.io/petacar-beta/notice/'+(!(window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform())&&/\/test\/|localhost|127\.0\.0\.1/.test(location.href)?'ranking_test':'ranking')+'.json';
+let rkTab='lv';
+function openRank(){if($('#rkv'))return;const el=document.createElement('div');el.id='rkv';el.className='rkv';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');el.setAttribute('aria-label','年末ペタカーランキング');
+  el.innerHTML=`<div class="rkin"><div class="rktop"><button class="rkx press" id="rkx" aria-label="閉じる">×</button><div><p class="npsub">PETACAR RANKING 2026</p><h2>年末ペタカーランキング</h2></div></div><div id="rkb"><p class="rkmsg">読み込んでいます…</p></div></div>`;
+  document.body.appendChild(el);requestAnimationFrame(()=>el.classList.add('on'));
+  const close=()=>{el.classList.remove('on');setTimeout(()=>el.remove(),260)};$('#rkx').onclick=close;
+  fetch(RK_URL+'?t='+Math.floor(Date.now()/6e5),{cache:'no-store'}).then(r=>{if(!r.ok)throw 0;return r.json()}).then(j=>{window.__rk=j;rkDraw()}).catch(()=>{const b=$('#rkb');if(b)b.innerHTML='<p class="rkmsg">ランキングを読み込めませんでした。電波のよいところでもう一度開いてください。</p>'})}
+function rkDraw(){const j=window.__rk,b=$('#rkb');if(!j||!b)return;
+  const md=d=>{const m=/^\d{4}-(\d\d)-(\d\d)/.exec(d||'');return m?(+m[1])+'月'+(+m[2])+'日':''},hm=(String(j.at||'').split(' ')[1]||'');
+  const P=r=>({name:r.n,img:r.img,ring:r.ring}),car=r=>esc([r.mk,r.car].filter(Boolean).join(' '));
+  const L=(Array.isArray(j.lv)?j.lv:[]).slice(0,10),N=(Array.isArray(j.rookie)?j.rookie:[]).slice(0,5);
+  const myE=Math.round(expOf(myStats())),myL=lvOf(myE),last=L[L.length-1];
+  const pod=(r,i)=>r?`<div class="rkpc p${i}"><div class="rkt">${rk_trophy(i,i===1?64:52)}</div>${stamp(P(r),{size:i===1?60:50,fr:false})}<b>${esc(r.n)}</b><span>Lv.${+r.lv}</span><div class="rkstep">${i}</div></div>`:'<div></div>';
+  const row=(r,i,ic)=>`<div class="rkrow">${ic}${stamp(P(r),{size:36,fr:false})}<div class="t"><b>${esc(r.n)}</b><span>${car(r)}</span></div><div class="rklv">Lv.${+r.lv}<small>${(+r.xp||0).toLocaleString()} EXP</small></div></div>`;
+  let h=`<p class="rkat">${md(j.at)} ${esc(hm)}時点の順位 ・ ${md(j.cut)||'12月30日'}まで集計 ・ ${md(j.announce)||'12月31日'}発表</p>
+   <div class="rktabs" role="tablist"><button class="press${rkTab==='lv'?' on':''}" data-rkt="lv" role="tab" aria-selected="${rkTab==='lv'}">レベル総合</button><button class="press${rkTab==='nw'?' on':''}" data-rkt="nw" role="tab" aria-selected="${rkTab==='nw'}">新人賞</button></div>`;
+  if(rkTab==='lv'){h+=`<div class="rkpod">${pod(L[1],2)}${pod(L[0],1)}${pod(L[2],3)}</div>
+     <div class="rklist">${L.slice(3).map((r,i)=>row(r,i,`<span class="rkic">${rk_ribbon(i+4,34)}</span>`)).join('')}</div>
+     <div class="rklist rkme"><div class="rkrow"><span class="rkic rkyou">あなた</span><div class="t"><b>${esc(me.name||'あなた')}</b><span>${last&&myE<last.xp?`10位まで あと ${(last.xp-myE).toLocaleString()} EXP`:'10位圏内のレベルです'}</span></div><div class="rklv">Lv.${myL}<small>${myE.toLocaleString()} EXP</small></div></div></div>`}
+  else{const w=N[0];h+=w?`<div class="rknw"><span class="rkic">${rk_rookie(76)}</span>${stamp(P(w),{size:56,fr:false})}<div class="t"><span>いまの1位</span><b>${esc(w.n)}</b><span>Lv.${+w.lv} ・ ${car(w)}</span></div></div>
+     <div class="rklist">${N.map((r,i)=>row(r,i,`<span class="rkic rknum">${i+1}</span>`)).join('')}</div>`:'<p class="rkmsg">まだ候補がいません</p>';
+    h+=`<p class="npnote">対象：${md(j.rookieFrom)||'11月1日'}以降に始めた人</p>`}
+  h+=`<p class="npnote">・同じレベルのときはEXPの多い順です。順位はときどき更新します。<br>・運営のアカウントは対象外です。位置の偽装などの不正が見つかった場合も対象外になります。</p>`;
+  b.innerHTML=h;
+  $$('[data-rkt]').forEach(t=>t.onclick=()=>{rkTab=t.dataset.rkt;rkDraw()});
+  if(!window.__rkRe){window.__rkRe=1;setTimeout(()=>{window.__rkRe=0;if($('#rkv'))rkDraw()},1800)}} // スタンプの画像が届いたら描き直す
 try{document.addEventListener('visibilitychange',()=>{if(!document.hidden)ntcLoad()})}catch(e){}
 setTimeout(()=>ntcLoad(true),1500);
 const mqDue=(el,last,min)=>{if(Date.now()-last<min)return false;const m=el&&el.querySelector('.mq');return !m||!m.dataset.until||Date.now()>=+m.dataset.until};
