@@ -4128,15 +4128,15 @@ const RK_URL='https://seraphixjp.github.io/petacar-beta/notice/'+(!(window.Capac
 let rkTab='lv';const RK_STAFF=['9kZ79k8z7zdRQeBUfmXRC6BKuJs1','ehahc20aaObVsUwryapB6Hcxlja2']; // 運営（まちょ・れな）は対象外
 /* ランキングの受賞（2026-11-28）：notice/awards.json を読んで本人に付ける。通常のリワード一覧には出さない */
 const AW_URL='https://seraphixjp.github.io/petacar-beta/notice/'+(!(window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform())&&/\/test\/|localhost|127\.0\.0\.1/.test(location.href)?'awards_test':'awards')+'.json';
-let AW=ntcLS('aw1')||{};const awH={};
+var AW=null,awH={}; // 起動途中の描画から呼ばれても落ちないよう var（2026-11-28 リワードタブで再読み込みが続いた不具合）
 function awHash(uid){if(!uid)return Promise.resolve('');if(awH[uid]!==undefined)return Promise.resolve(awH[uid]);
   try{return crypto.subtle.digest('SHA-256',new TextEncoder().encode('petacar:'+uid)).then(b=>awH[uid]=[...new Uint8Array(b)].slice(0,8).map(x=>x.toString(16).padStart(2,'0')).join('')).catch(()=>awH[uid]='')}catch(e){return Promise.resolve(awH[uid]='')}}
 function awLoad(){fetch(AW_URL+'?t='+Math.floor(Date.now()/36e5),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(j&&typeof j==='object'&&!Array.isArray(j)){AW=j;ntcLS('aw1',j);awRefresh()}}).catch(()=>{})}
-const awOf=h=>{const out=[];if(!h)return out;Object.keys(AW).filter(y=>/^\d{4}$/.test(y)).sort().reverse().forEach(y=>{const a=AW[y]&&AW[y][h];(Array.isArray(a)?a:a?[a]:[]).forEach(x=>{if(x&&(x.k==='nw'||(x.k==='lv'&&+x.r>=1&&+x.r<=10)))out.push({y,k:x.k,r:+x.r||0})})});return out};
-const awLabel=a=>a.k==='nw'?`${a.y} 新人賞`:`${a.y} 総合${a.r}位`;
-const awBadge=(a,sz)=>a.k==='nw'?rk_rookie(sz,a.y):a.r<=3?rk_trophy(a.r,sz,a.y):rk_ribbon(a.r,sz,a.y);
-const myUid=()=>window.__cloud&&__cloud.uid||'';
-const awSlot=(uid,mode)=>uid?`<div class="aws aw-${mode}" data-aw="${esc(uid)}" data-awm="${mode}"></div>`:'';
+function awOf(h){if(AW===null)AW=ntcLS('aw1')||{};const out=[];if(!h)return out;Object.keys(AW).filter(y=>/^\d{4}$/.test(y)).sort().reverse().forEach(y=>{const a=AW[y]&&AW[y][h];(Array.isArray(a)?a:a?[a]:[]).forEach(x=>{if(x&&(x.k==='nw'||(x.k==='lv'&&+x.r>=1&&+x.r<=10)))out.push({y,k:x.k,r:+x.r||0})})});return out}
+function awLabel(a){return a.k==='nw'?`${a.y} 新人賞`:`${a.y} 総合${a.r}位`}
+function awBadge(a,sz){return a.k==='nw'?rk_rookie(sz,a.y):a.r<=3?rk_trophy(a.r,sz,a.y):rk_ribbon(a.r,sz,a.y)}
+function myUid(){return window.__cloud&&__cloud.uid||''}
+function awSlot(uid,mode){return uid?`<div class="aws aw-${mode}" data-aw="${esc(uid)}" data-awm="${mode}"></div>`:''}
 function awRefresh(){$$('[data-aw]').forEach(el=>{const uid=el.dataset.aw,m=el.dataset.awm;awHash(uid).then(h=>{const L=awOf(h);
   if(!L.length){el.innerHTML='';return}
   const items=L.map(a=>`<button type="button" class="awi press" data-awl="${esc(awLabel(a))}" aria-label="${esc(awLabel(a))}">${awBadge(a,m==='home'?44:52)}<small>${esc(awLabel(a))}</small></button>`).join('');
@@ -4307,7 +4307,7 @@ function render(){
   if(tab==='me'){$('#gear').onclick=openSettings;$('#bell').onclick=openNews}
   const v=$('#view');v.innerHTML=views[tab]();
   if(lastTab!==tab){v.classList.remove('enter','fromL');void v.offsetWidth;if(TABO.indexOf(tab)<TABO.indexOf(lastTab))v.classList.add('fromL');v.classList.add('enter');motionIn(v);$('#scroll').scrollTop=0;$('#navbar').classList.remove('on');lastTab=tab}
-  bindEv();if(tab==='me')homeWx();ntcShow();awRefresh();
+  bindEv();if(tab==='me')homeWx();ntcShow();try{awRefresh()}catch(e){}
   if($('#ttlb'))$('#ttlb').onclick=openTitles;if($('#frb'))$('#frb').onclick=openFrames;if($('#rpghelp'))$('#rpghelp').onclick=openRpgHelp;if($('#rpgKm'))totalKm().then(kmShow).catch(()=>{});if($('#jobb'))$('#jobb').onclick=openJobs;checkLevelUp();checkSets();hydratePho();
   $('.tab[data-t=rw]').classList.toggle('dot',tab!=='rw'&&unseen().length>0);$('.tab[data-t=col]').classList.toggle('dot',zkNew().length>0);
   $$('[data-p]').forEach(b=>b.onclick=()=>detail(b.dataset.p));
