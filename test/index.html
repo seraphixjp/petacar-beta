@@ -790,7 +790,7 @@ html:lang(ja){word-break:auto-phrase}body{text-wrap:pretty}h1,h2,h3,b,strong,spa
 .rktop{display:flex;gap:12px;align-items:center;margin:6px 0 4px}
 .rktop h2{margin:0;font-size:22px;font-weight:900;background:linear-gradient(180deg,#fff6c8,#f4c430 60%,#c8901a);-webkit-background-clip:text;background-clip:text;color:transparent}
 .rkx{width:36px;height:36px;border-radius:50%;border:0;background:rgba(255,255,255,.1);color:#fff;font-size:20px;flex:none}
-.rkat{margin:4px 0 12px;font-size:12px;color:#aab3c8}
+.rkat{margin:4px 0 12px;font-size:12px;line-height:1.6;color:#aab3c8}.rkstage{display:inline-block;padding:1px 8px;margin-right:4px;border-radius:999px;background:rgba(233,185,73,.18);color:#f4c430;font-size:11px}
 .rkmsg{text-align:center;color:#aab3c8;margin:40px 0}
 .rktabs{display:flex;gap:6px;margin:0 0 12px}
 .rktabs button{flex:1;padding:10px 0;border-radius:12px;border:1.5px solid transparent;background:rgba(255,255,255,.07);color:#aab3c8;font-weight:800;font-size:14px}
@@ -4132,7 +4132,7 @@ function rkDraw(){const j=window.__rk,b=$('#rkb');if(!j||!b)return;
   const myE=Math.round(expOf(myStats())),myL=lvOf(myE),last=L[L.length-1];
   const pod=(r,i)=>r?`<div class="rkpc p${i}"><div class="rkt">${rk_trophy(i,i===1?64:52)}</div>${stamp(P(r),{size:i===1?56:46,fr:false})}<div class="rkinfo"><b>${esc(r.n)}</b><span>Lv.${+r.lv}</span></div><div class="rkstep">${i}</div></div>`:'<div></div>';
   const row=(r,i,ic)=>`<div class="rkrow">${ic}${stamp(P(r),{size:36,fr:false})}<div class="t"><b>${esc(r.n)}</b><span>${car(r)}</span></div><div class="rklv">Lv.${+r.lv}<small>${(+r.xp||0).toLocaleString()} EXP</small></div></div>`;
-  let h=`<p class="rkat">${md(j.at)} ${esc(hm)}時点の順位 ・ ${md(j.cut)||'12月30日'}まで集計 ・ ${md(j.announce)||'12月31日'}発表</p>
+  let h=`<p class="rkat"><b class="rkstage">${esc(j.stage||'途中経過')}</b> ${md(j.at)} ${esc(hm)}時点の順位${j.next?`<br>次の発表：${md(j.next)}（${esc(j.nextLabel||'中間発表')}）`:''}${md(j.announce)&&j.next!==j.announce?` ・ 結果発表：${md(j.announce)}`:''}</p>
    <div class="rktabs" role="tablist"><button class="press${rkTab==='lv'?' on':''}" data-rkt="lv" role="tab" aria-selected="${rkTab==='lv'}">レベル総合</button><button class="press${rkTab==='nw'?' on':''}" data-rkt="nw" role="tab" aria-selected="${rkTab==='nw'}">新人賞</button></div>`;
   if(rkTab==='lv'){h+=`<div class="rkpod img">${pod(L[1],2)}${pod(L[0],1)}${pod(L[2],3)}${rkConf()}</div>
      <div class="rklist">${L.slice(3).map((r,i)=>row(r,i,`<span class="rkic">${rk_ribbon(i+4,34)}</span>`)).join('')}</div>
@@ -4140,7 +4140,7 @@ function rkDraw(){const j=window.__rk,b=$('#rkb');if(!j||!b)return;
   else{const w=N[0];h+=w?`<div class="rknw"><span class="rkic">${rk_rookie(76)}</span>${stamp(P(w),{size:56,fr:false})}<div class="t"><span>いまの1位</span><b>${esc(w.n)}</b><span>Lv.${+w.lv} ・ ${car(w)}</span></div></div>
      <div class="rklist">${N.map((r,i)=>row(r,i,`<span class="rkic rknum">${i+1}</span>`)).join('')}</div>`:'<p class="rkmsg">まだ候補がいません</p>';
     h+=`<p class="npnote">対象：${md(j.rookieFrom)||'11月1日'}以降に始めた人</p>`}
-  h+=`<p class="npnote">・同じレベルのときはEXPの多い順です。順位はときどき更新します。<br>・運営のアカウントは対象外です。位置の偽装などの不正が見つかった場合も対象外になります。</p>`;
+  h+=`<p class="npnote">・同じレベルのときはEXPの多い順です。順位は発表日にだけ更新します（12月15日に中間発表、12月31日に結果発表）。<br>・運営のアカウントは対象外です。位置の偽装などの不正が見つかった場合も対象外になります。</p>`;
   b.innerHTML=h;
   $$('[data-rkt]').forEach(t=>t.onclick=()=>{rkTab=t.dataset.rkt;rkDraw()});
   if(!window.__rkRe){window.__rkRe=1;setTimeout(()=>{window.__rkRe=0;if($('#rkv'))rkDraw()},1800)}} // スタンプの画像が届いたら描き直す
