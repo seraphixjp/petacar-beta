@@ -4031,21 +4031,30 @@ const rk_star4=(x,y,r)=>`<path d="M${x} ${y-r}Q${x} ${y} ${x+r} ${y}Q${x} ${y} $
 const rk_exDefs=id=>`<linearGradient id="${id}rb" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".3" stop-color="#ff7ad9" stop-opacity=".75"/><stop offset=".5" stop-color="#fff3a0" stop-opacity=".95"/><stop offset=".7" stop-color="#7ee3ff" stop-opacity=".75"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>`;
 const rk_exBand=(id,dur=2.8)=>`<g clip-path="url(#${id}cp)" style="mix-blend-mode:screen"><g transform="skewX(-22)"><rect x="-40" y="0" width="34" height="100" fill="url(#${id}rb)"><animateTransform attributeName="transform" type="translate" values="-20 0;180 0;180 0" keyTimes="0;.6;1" dur="${dur}s" repeatCount="indefinite"/></rect></g></g>`;
 const rk_exStars=(pts,col)=>`<g fill="${col}">${pts.map(([x,y,r],i)=>`<g opacity=".2">${rk_star4(x,y,r)}<animate attributeName="opacity" values=".15;1;.15" dur="${(1.6+i*.35).toFixed(2)}s" begin="${(i*.45).toFixed(2)}s" repeatCount="indefinite"/></g>`).join('')}</g>`;
-// 1〜3位：表彰台トロフィー（案A）＋EXエフェクト
+// 1〜3位：エンブレム型（盾＋数字＋若葉の枝＋チェッカー＋2026のリボン）＋EXエフェクト
+// 2026-11-28 鈴木さんがひまりの3案から「A エンブレム型」を選択。Claude が SVG で描き直し
 function rk_trophy(rank,size=46,year='2026'){const t=['go','si','br'][rank-1],c=rk_MET[t],id='t'+(++rkU);
- const num=`<text x="50" y="53" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-weight="900" font-size="46">${rank}</text>`;
- return `<svg width="${size}" height="${size}" viewBox="0 0 100 100" role="img" aria-label="${year} レベル部門 ${rank}位"><defs>${rk_grad(id+'m',c)}${rk_exDefs(id)}<linearGradient id="${id}s" x1="0" y1="0" x2="0" y2="1"><stop stop-color="${c[1]}"/><stop offset="1" stop-color="${c[3]}"/></linearGradient>
- <clipPath id="${id}cp">${num}<path d="M24 62L30 54H70L76 62Z"/><rect x="22" y="62" width="56" height="22" rx="3"/>${rk_laurel('#000',50,40,28,6)}</clipPath></defs>
- <g stroke="${c[1]}" stroke-width="2.4" stroke-linecap="round" opacity=".9"><path d="M50 4v6M34 8l3 5M66 8l-3 5M24 16l4 3M76 16l-4 3"/></g>
- ${rk_laurel(`url(#${id}m)`,50,40,28,6,c[3])}
- <path d="M24 62L30 54H70L76 62Z" fill="${c[0]}" stroke="${c[3]}" stroke-width="1"/>
- <rect x="22" y="62" width="56" height="22" rx="3" fill="url(#${id}s)" stroke="${c[3]}" stroke-width="1.2"/>
- <g>${rk_checker(30,65,40,8,8,2,'#111','#fff')}</g>
- <text x="50" y="53" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-weight="900" font-size="46" fill="url(#${id}m)" stroke="${c[3]}" stroke-width="2.4" paint-order="stroke">${rank}</text>
- <path d="M38 22Q44 16 52 18" fill="none" stroke="#fff" stroke-opacity=".7" stroke-width="2" stroke-linecap="round"/>
+ const OUT='M50 3C62 9 75 10 88 8.5V45C88 71 71 87 50 97C29 87 12 71 12 45V8.5C25 10 38 9 50 3Z';
+ const IN='M50 10.5C60.5 15.5 71 16.5 81 15.5V45.5C81 66.5 67 79.5 50 88.5C33 79.5 19 66.5 19 45.5V15.5C29 16.5 39.5 15.5 50 10.5Z';
+ const ink=t==='si'?'#3a4049':t==='br'?'#4a2610':'#3d2600';
+ const sprig=sd=>{let s=`<path d="M${50+sd*20} 56Q${50+sd*27} 42 ${50+sd*24} 26" fill="none" stroke="${c[3]}" stroke-width="1.6" stroke-linecap="round"/>`;
+  [[54,0],[48,1],[42,0],[36,1],[30,0]].forEach(([y,k],i)=>{const x=50+sd*(20+i*1.4+(i>2?-(i-2)*1.2:0)),dx=sd*(k?-4.2:4.2),a=sd*(k?-35:35);
+   s+=`<ellipse cx="${(x+dx).toFixed(1)}" cy="${y}" rx="2.3" ry="4.6" transform="rotate(${a} ${(x+dx).toFixed(1)} ${y})" fill="url(#${id}m)" stroke="${c[3]}" stroke-width=".7"/>`});
+  return s};
+ return `<svg width="${size}" height="${size}" viewBox="0 0 100 100" role="img" aria-label="${year} レベル総合 ${rank}位"><defs>${rk_grad(id+'m',c)}${rk_exDefs(id)}
+ <radialGradient id="${id}f" cx=".45" cy=".3" r=".75"><stop stop-color="${c[0]}"/><stop offset=".55" stop-color="${c[1]}"/><stop offset="1" stop-color="${c[2]}"/></radialGradient>
+ <linearGradient id="${id}n" x1="0" y1="0" x2="0" y2="1"><stop stop-color="${c[0]}"/><stop offset=".5" stop-color="${c[1]}"/><stop offset="1" stop-color="${c[2]}"/></linearGradient>
+ <clipPath id="${id}in"><path d="${IN}"/></clipPath><clipPath id="${id}cp"><path d="${OUT}"/></clipPath></defs>
+ <path d="${OUT}" fill="url(#${id}m)" stroke="${ink}" stroke-width="2.6" stroke-linejoin="round"/>
+ <path d="${IN}" fill="url(#${id}f)" stroke="${c[3]}" stroke-width="1.2"/>
+ <g clip-path="url(#${id}in)"><path d="M19 10L81 10L19 60Z" fill="#fff" opacity=".18"/>${rk_checker(18,57,64,9,14,2,'#1c1c1c','#fafafa')}<rect x="18" y="57" width="64" height="9" fill="none" stroke="${c[3]}" stroke-width=".8"/></g>
+ ${sprig(-1)}${sprig(1)}
+ <text x="50" y="53" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-weight="900" font-size="42" fill="url(#${id}n)" stroke="${ink}" stroke-width="3.4" stroke-linejoin="round" paint-order="stroke">${rank}</text>
+ <path d="M8 67H92L88 73.5L92 80H8L12 73.5Z" fill="url(#${id}m)" stroke="${ink}" stroke-width="1.8" stroke-linejoin="round"/>
+ <text x="50" y="77.6" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-weight="900" font-size="11" fill="${ink}" letter-spacing=".5">${year}</text>
+ <path d="M24 18Q36 17 47 12" fill="none" stroke="#fff" stroke-opacity=".75" stroke-width="2" stroke-linecap="round"/>
  ${rk_exBand(id,2.4+rank*.3)}
- ${rk_plate(80,year,'#1b1f27',c[1],c[0])}
- ${rk_exStars([[86,22,7],[13,58,5.5],[82,64,4.5],[18,14,4.5]],rank===1?'#fff7c2':'#fff')}</svg>`}
+ ${rk_exStars([[90,24,6.5],[8,52,5],[91,58,4],[10,16,4.5]],rank===1?'#fff7c2':'#fff')}</svg>`}
 // 4〜10位：金の丸メダル＋赤とチェッカーのリボン（案A）
 function rk_ribbon(rank,size=46,year='2026'){const id='r'+(++rkU),g=rk_MET.go;
  const tail=sd=>`M${50+sd*2} 52L${50+sd*38} 86L${50+sd*27} 87L${50+sd*24} 99L${50-sd*10} 60Z`;
