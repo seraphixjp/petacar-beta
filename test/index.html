@@ -2192,7 +2192,6 @@ const views={
     <div><button class="chip carchip press" id="carb" aria-label="ガレージ（今日の車を選ぶ）">${CARI}${esc(carLabel(me))}${me.garage.length>1?`<small>${me.garage.length}台</small>`:''}<i aria-hidden="true">▾</i></button> <span class="chip">${esc(me.pref)}</span></div>
     ${inEvent()?`<div class="note" style="color:rgba(255,255,255,.85)">今日はイベント限定のフチで交換されます</div>`:''}
     ${myPins().length?`<div class="mpins">${pinRow(myPins())}</div>`:''}
-    ${awSlot(myUid(),'home')}
     <div class="mstats"><span><b>${log.length}</b>交換回数</span><span><b>${ppl.length}</b>会った人</span><span><b>${kc}</b>EX</span></div>
     <div class="mband"><span>${PINI}スポット <b>${[...spotSet()].filter(id=>!id.startsWith('rw:')).length.toLocaleString()}</b> か所</span><i></i><span>${NAVI}総移動 <b class="kmTot">${kmFmt(kmSum())}</b> km</span></div></div><div class="hwx" id="hwx" aria-live="polite"></div>
   ${me.def?`<button class="newsrow press" id="mkFirst"><span class="ntag" style="--nc:var(--accent)">はじめに</span><b>自分の車の写真でスタンプを作る</b><span class="val" aria-hidden="true">›</span></button>`:''}
@@ -2282,6 +2281,7 @@ const views={
   ${Object.entries(TIERS).map(([t,x])=>{const L=BADGES.filter(b=>b.tier===t&&show(b));if(!L.length)return '';
     return `<div class="sec">${x.n} <span class="chip">${BADGES.filter(b=>b.tier===t&&gk.includes(b.k)).length}/${BADGES.filter(b=>b.tier===t).length}</span></div>
     <div class="mgrid">${L.map(b=>{const v=b.f(st),got=v>=b.g;return `<button class="mcell press ${got?'got':''}" data-b="${b.k}" aria-label="${b.t}${got?'（獲得済み）':''}">${newShown.includes(b.k)?'<span class="newb">NEW</span>':''}${mp.includes(b.k)?`<span class="pinned">${PINI}</span>`:''}${medal(b,56,got)}<b>${b.t}</b>${got?'':`<i class="mbar"><i style="width:${Math.min(100,v/b.g*100)}%"></i></i>`}</button>`}).join('')}</div>`}).join('')}
+  ${rwFilter!=='not'?awSlot(myUid(),'rw'):''}
   <p class="note" style="text-align:center;margin-top:14px">バッジをタップすると、条件と進み具合が見られます。</p>`;
  }
 };
@@ -4069,7 +4069,7 @@ function rk_trophy(rank,size=46,year='2026'){const t=['go','si','br'][rank-1],c=
   [[54,0],[48,1],[42,0],[36,1],[30,0]].forEach(([y,k],i)=>{const x=50+sd*(20+i*1.4+(i>2?-(i-2)*1.2:0)),dx=sd*(k?-4.2:4.2),a=sd*(k?-35:35);
    s+=`<ellipse cx="${(x+dx).toFixed(1)}" cy="${y}" rx="2.3" ry="4.6" transform="rotate(${a} ${(x+dx).toFixed(1)} ${y})" fill="url(#${id}m)" stroke="${c[3]}" stroke-width=".7"/>`});
   return s};
- return `<span class="rkex" style="width:${size}px;height:${size}px"><svg width="${size}" height="${size}" viewBox="0 0 100 100" role="img" aria-label="${year} レベル総合 ${rank}位"><defs>${rk_grad(id+'m',c)}${rk_exDefs(id)}
+ return `<span class="rkex" style="width:${size}px;height:${size}px"><svg width="${size}" height="${size}" viewBox="0 0 100 100" role="img" aria-label="${year} 総合${rank}位"><defs>${rk_grad(id+'m',c)}${rk_exDefs(id)}
  <radialGradient id="${id}f" cx=".45" cy=".3" r=".75"><stop stop-color="${c[0]}"/><stop offset=".55" stop-color="${c[1]}"/><stop offset="1" stop-color="${c[2]}"/></radialGradient>
  <linearGradient id="${id}n" x1="0" y1="0" x2="0" y2="1"><stop stop-color="${c[0]}"/><stop offset=".5" stop-color="${c[1]}"/><stop offset="1" stop-color="${c[2]}"/></linearGradient>
  <clipPath id="${id}in"><path d="${IN}"/></clipPath><clipPath id="${id}cp"><path d="${OUT}"/></clipPath></defs>
@@ -4084,7 +4084,7 @@ function rk_trophy(rank,size=46,year='2026'){const t=['go','si','br'][rank-1],c=
 // 4〜10位：金の丸メダル＋赤とチェッカーのリボン（案A）
 function rk_ribbon(rank,size=46,year='2026'){const id='r'+(++rkU),g=rk_MET.go;
  const tail=sd=>`M${50+sd*2} 52L${50+sd*38} 86L${50+sd*27} 87L${50+sd*24} 99L${50-sd*10} 60Z`;
- return `<svg width="${size}" height="${size}" viewBox="0 0 100 100" role="img" aria-label="${year} レベル部門 ${rank}位"><defs>${rk_grad(id+'m',g)}<linearGradient id="${id}r" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#ff5a4a"/><stop offset=".55" stop-color="#d42a22"/><stop offset="1" stop-color="#8e1410"/></linearGradient>
+ return `<svg width="${size}" height="${size}" viewBox="0 0 100 100" role="img" aria-label="${year} 総合${rank}位"><defs>${rk_grad(id+'m',g)}<linearGradient id="${id}r" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#ff5a4a"/><stop offset=".55" stop-color="#d42a22"/><stop offset="1" stop-color="#8e1410"/></linearGradient>
  <clipPath id="${id}cl"><path d="${tail(-1)}"/></clipPath><clipPath id="${id}cr"><path d="${tail(1)}"/></clipPath><radialGradient id="${id}f" cx=".4" cy=".3" r=".8"><stop stop-color="#ffe9a0"/><stop offset=".6" stop-color="#e8b52c"/><stop offset="1" stop-color="#a87412"/></radialGradient></defs>
  <path d="${tail(-1)}" fill="url(#${id}r)" stroke="#6e0e0b" stroke-width="1"/><g clip-path="url(#${id}cl)">${rk_checker(8,80,40,20,8,4,'#111','#fff')}</g>
  <path d="${tail(1)}" fill="url(#${id}r)" stroke="#6e0e0b" stroke-width="1"/><g clip-path="url(#${id}cr)">${rk_checker(52,80,40,20,8,4,'#111','#fff')}</g>
@@ -4133,14 +4133,20 @@ function awHash(uid){if(!uid)return Promise.resolve('');if(awH[uid]!==undefined)
   try{return crypto.subtle.digest('SHA-256',new TextEncoder().encode('petacar:'+uid)).then(b=>awH[uid]=[...new Uint8Array(b)].slice(0,8).map(x=>x.toString(16).padStart(2,'0')).join('')).catch(()=>awH[uid]='')}catch(e){return Promise.resolve(awH[uid]='')}}
 function awLoad(){fetch(AW_URL+'?t='+Math.floor(Date.now()/36e5),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(j&&typeof j==='object'&&!Array.isArray(j)){AW=j;ntcLS('aw1',j);awRefresh()}}).catch(()=>{})}
 const awOf=h=>{const out=[];if(!h)return out;Object.keys(AW).filter(y=>/^\d{4}$/.test(y)).sort().reverse().forEach(y=>{const a=AW[y]&&AW[y][h];(Array.isArray(a)?a:a?[a]:[]).forEach(x=>{if(x&&(x.k==='nw'||(x.k==='lv'&&+x.r>=1&&+x.r<=10)))out.push({y,k:x.k,r:+x.r||0})})});return out};
-const awLabel=a=>a.k==='nw'?`${a.y} 新人賞`:`${a.y} レベル総合 ${a.r}位`;
+const awLabel=a=>a.k==='nw'?`${a.y} 新人賞`:`${a.y} 総合${a.r}位`;
 const awBadge=(a,sz)=>a.k==='nw'?rk_rookie(sz,a.y):a.r<=3?rk_trophy(a.r,sz,a.y):rk_ribbon(a.r,sz,a.y);
 const myUid=()=>window.__cloud&&__cloud.uid||'';
 const awSlot=(uid,mode)=>uid?`<div class="aws aw-${mode}" data-aw="${esc(uid)}" data-awm="${mode}"></div>`:'';
 function awRefresh(){$$('[data-aw]').forEach(el=>{const uid=el.dataset.aw,m=el.dataset.awm;awHash(uid).then(h=>{const L=awOf(h);
   if(!L.length){el.innerHTML='';return}
   const items=L.map(a=>`<button type="button" class="awi press" data-awl="${esc(awLabel(a))}" aria-label="${esc(awLabel(a))}">${awBadge(a,m==='home'?44:52)}<small>${esc(awLabel(a))}</small></button>`).join('');
-  el.innerHTML=m==='sec'?`<div class="sec">ペタカーランキングの受賞</div><div class="group awshelf">${items}</div>`:items;
+  el.innerHTML=m==='rw'?`<div class="sec">ペタカーランキング <span class="chip">${L.length}</span></div><div class="mgrid">${L.map(a=>`<button type="button" class="mcell got press" data-awl="${esc(awLabel(a))}" aria-label="${esc(awLabel(a))}">${awBadge(a,56)}<b>${esc(awLabel(a))}</b></button>`).join('')}</div>`
+    :m==='shelf'?(()=>{let sh=el.nextElementSibling&&el.nextElementSibling.classList.contains('shelf')?el.nextElementSibling:null;if(!sh){sh=document.createElement('div');sh.className='shelf';el.after(sh)}
+      sh.querySelectorAll('.awt').forEach(x=>x.remove());
+      sh.insertAdjacentHTML('afterbegin',L.map(a=>`<button type="button" class="trophy awt press" style="border:0;font:inherit;color:inherit" data-awl="${esc(awLabel(a))}" aria-label="${esc(awLabel(a))}">${awBadge(a,44)}<b>${esc(awLabel(a))}</b><span class="tier tier-go">ランキング</span></button>`).join(''));
+      while(sh.children.length>PIN_MAX){const c=[...sh.children].reverse().find(x=>!x.classList.contains('awt'));if(!c)break;c.remove()} // 8個まで。レア度の低いもの（棚の末尾）から外す
+      sh.querySelectorAll('[data-awl]').forEach(b=>b.onclick=e=>{e.stopPropagation();toast(b.dataset.awl)});return ''})()
+    :m==='sec'?`<div class="sec">ペタカーランキングの受賞</div><div class="group awshelf">${items}</div>`:items;
   el.querySelectorAll('[data-awl]').forEach(b=>b.onclick=e=>{e.stopPropagation();toast(b.dataset.awl)})})})}
 setTimeout(awLoad,2500);
 const rkConf=()=>`<div class="rkconf" aria-hidden="true">${Array.from({length:28},(_,i)=>`<i style="left:${(i*37+7)%100}%;background:${['#f2c94c','#fff1b8','#e8551c','#ffffff','#c9a227','#7ec8ff'][i%6]};animation-duration:${4+(i%5)*.8}s;animation-delay:${-((i*.73)%6).toFixed(2)}s"></i>`).join('')}</div>`;
@@ -4501,7 +4507,7 @@ function detail(id){
    <div class="lv" style="margin-top:4px">${Array.from({length:10},(_,i)=>`<i class="${i<n?'on':''}"></i>`).join('')}</div>
    <div class="hearts" style="font-size:14px">♥${n} · ${rank(n)}</div>
    <div class="note">次に会ったとき EX ${pct(kiraRate(n,false))} · レア ${pct(rareRate(n,false))}（イベント中は EX ${pct(kiraRate(n,true))}）</div></div>
-   ${awSlot(id,'sec')}${rewardsBlock(p.name,ps,ps.pins,ps.showStats!==false,ps.showRewards!==false)}
+   ${rewardsBlock(p.name,ps,ps.pins,ps.showStats!==false,ps.showRewards!==false,id)}
    <div class="sec">もらったスタンプ <span class="chip">${variants.length}種類</span></div>
    <div class="album">${variants.map(l=>`<div class="alb">${stamp(p,{size:64,ev:l.ev,sz:l.sz,fr:l.fr,kira:l.kira,rare:l.rare,v:l.v,im:l.im,rg:l.rg})}${variants.length>1?`<span>${esc(albName(p,l))}</span>`:''}</div>`).join('')}</div>
    ${variants.length>1?`<p class="note" style="margin:6px 4px 0">${esc(p.name)}さんのスタンプは、車ごと・作り直すごとに変わります。前のスタンプは、その日に会えた人だけの記録です。</p>`:''}
@@ -4518,12 +4524,12 @@ function detail(id){
 }
 
 const LOCK='<svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
-function rewardsBlock(name,ps,pinKeys,showStats,showRewards){
+function rewardsBlock(name,ps,pinKeys,showStats,showRewards,uid){
   const pg=gotList(ps).sort((a,b)=>TIERS[b.tier].o-TIERS[a.tier].o);
   const show=byTier((Array.isArray(pinKeys)?pinKeys:[]).filter(B)).map(B);
   return `<div class="sec">${esc(name)} さんのリワード</div><div class="group showcase">
     ${showStats?`<div class="mini"><div><b>${+ps.ex||0}</b><span>交換</span></div><div><b>${+ps.ppl||0}</b><span>会った人</span></div><div><b>${+ps.kira||0}</b><span>EX</span></div></div>`:''}
-    ${showRewards?`<div style="text-align:center">${clsChip(rpgOf(ps))}</div>${show.length?`<div class="shelf">${show.map(b=>`<div class="trophy t-${b.tier}">${medal(b,44)}<b>${b.t}</b><span class="tier tier-${b.tier}">${TIERS[b.tier].n}</span></div>`).join('')}</div>`:''}
+    ${showRewards?`<div style="text-align:center">${clsChip(rpgOf(ps))}</div>${awSlot(uid,'shelf')}${show.length?`<div class="shelf">${show.map(b=>`<div class="trophy t-${b.tier}">${medal(b,44)}<b>${b.t}</b><span class="tier tier-${b.tier}">${TIERS[b.tier].n}</span></div>`).join('')}</div>`:''}
       <div class="collect"><div class="cl"><span>バッジ</span><b>${pg.length}<small>/${BADGES.length}</small></b></div><div class="strip">${pg.map(b=>medal(b,30)).join('')}</div></div>`
     :`<div class="hiddenbox">${LOCK}${showStats?'バッジは非公開です':'リワードは非公開です'}</div>`}</div>`;
 }
@@ -4645,7 +4651,7 @@ function previewMe(){
   openSheet(`<div class="note" style="text-align:center;margin-bottom:10px">ほかの人には、このように表示されます</div>
    <div class="result pcard" style="background:${bgCSS(me)}">${stamp(me,{size:120})}<b style="font-size:20px">${me.official?OFFB:''}${supM(me)}${esc(me.name)}</b>${me.msg?`<div class="hitop">${esc(me.msg)}</div>`:''}${snsRow(mySns())}
    <div><span class="chip">${esc(carLabel(me))}</span> <span class="chip">${esc(me.pref)}</span></div></div>
-   ${awSlot(myUid(),'sec')}${rewardsBlock(me.name,st,myPins(),settings.pubStats,settings.pubRewards)}
+   ${rewardsBlock(me.name,st,myPins(),settings.pubStats,settings.pubRewards,myUid())}
    <div class="sec">参加したイベント</div>
    <div class="group">${settings.pubEvents?(evs.length?`<div style="display:flex;flex-wrap:wrap;gap:6px">${evs.map(e=>`<span class="chip">${esc(EVENTS[e].name)}</span>`).join('')}</div>`:'<div class="note">まだありません</div>'):`<div class="hiddenbox">${LOCK}非公開です</div>`}</div>
    <button class="btn sub press" style="margin-top:14px" id="back">設定に戻る</button>`);
