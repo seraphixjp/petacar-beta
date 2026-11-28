@@ -4140,7 +4140,7 @@ function rkDraw(){const j=window.__rk,b=$('#rkb');if(!j||!b)return;
   else{const w=N[0];h+=w?`<div class="rknw"><span class="rkic">${rk_rookie(76)}</span>${stamp(P(w),{size:56,fr:false})}<div class="t"><span>いまの1位</span><b>${esc(w.n)}</b><span>Lv.${+w.lv} ・ ${car(w)}</span></div></div>
      <div class="rklist">${N.map((r,i)=>row(r,i,`<span class="rkic rknum">${i+1}</span>`)).join('')}</div>`:'<p class="rkmsg">まだ候補がいません</p>';
     h+=`<p class="npnote">対象：${md(j.rookieFrom)||'11月1日'}以降に始めた人</p>`}
-  h+=`<p class="npnote">・同じレベルのときはEXPの多い順です。順位は発表日にだけ更新します（12月15日に中間発表、12月31日に結果発表）。<br>・運営のアカウントは対象外です。位置の偽装などの不正が見つかった場合も対象外になります。</p>`;
+  h+=`<p class="npnote">・同じレベルのときはEXPの多い順です。順位は発表日にだけ更新します（12月15日に中間発表、12月31日に結果発表）。<br>・位置の偽装などの不正が見つかった場合は対象外になります。</p>`;
   b.innerHTML=h;
   $$('[data-rkt]').forEach(t=>t.onclick=()=>{rkTab=t.dataset.rkt;rkDraw()});
   if(!window.__rkRe){window.__rkRe=1;setTimeout(()=>{window.__rkRe=0;if($('#rkv'))rkDraw()},1800)}} // スタンプの画像が届いたら描き直す
