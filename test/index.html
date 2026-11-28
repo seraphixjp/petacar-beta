@@ -756,7 +756,7 @@ html:lang(ja){word-break:auto-phrase}body{text-wrap:pretty}h1,h2,h3,b,strong,spa
 }
 
 /* 地図の種類アイコン（2026-11-18）：大きさは今までの丸と同じ（まだ：直径約18/14/10px、行った：約12/9/7px） */
-.smpk{background:none;border:0;display:grid;place-items:center}
+.smpk{background:none;border:0;display:grid;place-items:center;-webkit-tap-highlight-color:transparent}
 .smpk .mk{display:grid;place-items:center;width:18px;height:18px;border-radius:50%;background:var(--c);border:2px solid #fff;box-sizing:border-box;box-shadow:0 1px 3px rgba(0,0,0,.35)}
 .smpk .mk svg{width:11px;height:11px;fill:none;stroke:#fff;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
 .smpk .mk.on{width:12px;height:12px;border-width:1.5px;opacity:.85}.smpk .mk.on svg{width:7px;height:7px;stroke-width:3}
@@ -1499,6 +1499,7 @@ let smOnly=false,smWant=false; // 地図で「行っていないところだけ�
 let smMk=[],smRd=null,smSt=null; // 地図の点はすべてこの1枚に描く（描画面が2枚になると上の面がタップを奪い、2回目から点を押しても名前が出なかった）
 let LF=null,smMap=null,smLayer=null,smMe=null,smSel=null,smWatch=null,smFollow=true,smHead=null,smPrev=null; // smFollow：現在地に合わせて地図を動かし続ける（指で動かしたら止め、現在地ボタンで戻す）
 const smR=(on,z)=>z<=7?(on?2.6:4.2):z<=9?(on?3.6:6.2):(on?5:8); // まだ行っていない所を大きく、行った所（灰色）を小さく（2026-11-17 鈴木さん） // 広い範囲では点を小さくして混み合いを減らす
+const TOUCHY=(navigator.maxTouchPoints||0)>0||('ontouchstart' in window);
 function loadLeaflet(){
   if(window.L&&L.map)return Promise.resolve(window.L);
   if(LF)return LF;
@@ -1602,8 +1603,9 @@ function openSpotMap(focusId){
   loadLeaflet().then(L=>{
     if(!$('#smapc'))return;
     $('#smapc').innerHTML='';
+    if(TOUCHY&&L.Draggable)L.Draggable.prototype.options.clickTolerance=10; // 指のブレでタップが消えないように
     smMap=L.map('smapc',{zoomControl:false,preferCanvas:true,minZoom:5,maxZoom:18,worldCopyJump:false,maxBounds:[[18,118],[50,160]]});
-    smRd=L.canvas({padding:.3,tolerance:6});smBase(L);
+    smRd=L.canvas({padding:.3,tolerance:TOUCHY?12:6});smBase(L);
     smMap.attributionControl.setPrefix(false);
     smMap.on('click',()=>smCard(null));
     smMap.on('zoomend',smZoomCls);smZoomCls();smMap.on('moveend',smStDraw);
@@ -1677,7 +1679,7 @@ function smDraw(fit){
   const W=wantSet();
   const add=x=>{const on=vis.has(x.id),c=CAT[x.cat];
     // 種類のアイコン（大きさは地図の縮尺ごとに CSS で今までの丸と同じに）。行ったところは灰色、まだのところは種類の色
-    const m=L.marker([x.la,x.lo],{icon:L.divIcon({className:'smpk',html:`<i class="mk${on?' on':''}${W.has(x.id)?' w':''}" style="--c:${on?'#9aa0a6':c.c}"><svg viewBox="0 0 24 24" aria-hidden="true">${ICONS[c.ic]||''}</svg></i>`,iconSize:[22,22],iconAnchor:[11,11]}),keyboard:false,zIndexOffset:on?-100:0})
+    const m=L.marker([x.la,x.lo],{icon:L.divIcon({className:'smpk',html:`<i class="mk${on?' on':''}${W.has(x.id)?' w':''}" style="--c:${on?'#9aa0a6':c.c}"><svg viewBox="0 0 24 24" aria-hidden="true">${ICONS[c.ic]||''}</svg></i>`,iconSize:[36,36],iconAnchor:[18,18]}),keyboard:false,zIndexOffset:on?-100:0})
      .on('click',e=>{L.DomEvent.stopPropagation(e);smCard(x.id)});smMk.push(m);(on||!cl?smLayer:cl).addLayer(m)};
   list.filter(x=>!vis.has(x.id)).forEach(add);if(!smOnly)list.filter(x=>vis.has(x.id)).forEach(add); // 行ったところを上に。絞り込み中は行っていないところだけ
   const n=list.filter(x=>vis.has(x.id)).length;
@@ -4403,7 +4405,7 @@ function provText(){const p=(C.providers&&C.providers())||[];const n=p.map(x=>x=
      <button class="srow press" style="width:100%;border:0;background:none;cursor:pointer;text-align:left" data-doc="guide"><div class="t"><b>コミュニティガイドライン</b><span>安全に交換するためのルール</span></div><span class="val">›</span></button>
      <button class="srow press" style="width:100%;border:0;background:none;cursor:pointer;text-align:left" data-doc="contact"><div class="t"><b>お問い合わせ・不具合の報告</b></div><span class="val">›</span></button>
      <button class="srow press" style="width:100%;border:0;background:none;cursor:pointer;text-align:left" data-doc="credits"><div class="t"><b>データと素材の出典</b></div><span class="val">›</span></button>
-     <div class="srow"><div class="t"><b>バージョン</b></div><span class="val" style="font-family:var(--mono)">Web版・11/24更新</span></div></div>
+     <div class="srow"><div class="t"><b>バージョン</b></div><span class="val" style="font-family:var(--mono)">Web版・11/28更新</span></div></div>
    <div class="sec">アカウント</div>
    <div class="set"><div class="srow"><div class="t"><b>ログイン方法</b><span>${provText()}</span></div></div>${linkRows()}
      <button class="srow press" style="width:100%;border:0;background:none;cursor:pointer;text-align:left" id="logout"><div class="t"><b>ログアウト</b></div></button>
