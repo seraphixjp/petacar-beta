@@ -4070,7 +4070,7 @@ function rk_rookie(size=46,year='2026'){const id='n'+(++rkU),g=rk_MET.go;let sc=
  <path d="M50 3l2.6 5.4 5.9.8-4.3 4.1 1 5.8L50 16.4l-5.2 2.7 1-5.8-4.3-4.1 5.9-.8Z" fill="url(#${id}m)" stroke="${g[3]}" stroke-width=".8"/>
  ${rk_plate(73,year,`url(#${id}m)`,g[3],'#3a2400')}</svg>`}
 const RK_URL='https://seraphixjp.github.io/petacar-beta/notice/'+(!(window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform())&&/\/test\/|localhost|127\.0\.0\.1/.test(location.href)?'ranking_test':'ranking')+'.json';
-let rkTab='lv';
+let rkTab='lv';const RK_STAFF=['9kZ79k8z7zdRQeBUfmXRC6BKuJs1','ehahc20aaObVsUwryapB6Hcxlja2']; // 運営（まちょ・れな）は対象外
 function openRank(){if($('#rkv'))return;const el=document.createElement('div');el.id='rkv';el.className='rkv';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');el.setAttribute('aria-label','年末ペタカーランキング');
   el.innerHTML=`<div class="rkin"><div class="rktop"><button class="rkx press" id="rkx" aria-label="閉じる">×</button><div><p class="npsub">PETACAR RANKING 2026</p><h2>年末ペタカーランキング</h2></div></div><div id="rkb"><p class="rkmsg">読み込んでいます…</p></div></div>`;
   document.body.appendChild(el);requestAnimationFrame(()=>el.classList.add('on'));
@@ -4087,7 +4087,7 @@ function rkDraw(){const j=window.__rk,b=$('#rkb');if(!j||!b)return;
    <div class="rktabs" role="tablist"><button class="press${rkTab==='lv'?' on':''}" data-rkt="lv" role="tab" aria-selected="${rkTab==='lv'}">レベル総合</button><button class="press${rkTab==='nw'?' on':''}" data-rkt="nw" role="tab" aria-selected="${rkTab==='nw'}">新人賞</button></div>`;
   if(rkTab==='lv'){h+=`<div class="rkpod">${pod(L[1],2)}${pod(L[0],1)}${pod(L[2],3)}</div>
      <div class="rklist">${L.slice(3).map((r,i)=>row(r,i,`<span class="rkic">${rk_ribbon(i+4,34)}</span>`)).join('')}</div>
-     <div class="rklist rkme"><div class="rkrow"><span class="rkic rkyou">あなた</span><div class="t"><b>${esc(me.name||'あなた')}</b><span>${last&&myE<last.xp?`10位まで あと ${(last.xp-myE).toLocaleString()} EXP`:'10位圏内のレベルです'}</span></div><div class="rklv">Lv.${myL}<small>${myE.toLocaleString()} EXP</small></div></div></div>`}
+     <div class="rklist rkme"><div class="rkrow"><span class="rkic rkyou">あなた</span><div class="t"><b>${esc(me.name||'あなた')}</b><span>${RK_STAFF.includes(window.__cloud&&__cloud.uid)?'運営のため対象外です':last&&myE<last.xp?`10位まで あと ${(last.xp-myE).toLocaleString()} EXP`:'10位圏内のレベルです'}</span></div><div class="rklv">Lv.${myL}<small>${myE.toLocaleString()} EXP</small></div></div></div>`}
   else{const w=N[0];h+=w?`<div class="rknw"><span class="rkic">${rk_rookie(76)}</span>${stamp(P(w),{size:56,fr:false})}<div class="t"><span>いまの1位</span><b>${esc(w.n)}</b><span>Lv.${+w.lv} ・ ${car(w)}</span></div></div>
      <div class="rklist">${N.map((r,i)=>row(r,i,`<span class="rkic rknum">${i+1}</span>`)).join('')}</div>`:'<p class="rkmsg">まだ候補がいません</p>';
     h+=`<p class="npnote">対象：${md(j.rookieFrom)||'11月1日'}以降に始めた人</p>`}
