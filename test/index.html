@@ -790,6 +790,15 @@ html:lang(ja){word-break:auto-phrase}body{text-wrap:pretty}h1,h2,h3,b,strong,spa
 .rkpc span{font-size:11px;color:#f4c430;font-weight:800}
 .rkstep{width:100%;margin-top:6px;border-radius:10px 10px 0 0;display:grid;place-items:center;font:900 16px system-ui;color:rgba(0,0,0,.45)}
 .rkpc.p1 .rkstep{height:44px;background:linear-gradient(#f6d365,#c8961e)}.rkpc.p2 .rkstep{height:30px;background:linear-gradient(#e9edf2,#9aa3ad)}.rkpc.p3 .rkstep{height:22px;background:linear-gradient(#f0b989,#a8622e)}
+.rkpod.img{display:block;position:relative;aspect-ratio:900/842;padding:0;background:#0b1022 url(bg/podium.jpg) center bottom/100% auto no-repeat}
+.rkpod.img:before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,12,24,.45),rgba(8,12,24,0) 45%)}
+.rkpod.img .rkpc{position:absolute;transform:translateX(-50%);width:32%}
+.rkpod.img .rkpc.p1{left:50%;bottom:41.4%}.rkpod.img .rkpc.p2{left:19.3%;bottom:35.2%}.rkpod.img .rkpc.p3{left:80.5%;bottom:31.2%}
+.rkpod.img .rkstep{display:none}
+.rkpod.img .rkpc .stamp{margin:-4px auto 0}
+.rkpod.img .rkinfo{position:absolute;top:100%;left:0;right:0;padding-top:8px;display:flex;flex-direction:column;align-items:center}
+.rkpod.img .rkpc.p1 .rkinfo{padding-top:12px}
+.rkpod.img .rkinfo b,.rkpod.img .rkinfo span{text-shadow:0 1px 4px #000,0 0 8px #000;max-width:100%}
 .rklist{margin-top:12px;border-radius:16px;background:rgba(255,255,255,.06);overflow:hidden}
 .rkrow{display:flex;align-items:center;gap:10px;padding:8px 12px;border-top:1px solid rgba(255,255,255,.07)}.rkrow:first-child{border-top:0}
 .rkrow .t{flex:1;min-width:0}.rkrow .t b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rkrow .t span{font-size:11px;color:#aab3c8}
@@ -4068,16 +4077,38 @@ function rk_ribbon(rank,size=46,year='2026'){const id='r'+(++rkU),g=rk_MET.go;
  <text x="50" y="50" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-weight="900" font-size="${rank>9?27:33}" fill="#2a1a00" stroke="#fff6c8" stroke-width="1.6" paint-order="stroke">${rank}</text>
  <path d="M30 26Q38 14 52 13" fill="none" stroke="#fff" stroke-opacity=".7" stroke-width="2" stroke-linecap="round"/>
  ${rk_plate(64,year,'#1b1f27',g[1],g[0])}</svg>`}
-// 新人賞：若葉マークのロゼット（案A）
-function rk_rookie(size=46,year='2026'){const id='n'+(++rkU),g=rk_MET.go;let sc='';const R=34,n=16;for(let i=0;i<n;i++){const a=i/n*Math.PI*2;sc+=`<circle cx="${(50+Math.cos(a)*R*.86).toFixed(1)}" cy="${(42+Math.sin(a)*R*.86).toFixed(1)}" r="7.2"/>`}
- return `<svg width="${size}" height="${size}" viewBox="0 0 100 100" role="img" aria-label="${year} 新人賞"><defs>${rk_grad(id+'m',g)}<radialGradient id="${id}g" cx=".4" cy=".3" r=".8"><stop stop-color="#4fd27f"/><stop offset=".7" stop-color="#1f9a4f"/><stop offset="1" stop-color="#0f5e2e"/></radialGradient></defs>
- <path d="M34 62L24 94L36 88L44 97L50 70Z" fill="#1f9a4f" stroke="#0f5e2e" stroke-width="1"/><path d="M66 62L76 94L64 88L56 97L50 70Z" fill="#1f9a4f" stroke="#0f5e2e" stroke-width="1"/>
- <g fill="url(#${id}g)" stroke="#0f5e2e" stroke-width=".8">${sc}</g><circle cx="50" cy="42" r="29" fill="url(#${id}g)"/>
- <circle cx="50" cy="42" r="22" fill="url(#${id}m)" stroke="${g[3]}" stroke-width="1.2"/><circle cx="50" cy="42" r="18.5" fill="#fffdf2"/>
- <path d="M50 30L39 24Q36 23 36 26V43Q36 48 41 51L50 57Z" fill="#ffd400" stroke="#8a6d00" stroke-width="1"/>
- <path d="M50 30L61 24Q64 23 64 26V43Q64 48 59 51L50 57Z" fill="#17a34a" stroke="#0b5c28" stroke-width="1"/>
- <path d="M50 3l2.6 5.4 5.9.8-4.3 4.1 1 5.8L50 16.4l-5.2 2.7 1-5.8-4.3-4.1 5.9-.8Z" fill="url(#${id}m)" stroke="${g[3]}" stroke-width=".8"/>
- ${rk_plate(73,year,`url(#${id}m)`,g[3],'#3a2400')}</svg>`}
+// 新人賞：エメラルドの盾＋金の縁＋若葉マーク＋ROOKIEの帯＋2026のリボン（1〜3位の盾とそろえる）
+// 2026-11-28 鈴木さん「新人賞のバッチは安っぽいのでデザイン変えて」
+function rk_rookie(size=46,year='2026'){const id='n'+(++rkU),g=rk_MET.go;
+ const OUT='M50 3C62 9 75 10 88 8.5V45C88 71 71 87 50 97C29 87 12 71 12 45V8.5C25 10 38 9 50 3Z';
+ const IN='M50 10.5C60.5 15.5 71 16.5 81 15.5V45.5C81 66.5 67 79.5 50 88.5C33 79.5 19 66.5 19 45.5V15.5C29 16.5 39.5 15.5 50 10.5Z';
+ const ink='#0b2a17';
+ const sprig=sd=>{let s=`<path d="M${50+sd*21} 58Q${50+sd*28} 44 ${50+sd*25} 27" fill="none" stroke="${g[3]}" stroke-width="1.6" stroke-linecap="round"/>`;
+  [[55,0],[49,1],[43,0],[37,1],[31,0]].forEach(([y,k],i)=>{const x=50+sd*(21+i*1.4+(i>2?-(i-2)*1.2:0)),dx=sd*(k?-4.2:4.2),a=sd*(k?-35:35);
+   s+=`<ellipse cx="${(x+dx).toFixed(1)}" cy="${y}" rx="2.3" ry="4.6" transform="rotate(${a} ${(x+dx).toFixed(1)} ${y})" fill="url(#${id}m)" stroke="${g[3]}" stroke-width=".7"/>`});
+  return s};
+ return `<svg width="${size}" height="${size}" viewBox="0 0 100 100" role="img" aria-label="${year} 新人賞"><defs>${rk_grad(id+'m',g)}${rk_exDefs(id)}
+ <radialGradient id="${id}f" cx=".45" cy=".28" r=".8"><stop stop-color="#3fcf7d"/><stop offset=".55" stop-color="#138a47"/><stop offset="1" stop-color="#07502a"/></radialGradient>
+ <linearGradient id="${id}y" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fff27a"/><stop offset="1" stop-color="#f2c200"/></linearGradient>
+ <linearGradient id="${id}g" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#4ee08c"/><stop offset="1" stop-color="#0f9a4a"/></linearGradient>
+ <clipPath id="${id}in"><path d="${IN}"/></clipPath><clipPath id="${id}cp"><path d="${OUT}"/></clipPath></defs>
+ <path d="${OUT}" fill="url(#${id}m)" stroke="#3d2600" stroke-width="2.6" stroke-linejoin="round"/>
+ <path d="${IN}" fill="url(#${id}f)" stroke="${g[3]}" stroke-width="1.2"/>
+ <g clip-path="url(#${id}in)"><path d="M19 10L81 10L19 60Z" fill="#fff" opacity=".12"/>
+  <rect x="18" y="57" width="64" height="9" fill="#06361c"/><rect x="18" y="57" width="64" height="9" fill="none" stroke="url(#${id}m)" stroke-width="1"/>
+  <text x="50" y="64.2" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-weight="900" font-size="7" fill="url(#${id}m)" letter-spacing="1.6">ROOKIE</text></g>
+ ${sprig(-1)}${sprig(1)}
+ <g transform="translate(50 36)" stroke="#3d2600" stroke-width="1.6" stroke-linejoin="round">
+  <path d="M0 -12L-11 -18Q-14 -19 -14 -16V2Q-14 7 -9 10L0 16Z" fill="url(#${id}y)"/>
+  <path d="M0 -12L11 -18Q14 -19 14 -16V2Q14 7 9 10L0 16Z" fill="url(#${id}g)"/>
+  <path d="M0 -12V16" stroke-width="1.2"/></g>
+ <path d="M41 23.5L44 21.5" stroke="#fff" stroke-opacity=".8" stroke-width="1.6" stroke-linecap="round"/>
+ <path d="M50 1.5l1.7 3.5 3.9.5-2.8 2.7.7 3.8L50 10.2l-3.5 1.8.7-3.8-2.8-2.7 3.9-.5Z" fill="url(#${id}m)" stroke="#3d2600" stroke-width=".8"/>
+ <path d="M8 67H92L88 73.5L92 80H8L12 73.5Z" fill="url(#${id}m)" stroke="#3d2600" stroke-width="1.8" stroke-linejoin="round"/>
+ <text x="50" y="77.6" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-weight="900" font-size="11" fill="#3d2600" letter-spacing=".5">${year}</text>
+ <path d="M24 18Q36 17 47 12" fill="none" stroke="#fff" stroke-opacity=".6" stroke-width="2" stroke-linecap="round"/>
+ ${rk_exBand(id,3.1)}
+ ${rk_exStars([[90,24,6],[8,52,4.5],[91,58,4],[10,16,4]],'#eafff2')}</svg>`}
 const RK_URL='https://seraphixjp.github.io/petacar-beta/notice/'+(!(window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform())&&/\/test\/|localhost|127\.0\.0\.1/.test(location.href)?'ranking_test':'ranking')+'.json';
 let rkTab='lv';const RK_STAFF=['9kZ79k8z7zdRQeBUfmXRC6BKuJs1','ehahc20aaObVsUwryapB6Hcxlja2']; // 運営（まちょ・れな）は対象外
 function openRank(){if($('#rkv'))return;const el=document.createElement('div');el.id='rkv';el.className='rkv';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');el.setAttribute('aria-label','年末ペタカーランキング');
@@ -4090,11 +4121,11 @@ function rkDraw(){const j=window.__rk,b=$('#rkb');if(!j||!b)return;
   const P=r=>({name:r.n,img:r.img,ring:r.ring}),car=r=>esc([r.mk,r.car].filter(Boolean).join(' '));
   const L=(Array.isArray(j.lv)?j.lv:[]).slice(0,10),N=(Array.isArray(j.rookie)?j.rookie:[]).slice(0,5);
   const myE=Math.round(expOf(myStats())),myL=lvOf(myE),last=L[L.length-1];
-  const pod=(r,i)=>r?`<div class="rkpc p${i}"><div class="rkt">${rk_trophy(i,i===1?64:52)}</div>${stamp(P(r),{size:i===1?60:50,fr:false})}<b>${esc(r.n)}</b><span>Lv.${+r.lv}</span><div class="rkstep">${i}</div></div>`:'<div></div>';
+  const pod=(r,i)=>r?`<div class="rkpc p${i}"><div class="rkt">${rk_trophy(i,i===1?64:52)}</div>${stamp(P(r),{size:i===1?56:46,fr:false})}<div class="rkinfo"><b>${esc(r.n)}</b><span>Lv.${+r.lv}</span></div><div class="rkstep">${i}</div></div>`:'<div></div>';
   const row=(r,i,ic)=>`<div class="rkrow">${ic}${stamp(P(r),{size:36,fr:false})}<div class="t"><b>${esc(r.n)}</b><span>${car(r)}</span></div><div class="rklv">Lv.${+r.lv}<small>${(+r.xp||0).toLocaleString()} EXP</small></div></div>`;
   let h=`<p class="rkat">${md(j.at)} ${esc(hm)}時点の順位 ・ ${md(j.cut)||'12月30日'}まで集計 ・ ${md(j.announce)||'12月31日'}発表</p>
    <div class="rktabs" role="tablist"><button class="press${rkTab==='lv'?' on':''}" data-rkt="lv" role="tab" aria-selected="${rkTab==='lv'}">レベル総合</button><button class="press${rkTab==='nw'?' on':''}" data-rkt="nw" role="tab" aria-selected="${rkTab==='nw'}">新人賞</button></div>`;
-  if(rkTab==='lv'){h+=`<div class="rkpod">${pod(L[1],2)}${pod(L[0],1)}${pod(L[2],3)}</div>
+  if(rkTab==='lv'){h+=`<div class="rkpod img">${pod(L[1],2)}${pod(L[0],1)}${pod(L[2],3)}</div>
      <div class="rklist">${L.slice(3).map((r,i)=>row(r,i,`<span class="rkic">${rk_ribbon(i+4,34)}</span>`)).join('')}</div>
      <div class="rklist rkme"><div class="rkrow"><span class="rkic rkyou">あなた</span><div class="t"><b>${esc(me.name||'あなた')}</b><span>${RK_STAFF.includes(window.__cloud&&__cloud.uid)?'運営のため対象外です':last&&myE<last.xp?`10位まで あと ${(last.xp-myE).toLocaleString()} EXP`:'10位圏内のレベルです'}</span></div><div class="rklv">Lv.${myL}<small>${myE.toLocaleString()} EXP</small></div></div></div>`}
   else{const w=N[0];h+=w?`<div class="rknw"><span class="rkic">${rk_rookie(76)}</span>${stamp(P(w),{size:56,fr:false})}<div class="t"><span>いまの1位</span><b>${esc(w.n)}</b><span>Lv.${+w.lv} ・ ${car(w)}</span></div></div>
