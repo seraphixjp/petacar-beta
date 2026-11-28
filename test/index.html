@@ -773,10 +773,10 @@ html:lang(ja){word-break:auto-phrase}body{text-wrap:pretty}h1,h2,h3,b,strong,spa
 .npnote{margin:10px 0 0;font-size:12px;line-height:1.5;color:#aab3c8}
 .npin .u11btns{padding:14px 20px 18px}
 .aws:empty{display:none}
-.aws.home{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 12px;margin-top:8px}
+.aws.aw-home{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 12px;margin-top:8px}
 .awi{display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:0;padding:0;color:inherit;max-width:96px}
 .awi small{font-size:10px;font-weight:800;line-height:1.25;text-align:center;opacity:.92}
-.aws.home .awi small{color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.6)}
+.aws.aw-home .awi small{color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.6)}
 .awshelf{display:flex;flex-wrap:wrap;justify-content:center;gap:10px 16px;padding:12px}
 .rkex{position:relative;display:inline-block;line-height:0;vertical-align:middle}
 .rkex>svg{display:block}
@@ -4136,7 +4136,7 @@ const awOf=h=>{const out=[];if(!h)return out;Object.keys(AW).filter(y=>/^\d{4}$/
 const awLabel=a=>a.k==='nw'?`${a.y} 新人賞`:`${a.y} レベル総合 ${a.r}位`;
 const awBadge=(a,sz)=>a.k==='nw'?rk_rookie(sz,a.y):a.r<=3?rk_trophy(a.r,sz,a.y):rk_ribbon(a.r,sz,a.y);
 const myUid=()=>window.__cloud&&__cloud.uid||'';
-const awSlot=(uid,mode)=>uid?`<div class="aws ${mode}" data-aw="${esc(uid)}" data-awm="${mode}"></div>`:'';
+const awSlot=(uid,mode)=>uid?`<div class="aws aw-${mode}" data-aw="${esc(uid)}" data-awm="${mode}"></div>`:'';
 function awRefresh(){$$('[data-aw]').forEach(el=>{const uid=el.dataset.aw,m=el.dataset.awm;awHash(uid).then(h=>{const L=awOf(h);
   if(!L.length){el.innerHTML='';return}
   const items=L.map(a=>`<button type="button" class="awi press" data-awl="${esc(awLabel(a))}" aria-label="${esc(awLabel(a))}">${awBadge(a,m==='home'?44:52)}<small>${esc(awLabel(a))}</small></button>`).join('');
