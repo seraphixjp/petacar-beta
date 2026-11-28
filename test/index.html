@@ -756,6 +756,22 @@ html:lang(ja){word-break:auto-phrase}body{text-wrap:pretty}h1,h2,h3,b,strong,spa
 }
 
 /* 地図の種類アイコン（2026-11-18）：大きさは今までの丸と同じ（まだ：直径約18/14/10px、行った：約12/9/7px） */
+.npop{position:fixed;inset:0;z-index:60;background:rgba(5,8,16,.62);display:grid;place-items:center;padding:16px;opacity:0;transition:opacity .25s}
+.npop.on{opacity:1}
+.npin{width:min(100%,420px);max-height:calc(100vh - 32px);overflow:auto;background:linear-gradient(180deg,#141c36,#0b1022);color:#fff;border-radius:20px;box-shadow:0 20px 50px rgba(0,0,0,.5),0 0 0 1.5px #e9b949 inset;transform:translateY(14px) scale(.97);transition:transform .25s}
+.npop.on .npin{transform:none}
+.nphero{margin:0;aspect-ratio:1080/570;background:#121a33;border-radius:20px 20px 0 0;overflow:hidden}
+.nphero img{width:100%;height:100%;object-fit:cover;display:block}
+.npbody{padding:16px 20px 4px}
+.npsub{margin:0 0 4px;color:#e9b949;font-weight:800;font-size:13px;letter-spacing:.08em}
+.npin h2{margin:0 0 12px;font-size:24px;line-height:1.25;font-weight:900;background:linear-gradient(180deg,#fff6c8,#f4c430 60%,#c8901a);-webkit-background-clip:text;background-clip:text;color:transparent}
+.npin ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.npin li{display:grid;grid-template-columns:5.6em 1fr;gap:10px;align-items:baseline;padding:9px 12px;border-radius:12px;background:rgba(255,255,255,.07)}
+.npin li b{color:#f4c430;font-size:13px}
+.npin li span{font-size:14px;line-height:1.5}
+.nptx{font-size:14px;line-height:1.6}
+.npnote{margin:10px 0 0;font-size:12px;line-height:1.5;color:#aab3c8}
+.npin .u11btns{padding:14px 20px 18px}
 .smpk{background:none;border:0;display:grid;place-items:center;-webkit-tap-highlight-color:transparent}
 .smpk .mk{display:grid;place-items:center;width:18px;height:18px;border-radius:50%;background:var(--c);border:2px solid #fff;box-sizing:border-box;box-shadow:0 1px 3px rgba(0,0,0,.35)}
 .smpk .mk svg{width:11px;height:11px;fill:none;stroke:#fff;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
@@ -3954,8 +3970,25 @@ function ntcShow(){const el=$('#ntc');if(!el)return;clearInterval(ntcTimer);let 
   if(!L.length){el.innerHTML=ntcDone&&tab==='me'&&typeof EVCAL_ON!=='undefined'&&EVCAL_ON?`<div style="font-size:10px;color:var(--muted);margin:-6px 0 2px;line-height:1.3">お知らせ診断：${esc(NTC_URL.split('/').pop())}／${esc(String(ntcLS('ntcst')||'未読込'))}／保存${esc(JSON.stringify((ntcLS('ntc1')||[]).map(x=>x&&x.id)))}／閉じた${(ntcLS('ntcoff1')||[]).length}件／今日${esc(today())}</div>`:'';return}
   const one=()=>{const x=L[ntcI%L.length],dd=String(x.date||x.from||''),md=/^\d{4}-\d{2}-\d{2}$/.test(dd)?(+dd.slice(5,7))+'月'+(+dd.slice(8,10))+'日 ':'',tx='【公式】'+md+x.text;el.innerHTML=`<div class="ntc${x.lv==='warn'?' warn':''}" role="button" tabindex="0" aria-label="${esc(tx)}"><span aria-hidden="true" style="flex:0 0 auto">📢</span><span><i class="mq">${esc(tx)}</i></span><button type="button" aria-label="このお知らせを閉じる">×</button></div>`;
     const b=el.firstChild;b.querySelector('button').onclick=ev=>{ev.stopPropagation();const off=ntcLS('ntcoff1')||[];off.push(x.id);ntcLS('ntcoff1',off.slice(-50));ntcShow()};
-    b.onclick=()=>{if(x.url&&/^https:\/\//.test(x.url))window.open(x.url,'_blank','noopener');else toast(tx)};hwxMq(b.children[1])};
-  one();if(L.length>1){let last=Date.now();ntcTimer=setInterval(()=>{if(!$('#ntc')){clearInterval(ntcTimer);return}if(!mqDue($('#ntc'),last,12000))return;last=Date.now();ntcI++;one()},1000)}}
+    b.onclick=()=>{if(x.pop)ntcPop(x,true);else if(x.url&&/^https:\/\//.test(x.url))window.open(x.url,'_blank','noopener');else toast(tx)};hwxMq(b.children[1])};
+  one();ntcPopLater(L);if(L.length>1){let last=Date.now();ntcTimer=setInterval(()=>{if(!$('#ntc')){clearInterval(ntcTimer);return}if(!mqDue($('#ntc'),last,12000))return;last=Date.now();ntcI++;one()},1000)}}
+/* お知らせのポップアップ：1つのお知らせにつき1回だけ（起動の図柄・はじめての案内・ほかの画面が出ていないときに） */
+function ntcPopLater(L){const seen=ntcLS('ntcpop1')||[],x=L.find(y=>y.pop&&!seen.includes(y.id));if(!x||$('#ntcpop'))return;
+  let n=0;const t=setInterval(()=>{n++;const sp=document.getElementById('splash');
+    if(tab==='me'&&(!sp||sp.classList.contains('gone')||getComputedStyle(sp).display==='none')&&!$('#onb .onb')&&!$('#sh')&&!$('#upd11')&&!$('#ntcpop')){clearInterval(t);setTimeout(()=>ntcPop(x),500)}else if(n>120)clearInterval(t)},500)}
+function ntcPop(x,again){const P=x.pop||{};if($('#ntcpop'))return;
+  if(!again){const seen=ntcLS('ntcpop1')||[];if(seen.includes(x.id))return;seen.push(x.id);ntcLS('ntcpop1',seen.slice(-50))}
+  const L=Array.isArray(P.lines)?P.lines:[],img=P.img&&/^https:\/\//.test(P.img)?P.img:'';
+  const el=document.createElement('div');el.id='ntcpop';el.className='npop';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');el.setAttribute('aria-label',P.title||x.text);
+  el.innerHTML=`<div class="npin">${img?`<figure class="nphero"><img src="${esc(img)}" alt="" onerror="this.parentNode.remove()"></figure>`:''}
+   <div class="npbody">${P.sub?`<p class="npsub">${esc(P.sub)}</p>`:''}<h2>${esc(P.title||'公式からのお知らせ')}</h2>
+    ${L.length?`<ul>${L.map(r=>`<li><b>${esc(r[0]||'')}</b><span>${esc(r[1]||'')}</span></li>`).join('')}</ul>`:`<p class="nptx">${esc(x.text)}</p>`}
+    ${P.note?`<p class="npnote">${esc(P.note)}</p>`:''}</div>
+   <div class="u11btns">${P.go?`<button class="btn press" id="npgo">${esc(P.btn||'見てみる')}</button><button class="btn sub press" id="npx">閉じる</button>`:`<button class="btn press" id="npx">${esc(P.btn||'OK')}</button>`}</div></div>`;
+  document.body.appendChild(el);requestAnimationFrame(()=>el.classList.add('on'));
+  const close=()=>{el.classList.remove('on');setTimeout(()=>el.remove(),260)};
+  $('#npx').onclick=close;el.onclick=e=>{if(e.target===el)close()};
+  const g=$('#npgo');if(g)g.onclick=()=>{close();const v=String(P.go);if(/^https:\/\//.test(v))window.open(v,'_blank','noopener');else if(['me','col','sp','rw'].includes(v)){tab=v;render()}}}
 try{document.addEventListener('visibilitychange',()=>{if(!document.hidden)ntcLoad()})}catch(e){}
 setTimeout(()=>ntcLoad(true),1500);
 const mqDue=(el,last,min)=>{if(Date.now()-last<min)return false;const m=el&&el.querySelector('.mq');return !m||!m.dataset.until||Date.now()>=+m.dataset.until};
